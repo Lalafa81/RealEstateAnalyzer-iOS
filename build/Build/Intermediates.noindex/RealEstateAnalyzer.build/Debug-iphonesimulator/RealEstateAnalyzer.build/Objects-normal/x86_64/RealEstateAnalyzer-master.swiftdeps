@@ -1,0 +1,13 @@
+version: "Apple Swift version 5.7.2 (swiftlang-5.7.2.135.5 clang-1400.0.29.51)"
+options: "d0a8e2032c3510aa550937551d0ef7a4026dc850aec0051b07f76775ac4b6e27"
+build_start_time: [1764999997, 917036056]
+build_end_time: [1765000020, 429599046]
+inputs:
+  "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/App/RealEstateAnalyzerApp.swift": [1764998948, 376471519]
+  "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Models/Analytics.swift": [1764998948, 376882553]
+  "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Models/Property.swift": [1764998948, 376792430]
+  "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Services/DataManager.swift": [1764999928, 403583049]
+  "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Services/MetricsCalculator.swift": [1764998948, 408102035]
+  "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Utilities/Extensions.swift": [1764998948, 408713817]
+  "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Views/Dashboard/DashboardView.swift": [1764999959, 328338623]
+  "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Views/PropertyDetail/PropertyDetailView.swift": [1764998948, 408216238]

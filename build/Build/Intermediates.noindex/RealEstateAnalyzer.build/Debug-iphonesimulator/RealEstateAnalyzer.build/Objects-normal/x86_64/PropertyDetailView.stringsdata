@@ -1,0 +1,76 @@
+{
+  "source": "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Views/PropertyDetail/PropertyDetailView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Площадь"
+      },
+      {
+        "comment": "",
+        "key": "%lld м²"
+      },
+      {
+        "comment": "",
+        "key": "Цена покупки"
+      },
+      {
+        "comment": "",
+        "key": "Настройки аналитики"
+      },
+      {
+        "comment": "",
+        "key": "Только выбранный год"
+      },
+      {
+        "comment": "",
+        "key": "Год"
+      },
+      {
+        "comment": "",
+        "key": "Включать административные расходы"
+      },
+      {
+        "comment": "",
+        "key": "Включать прочие расходы"
+      },
+      {
+        "comment": "",
+        "key": "%lld"
+      },
+      {
+        "comment": "",
+        "key": "Аналитика"
+      },
+      {
+        "comment": "",
+        "key": "Графики"
+      },
+      {
+        "comment": "",
+        "key": "Доходы и расходы за %lld"
+      },
+      {
+        "comment": "",
+        "key": "Арендаторы"
+      },
+      {
+        "comment": "",
+        "key": "Нет арендаторов"
+      },
+      {
+        "comment": "",
+        "key": "%@ - %@"
+      },
+      {
+        "comment": "",
+        "key": "Календарь"
+      },
+      {
+        "comment": "",
+        "key": "Календарь доходов/расходов будет реализован в следующей версии"
+      }
+    ]
+  },
+  "version": 1
+}
