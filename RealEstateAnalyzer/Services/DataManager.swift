@@ -39,33 +39,81 @@ class DataManager: ObservableObject {
     
     // MARK: - Загрузка данных
     
+    /// Принудительно перезагружает данные из Bundle, удаляя старый файл из Documents
+    func forceReloadFromBundle() {
+        let documentsURL = getDocumentsURL().appendingPathComponent(dataFileName)
+        
+        // Удаляем старый файл из Documents
+        if FileManager.default.fileExists(atPath: documentsURL.path) {
+            do {
+                try FileManager.default.removeItem(at: documentsURL)
+                print("🗑️ Удален старый файл из Documents")
+            } catch {
+                print("⚠️ Не удалось удалить файл: \(error)")
+            }
+        }
+        
+        // Загружаем из Bundle
+        loadData()
+    }
+    
     func loadData() {
         let documentsURL = getDocumentsURL().appendingPathComponent(dataFileName)
         
-        // Сначала пробуем загрузить из Documents (пользовательские данные)
-        if FileManager.default.fileExists(atPath: documentsURL.path) {
-            if loadData(from: documentsURL) {
-                return
-            }
-        }
-        
-        // Если в Documents нет, пробуем загрузить из Bundle (ресурсы проекта)
+        // СНАЧАЛА пробуем загрузить из Bundle (ресурсы проекта) - это приоритетный источник
         if let bundleURL = Bundle.main.url(forResource: "data", withExtension: "json") {
+            print("📦 Найден data.json в Bundle: \(bundleURL.path)")
             if loadData(from: bundleURL) {
                 // Копируем из bundle в Documents для дальнейшего использования
-                copyFile(from: bundleURL, to: documentsURL)
+                // Но только если в Documents нет файла или он пустой
+                if !FileManager.default.fileExists(atPath: documentsURL.path) {
+                    copyFile(from: bundleURL, to: documentsURL)
+                } else {
+                    print("ℹ️ Файл в Documents уже существует, не перезаписываем")
+                }
                 return
             }
+        } else {
+            print("⚠️ Файл data.json не найден в Bundle")
+        }
+        
+        // Если в Bundle нет или не загрузился, пробуем загрузить из Documents (пользовательские данные)
+        if FileManager.default.fileExists(atPath: documentsURL.path) {
+            print("📁 Найден data.json в Documents: \(documentsURL.path)")
+            if loadData(from: documentsURL) {
+                // Проверяем, не являются ли это тестовые данные
+                if isTestData() {
+                    print("⚠️ Обнаружены тестовые данные в Documents, перезагружаем из Bundle")
+                    try? FileManager.default.removeItem(at: documentsURL)
+                    // Пробуем снова загрузить из Bundle
+                    if let bundleURL = Bundle.main.url(forResource: "data", withExtension: "json") {
+                        if loadData(from: bundleURL) {
+                            copyFile(from: bundleURL, to: documentsURL)
+                            return
+                        }
+                    }
+                } else {
+                    return
+                }
+            } else {
+                print("⚠️ Файл в Documents не загрузился, удаляем его")
+                // Удаляем поврежденный файл
+                try? FileManager.default.removeItem(at: documentsURL)
+            }
+        } else {
+            print("⚠️ Файл data.json не найден в Documents")
         }
         
         // Если ничего не найдено, загружаем тестовые данные
-        print("Файл данных не найден. Загружаем тестовые данные.")
+        print("❌ Файл данных не найден. Загружаем тестовые данные.")
         loadSampleData()
     }
     
     private func loadData(from url: URL) -> Bool {
         do {
             let data = try Data(contentsOf: url)
+            print("📊 Размер файла: \(data.count) байт")
+            
             let decoder = JSONDecoder()
             let propertyData = try decoder.decode(PropertyData.self, from: data)
             self.properties = propertyData.objects
@@ -74,17 +122,68 @@ class DataManager: ObservableObject {
             // Мигрируем старые UUID в простые ID
             migrateIDsToSimpleFormat()
             
+            // Мигрируем старые иконки на правильные SF Symbols
+            migrateIconsToSFSymbols()
+            
             // Если данных нет, возвращаем false
             if self.properties.isEmpty {
-                print("Файл найден, но объектов нет.")
+                print("⚠️ Файл найден, но объектов нет.")
                 return false
             } else {
                 print("✅ Загружено объектов: \(self.properties.count)")
+                for (index, prop) in self.properties.enumerated() {
+                    print("  \(index + 1). \(prop.name) (ID: \(prop.id))")
+                }
                 return true
             }
         } catch {
             print("❌ Ошибка загрузки данных из \(url.path): \(error)")
             return false
+        }
+    }
+    
+    /// Мигрирует старые иконки на правильные SF Symbols
+    private func migrateIconsToSFSymbols() {
+        var needsSave = false
+        for i in 0..<properties.count {
+            let currentIcon = properties[i].icon
+            var newIcon: String
+            var shouldUpdate = false
+            
+            if let icon = currentIcon {
+                switch icon.lowercased() {
+                case "warehouse":
+                    newIcon = "archivebox.fill"
+                    shouldUpdate = true
+                case "house":
+                    newIcon = "house.fill"
+                    shouldUpdate = (icon != newIcon)
+                case "building", "office":
+                    newIcon = "building.2.fill"
+                    shouldUpdate = true
+                case "land", "земельный участок":
+                    newIcon = "square.fill"
+                    shouldUpdate = true
+                default:
+                    // Если это уже правильная SF Symbol, оставляем как есть
+                    newIcon = icon
+                    shouldUpdate = false
+                }
+            } else {
+                // Если иконки нет, устанавливаем дефолтную
+                newIcon = "house.fill"
+                shouldUpdate = true
+            }
+            
+            if shouldUpdate && properties[i].icon != newIcon {
+                properties[i].icon = newIcon
+                needsSave = true
+            }
+        }
+        
+        if needsSave {
+            saveData()
+            print("✅ Миграция иконок завершена")
         }
     }
     
@@ -119,6 +218,17 @@ class DataManager: ObservableObject {
             print("✅ Файл скопирован из bundle в Documents")
         } catch {
             print("⚠️ Не удалось скопировать файл: \(error)")
+        }
+    }
+    
+    // MARK: - Проверка данных
+    
+    /// Проверяет, являются ли загруженные данные тестовыми
+    private func isTestData() -> Bool {
+        // Проверяем по характерным признакам тестовых данных
+        let testNames = ["Квартира на Тверской", "Офис в БЦ", "Склад на окраине"]
+        return properties.contains { property in
+            testNames.contains(property.name)
         }
     }
     
@@ -309,5 +419,6 @@ class DataManager: ObservableObject {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }
 }
+
 
 

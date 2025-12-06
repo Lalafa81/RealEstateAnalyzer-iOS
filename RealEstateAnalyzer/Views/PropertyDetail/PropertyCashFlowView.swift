@@ -89,52 +89,53 @@ struct CashFlowView: View {
                 .font(.headline)
             
             // Итоговые значения (чистый cashflow)
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
                 // Cashflow за выбранный год
                 VStack(spacing: 4) {
                     Text("Чистый cashflow за \(String(selectedYear)) год")
-                        .font(.caption)
+                        .font(.system(size: 9))
                         .foregroundColor(.secondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
                     
-                    VStack(spacing: 2) {
+                    HStack(alignment: .firstTextBaseline, spacing: 2) {
                         Text(formatCurrency(totalCashFlow))
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .font(.system(size: 14, weight: .bold))
                             .foregroundColor(totalCashFlow >= 0 ? .green : .red)
                         Text("₽")
-                            .font(.caption)
+                            .font(.system(size: 10))
                             .foregroundColor(.secondary)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color.blue.opacity(0.1))
-                    .cornerRadius(8)
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)
+                .background(Color.blue.opacity(0.1))
+                .cornerRadius(8)
                 
                 // Cashflow за весь период
                 VStack(spacing: 4) {
                     Text("Чистый cashflow за весь период")
-                        .font(.caption)
+                        .font(.system(size: 9))
                         .foregroundColor(.secondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
                     
-                    VStack(spacing: 2) {
+                    HStack(alignment: .firstTextBaseline, spacing: 2) {
                         Text(formatCurrency(totalCashFlowAllPeriods))
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .font(.system(size: 14, weight: .bold))
                             .foregroundColor(totalCashFlowAllPeriods >= 0 ? .green : .red)
                         Text("₽")
-                            .font(.caption)
+                            .font(.system(size: 10))
                             .foregroundColor(.secondary)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color.green.opacity(0.1))
-                    .cornerRadius(8)
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)
+                .background(Color.green.opacity(0.1))
+                .cornerRadius(8)
             }
-            .padding(.vertical, 4)
             
             // Выбор года
             YearPickerView(

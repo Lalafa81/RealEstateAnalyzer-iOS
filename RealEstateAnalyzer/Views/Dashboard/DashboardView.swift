@@ -18,14 +18,23 @@ struct DashboardView: View {
                 StatisticsView(properties: dataManager.properties)
             }
             
+            // Календарь (в разработке)
+            Section(header: Text("Календарь")) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Календарь событий находится в разработке")
+                        .foregroundColor(.secondary)
+                        .font(.subheadline)
+                        .padding()
+                }
+            }
+            
             // Список объектов
             Section(header: Text("Объекты недвижимости")) {
-                ForEach(dataManager.properties) { property in
+                ForEach(Array(dataManager.properties.enumerated()), id: \.element.id) { index, property in
                     NavigationLink(destination: PropertyDetailView(property: property)) {
-                        PropertyRowView(property: property)
+                        PropertyRowView(property: property, index: index + 1)
                     }
                 }
-                .onDelete(perform: deleteProperties)
             }
         }
         .navigationTitle("Недвижимость")
@@ -41,11 +50,6 @@ struct DashboardView: View {
         }
     }
     
-    private func deleteProperties(at offsets: IndexSet) {
-        for index in offsets {
-            dataManager.deleteProperty(dataManager.properties[index])
-        }
-    }
 }
 
 struct StatisticsView: View {
@@ -111,19 +115,46 @@ struct StatRow: View {
 
 struct PropertyRowView: View {
     let property: Property
+    let index: Int
+    
+    // Маппинг старых иконок на правильные SF Symbols
+    private func getIconName(_ icon: String?) -> String {
+        guard let icon = icon else { return "house.fill" }
+        
+        // Маппинг старых названий на правильные SF Symbols
+        switch icon.lowercased() {
+        case "warehouse":
+            return "archivebox.fill"
+        case "house":
+            return "house.fill"
+        case "building", "office":
+            return "building.2.fill"
+        case "land", "земельный участок":
+            return "square.fill"
+        default:
+            // Если это уже правильная SF Symbol, возвращаем как есть
+            return icon
+        }
+    }
     
     var body: some View {
         HStack {
-            // Иконка
-            if let icon = property.icon {
-                Image(systemName: icon)
-                    .foregroundColor(.purple)
-                    .frame(width: 30)
-            }
+            // Номер объекта
+            Text("\(index)")
+                .font(.headline)
+                .foregroundColor(.secondary)
+                .frame(width: 30)
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(property.name)
-                    .font(.headline)
+                // Название с иконкой
+                HStack(spacing: 6) {
+                    Image(systemName: getIconName(property.icon))
+                        .foregroundColor(.purple)
+                        .font(.subheadline)
+                    Text(property.name)
+                        .font(.headline)
+                }
+                
                 Text(property.address)
                     .font(.caption)
                     .foregroundColor(.secondary)

@@ -15,6 +15,7 @@ struct PropertyDetailView: View {
     @State private var selectedYear: Int = Calendar.current.component(.year, from: Date())
     @State private var includeAdmin = true
     @State private var includeOther = true
+    @State private var isEditingProperty = false
     
     init(property: Property) {
         self.property = property
@@ -47,11 +48,9 @@ struct PropertyDetailView: View {
                 // Заголовок с редактируемыми полями
                 HeaderView(
                     property: $editableProperty,
+                    isEditing: $isEditingProperty,
                     onSave: saveChanges
                 )
-                
-                // Галерея изображений
-                PropertyGalleryView(property: editableProperty)
                 
                 // Движение денежных средств
                 CashFlowView(
@@ -81,13 +80,16 @@ struct PropertyDetailView: View {
                     onSave: saveChanges
                 )
                 
-                // Календарь
-                CalendarView(property: property)
+                // Галерея изображений (в самом низу)
+                PropertyGalleryView(
+                    property: $editableProperty,
+                    onSave: saveChanges
+                )
             }
-            .padding()
+            .padding(.horizontal)
+            .padding(.top, 8)
         }
-        .navigationTitle(editableProperty.name)
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {

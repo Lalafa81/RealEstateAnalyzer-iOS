@@ -2,23 +2,27 @@
 //  PropertyCalendarView.swift
 //  RealEstateAnalyzer
 //
-//  Календарь объекта недвижимости
+//  Календарь объектов недвижимости (заглушка)
 //
 
 import SwiftUI
 
 struct CalendarView: View {
-    let property: Property
+    let properties: [Property]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Календарь")
+            Text("Календарь событий")
                 .font(.headline)
             
-            Text("Календарь доходов/расходов будет реализован в следующей версии")
+            Text("Календарь доходов/расходов находится в разработке")
                 .foregroundColor(.secondary)
+                .font(.subheadline)
                 .padding()
         }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
     }
 }
 

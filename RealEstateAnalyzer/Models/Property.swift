@@ -16,7 +16,7 @@ struct Property: Identifiable, Codable {
     var purchasePrice: Double
     var purchaseDate: String
     var status: String
-    var source: String
+    var source: String? // Источник объекта (может отсутствовать в JSON)
     var tenants: [Tenant]
     var months: [String: [String: MonthData]]
     var propertyTax: Double?
@@ -63,6 +63,70 @@ struct Tenant: Identifiable, Codable {
     
     enum CodingKeys: String, CodingKey {
         case name, income, startDate, endDate, area, indexation
+    }
+    
+    // Обычный инициализатор для создания Tenant вручную
+    init(id: UUID = UUID(), name: String, income: Double? = nil, startDate: String? = nil, endDate: String? = nil, area: Double? = nil, indexation: String? = nil) {
+        self.id = id
+        self.name = name
+        self.income = income
+        self.startDate = startDate
+        self.endDate = endDate
+        self.area = area
+        self.indexation = indexation
+    }
+    
+    // Кастомный декодер для обработки пустых строк как nil
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        name = try container.decode(String.self, forKey: .name)
+        
+        // Обрабатываем income: может быть Double, строкой или пустой строкой
+        if let incomeValue = try? container.decode(Double.self, forKey: .income) {
+            income = incomeValue
+        } else if let incomeString = try? container.decode(String.self, forKey: .income),
+                  !incomeString.isEmpty,
+                  let incomeDouble = Double(incomeString) {
+            income = incomeDouble
+        } else {
+            income = nil
+        }
+        
+        // Обрабатываем startDate: может быть строкой или пустой строкой
+        if let startDateValue = try? container.decode(String.self, forKey: .startDate),
+           !startDateValue.isEmpty {
+            startDate = startDateValue
+        } else {
+            startDate = nil
+        }
+        
+        // Обрабатываем endDate: может быть строкой или пустой строкой
+        if let endDateValue = try? container.decode(String.self, forKey: .endDate),
+           !endDateValue.isEmpty {
+            endDate = endDateValue
+        } else {
+            endDate = nil
+        }
+        
+        // Обрабатываем area: может быть Double, строкой или пустой строкой
+        if let areaValue = try? container.decode(Double.self, forKey: .area) {
+            area = areaValue
+        } else if let areaString = try? container.decode(String.self, forKey: .area),
+                  !areaString.isEmpty,
+                  let areaDouble = Double(areaString) {
+            area = areaDouble
+        } else {
+            area = nil
+        }
+        
+        // Обрабатываем indexation: может быть строкой или пустой строкой
+        if let indexationValue = try? container.decode(String.self, forKey: .indexation),
+           !indexationValue.isEmpty {
+            indexation = indexationValue
+        } else {
+            indexation = nil
+        }
     }
 }
 

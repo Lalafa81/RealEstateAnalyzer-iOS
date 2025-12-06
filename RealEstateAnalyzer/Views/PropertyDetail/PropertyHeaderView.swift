@@ -9,6 +9,7 @@ import SwiftUI
 
 struct HeaderView: View {
     @Binding var property: Property
+    @Binding var isEditing: Bool
     let onSave: () -> Void
     
     @State private var editingName: String = ""
@@ -20,250 +21,254 @@ struct HeaderView: View {
     @State private var editingPropertyTax: String = ""
     @State private var editingInsuranceCost: String = ""
     @State private var editingExitPrice: String = ""
-    @State private var isEditing = false
     
     let propertyTypes = ["Жилая", "Коммерческая", "Промышленная", "Земельный участок"]
     let statusOptions = ["Сдано", "Свободно", "На ремонте", "Продано"]
     let conditionOptions = ["Отличное", "Хорошее", "Удовлетворительное", "Требует ремонта"]
     
+    // Доступные иконки для объектов
+    let availableIcons: [(name: String, sfSymbol: String)] = [
+        ("Дом", "house.fill"),
+        ("Здание", "building.2.fill"),
+        ("Склад", "archivebox.fill"),
+        ("Офис", "building.2.crop.circle.fill"),
+        ("Участок", "square.fill"),
+        ("Магазин", "storefront.fill"),
+        ("Гараж", "carport.fill")
+    ]
+    
+    // Маппинг старых иконок на правильные SF Symbols
+    private func getIconName(_ icon: String?) -> String {
+        guard let icon = icon else { return "house.fill" }
+        
+        switch icon.lowercased() {
+        case "warehouse":
+            return "archivebox.fill"
+        case "house":
+            return "house.fill"
+        case "building", "office":
+            return "building.2.fill"
+        case "land", "земельный участок":
+            return "square.fill"
+        default:
+            return icon
+        }
+    }
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // Заголовок секции
+        VStack(alignment: .leading, spacing: 12) {
+            // Кнопка редактирования вне блока
             HStack {
-                Text("НЕДВИЖИМОСТЬ")
-                    .font(.headline)
                 Spacer()
                 Button(isEditing ? "Сохранить" : "Редактировать") {
                     if isEditing {
                         saveChanges()
+                        isEditing = false
                     } else {
-                        startEditing()
+                        loadCurrentValues()
+                        isEditing = true
                     }
                 }
                 .font(.subheadline)
+                .foregroundColor(.blue)
             }
             
-            Divider()
-            
-            // Первая строка: Название, ID, Тип
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Название:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    if isEditing {
-                        TextField("Название", text: $editingName)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                    } else {
-                        Text(property.name)
-                            .font(.subheadline)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("ID:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    if isEditing {
-                        TextField("ID", text: $editingId)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                    } else {
-                        Text(property.id)
-                            .font(.subheadline)
-                    }
-                }
-                .frame(width: 80)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Тип:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    if isEditing {
-                        Picker("Тип", selection: Binding(
-                            get: { property.type },
-                            set: { property.type = $0 }
-                        )) {
-                            ForEach(propertyTypes, id: \.self) { type in
-                                Text(type).tag(type)
+            // Блок с информацией
+            VStack(alignment: .leading, spacing: 0) {
+                if isEditing {
+                // Режим редактирования - используем Form для удобства
+                ScrollView {
+                    Form {
+                        Section(header: Text("Основная информация")) {
+                            // Иконка
+                            HStack {
+                                Text("Иконка")
+                                Spacer()
+                                Picker("", selection: Binding(
+                                    get: { property.icon ?? "house.fill" },
+                                    set: { property.icon = $0 }
+                                )) {
+                                    ForEach(availableIcons, id: \.sfSymbol) { icon in
+                                        HStack {
+                                            Image(systemName: icon.sfSymbol)
+                                            Text(icon.name)
+                                        }
+                                        .tag(icon.sfSymbol)
+                                    }
+                                }
+                                .pickerStyle(MenuPickerStyle())
+                            }
+                            
+                            // Название
+                            HStack {
+                                Text("Название")
+                                Spacer()
+                                TextField("Название", text: $editingName)
+                                    .multilineTextAlignment(.trailing)
+                            }
+                            
+                            // ID
+                            HStack {
+                                Text("ID")
+                                Spacer()
+                                TextField("ID", text: $editingId)
+                                    .multilineTextAlignment(.trailing)
+                            }
+                            
+                            // Тип
+                            Picker("Тип", selection: Binding(
+                                get: { property.type },
+                                set: { property.type = $0 }
+                            )) {
+                                ForEach(propertyTypes, id: \.self) { type in
+                                    Text(type).tag(type)
+                                }
+                            }
+                            
+                            // Адрес
+                            HStack {
+                                Text("Адрес")
+                                Spacer()
+                                TextField("Адрес", text: $editingAddress)
+                                    .multilineTextAlignment(.trailing)
+                            }
+                            
+                            // Площадь
+                            HStack {
+                                Text("Площадь")
+                                Spacer()
+                                TextField("0", text: $editingArea)
+                                    .keyboardType(.decimalPad)
+                                    .multilineTextAlignment(.trailing)
+                                Text("м²")
+                                    .foregroundColor(.secondary)
                             }
                         }
-                        .pickerStyle(MenuPickerStyle())
-                    } else {
-                        Text(property.type)
-                            .font(.subheadline)
+                        
+                        Section(header: Text("Покупка")) {
+                            // Цена покупки
+                            HStack {
+                                Text("Цена покупки")
+                                Spacer()
+                                TextField("0", text: $editingPurchasePrice)
+                                    .keyboardType(.decimalPad)
+                                    .multilineTextAlignment(.trailing)
+                            }
+                            
+                            // Дата покупки
+                            HStack {
+                                Text("Дата покупки")
+                                Spacer()
+                                TextField("дд.мм.гггг", text: $editingPurchaseDate)
+                                    .multilineTextAlignment(.trailing)
+                            }
+                            
+                            // Статус
+                            Picker("Статус", selection: Binding(
+                                get: { property.status },
+                                set: { property.status = $0 }
+                            )) {
+                                ForEach(statusOptions, id: \.self) { status in
+                                    Text(status).tag(status)
+                                }
+                            }
+                            
+                            // Состояние
+                            Picker("Состояние", selection: Binding(
+                                get: { property.condition ?? "Отличное" },
+                                set: { property.condition = $0 }
+                            )) {
+                                ForEach(conditionOptions, id: \.self) { condition in
+                                    Text(condition).tag(condition)
+                                }
+                            }
+                        }
+                        
+                        Section(header: Text("Финансы")) {
+                            // Налоги
+                            HStack {
+                                Text("Налоги (в год)")
+                                Spacer()
+                                TextField("0", text: $editingPropertyTax)
+                                    .keyboardType(.decimalPad)
+                                    .multilineTextAlignment(.trailing)
+                            }
+                            
+                            // Страхование
+                            HStack {
+                                Text("Страхование (в год)")
+                                Spacer()
+                                TextField("0", text: $editingInsuranceCost)
+                                    .keyboardType(.decimalPad)
+                                    .multilineTextAlignment(.trailing)
+                            }
+                            
+                            // Ожидаемая цена продажи
+                            HStack {
+                                Text("Ожидаемая цена продажи")
+                                Spacer()
+                                TextField("0", text: $editingExitPrice)
+                                    .keyboardType(.decimalPad)
+                                    .multilineTextAlignment(.trailing)
+                            }
+                        }
                     }
+                    .frame(minHeight: 500)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            
-            // Вторая строка: Адрес, Площадь
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Адрес:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    if isEditing {
-                        TextField("Адрес", text: $editingAddress)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                    } else {
-                        Text(property.address)
-                            .font(.subheadline)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Площадь:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    if isEditing {
-                        HStack {
-                            TextField("0", text: $editingArea)
-                                .keyboardType(.decimalPad)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                            Text("м²")
-                                .font(.caption)
+            } else {
+                // Режим просмотра - компактное отображение
+                VStack(alignment: .leading, spacing: 12) {
+                    // Первая строка: Иконка и название
+                    HStack(spacing: 12) {
+                        Image(systemName: getIconName(property.icon))
+                            .foregroundColor(.purple)
+                            .font(.title)
+                            .frame(width: 50)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(property.name)
+                                .font(.headline)
+                            Text(property.address)
+                                .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
-                    } else {
-                        Text("\(Int(property.area)) м²")
-                            .font(.subheadline)
+                        
+                        Spacer()
                     }
-                }
-                .frame(width: 120)
-            }
-            
-            // Третья строка: Цена покупки, Дата покупки, Статус
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Цена покупки:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                        .fixedSize(horizontal: true, vertical: false)
-                    if isEditing {
-                        TextField("0", text: $editingPurchasePrice)
-                            .keyboardType(.decimalPad)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                    } else {
-                        Text(formatCurrency(property.purchasePrice))
-                            .font(.subheadline)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Дата покупки:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    if isEditing {
-                        TextField("дд.мм.гггг", text: $editingPurchaseDate)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                    } else {
-                        Text(property.purchaseDate)
-                            .font(.subheadline)
-                    }
-                }
-                .frame(width: 140)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Статус:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    if isEditing {
-                        Picker("Статус", selection: Binding(
-                            get: { property.status },
-                            set: { property.status = $0 }
-                        )) {
-                            ForEach(statusOptions, id: \.self) { status in
-                                Text(status).tag(status)
-                            }
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    
+                    // Основная информация в две колонки
+                    LazyVGrid(columns: [
+                        GridItem(.flexible(), alignment: .leading),
+                        GridItem(.flexible(), alignment: .leading)
+                    ], alignment: .leading, spacing: 16) {
+                        InfoCell(label: "ID", value: property.id)
+                        InfoCell(label: "Тип", value: property.type)
+                        InfoCell(label: "Площадь", value: "\(Int(property.area)) м²")
+                        InfoCell(label: "Статус", value: property.status)
+                        InfoCell(label: "Цена покупки", value: formatCurrency(property.purchasePrice))
+                        InfoCell(label: "Дата покупки", value: property.purchaseDate)
+                        InfoCell(label: "Состояние", value: property.condition ?? "Не указано")
+                        if let tax = property.propertyTax, tax > 0 {
+                            InfoCell(label: "Налоги (в год)", value: formatCurrency(tax))
                         }
-                        .pickerStyle(MenuPickerStyle())
-                    } else {
-                        Text(property.status)
-                            .font(.subheadline)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            
-            // Четвертая строка: Состояние, Налоги
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Состояние:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    if isEditing {
-                        Picker("Состояние", selection: Binding(
-                            get: { property.condition ?? "Отличное" },
-                            set: { property.condition = $0 }
-                        )) {
-                            ForEach(conditionOptions, id: \.self) { condition in
-                                Text(condition).tag(condition)
-                            }
+                        if let insurance = property.insuranceCost, insurance > 0 {
+                            InfoCell(label: "Страхование (в год)", value: formatCurrency(insurance))
                         }
-                        .pickerStyle(MenuPickerStyle())
-                    } else {
-                        Text(property.condition ?? "Не указано")
-                            .font(.subheadline)
+                        if let exitPrice = property.exitPrice, exitPrice > 0 {
+                            InfoCell(label: "Ожидаемая цена продажи", value: formatCurrency(exitPrice))
+                        }
                     }
+                    .padding(.horizontal)
+                    .padding(.bottom)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Налоги (в год):")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    if isEditing {
-                        TextField("0", text: $editingPropertyTax)
-                            .keyboardType(.decimalPad)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                    } else {
-                        Text(formatCurrency(property.propertyTax ?? 0))
-                            .font(.subheadline)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            
-            // Пятая строка: Страхование, Ожидаемая цена продажи
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Страхование (в год):")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    if isEditing {
-                        TextField("0", text: $editingInsuranceCost)
-                            .keyboardType(.decimalPad)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                    } else {
-                        Text(formatCurrency(property.insuranceCost ?? 0))
-                            .font(.subheadline)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Ожидаемая цена продажи:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    if isEditing {
-                        TextField("0", text: $editingExitPrice)
-                            .keyboardType(.decimalPad)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                    } else {
-                        Text(formatCurrency(property.exitPrice ?? 0))
-                            .font(.subheadline)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .padding(.top, 12)
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
         .onAppear {
             if !isEditing {
                 loadCurrentValues()
@@ -271,9 +276,20 @@ struct HeaderView: View {
         }
     }
     
-    private func startEditing() {
-        loadCurrentValues()
-        isEditing = true
+    // Вспомогательный компонент для отображения информации
+    struct InfoCell: View {
+        let label: String
+        let value: String
+        
+        var body: some View {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(label)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Text(value)
+                    .font(.subheadline)
+            }
+        }
     }
     
     private func loadCurrentValues() {
@@ -300,7 +316,6 @@ struct HeaderView: View {
         property.insuranceCost = Double(editingInsuranceCost).flatMap { $0 > 0 ? $0 : nil }
         property.exitPrice = Double(editingExitPrice).flatMap { $0 > 0 ? $0 : nil }
         
-        isEditing = false
         onSave()
     }
     
