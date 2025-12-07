@@ -303,7 +303,10 @@ struct AddPropertyView: View {
             propertyTax: nil,
             insuranceCost: nil,
             exitPrice: nil,
-            icon: nil
+            condition: nil,
+            icon: nil,
+            image: nil,
+            gallery: nil
         )
         dataManager.addProperty(newProperty)
         presentationMode.wrappedValue.dismiss()
