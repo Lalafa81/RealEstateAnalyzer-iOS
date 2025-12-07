@@ -168,7 +168,7 @@ struct TenantRowView: View {
                 }
             
             // $/мес
-            Text(formatCurrency(tenant.income ?? 0))
+            Text("$\((tenant.income ?? 0).formatCurrency())")
                 .font(.subheadline)
                 .frame(width: 80, alignment: .trailing)
                 .onTapGesture {
@@ -222,15 +222,6 @@ struct TenantRowView: View {
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
         .background(Color(.systemBackground))
-    }
-    
-    private func formatCurrency(_ value: Double) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.groupingSeparator = " "
-        formatter.maximumFractionDigits = 0
-        let formatted = formatter.string(from: NSNumber(value: value)) ?? "\(Int(value))"
-        return "$\(formatted)"
     }
 }
 

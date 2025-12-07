@@ -7,22 +7,114 @@
 
 import Foundation
 
+// MARK: - Enums для типов, статусов и состояний
+
+enum PropertyType: String, CaseIterable, Identifiable, Codable {
+    case residential = "Жилая"
+    case commercial = "Коммерческая"
+    case industrial = "Промышленная"
+    case land = "Земельный участок"
+    
+    var id: String { rawValue }
+    
+    // Инициализатор для обработки старых значений из JSON
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let stringValue = try container.decode(String.self)
+        
+        // Маппинг старых значений на новые
+        switch stringValue.lowercased() {
+        case "производство", "промышленная":
+            self = .industrial
+        case "жилая", "жилое":
+            self = .residential
+        case "коммерческая", "коммерческое":
+            self = .commercial
+        case "земельный участок", "участок", "земля":
+            self = .land
+        default:
+            // Если значение не найдено, используем первое по умолчанию
+            self = .commercial
+        }
+    }
+}
+
+enum PropertyStatus: String, CaseIterable, Identifiable, Codable {
+    case rented = "Сдано"
+    case vacant = "Свободно"
+    case underRepair = "На ремонте"
+    case sold = "Продано"
+    
+    var id: String { rawValue }
+    
+    // Инициализатор для обработки старых значений из JSON
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let stringValue = try container.decode(String.self)
+        
+        // Маппинг старых значений на новые
+        switch stringValue.lowercased() {
+        case "сдано", "сдано в аренду":
+            self = .rented
+        case "свободно", "свободное":
+            self = .vacant
+        case "на ремонте", "ремонт", "рабочее":
+            self = .underRepair
+        case "продано":
+            self = .sold
+        default:
+            // Если значение не найдено, используем первое по умолчанию
+            self = .vacant
+        }
+    }
+}
+
+enum PropertyCondition: String, CaseIterable, Identifiable, Codable {
+    case excellent = "Отличное"
+    case good = "Хорошее"
+    case satisfactory = "Удовлетворительное"
+    case needsRepair = "Требует ремонта"
+    
+    var id: String { rawValue }
+    
+    // Инициализатор для обработки старых значений из JSON
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let stringValue = try container.decode(String.self)
+        
+        // Маппинг старых значений на новые
+        switch stringValue.lowercased() {
+        case "отличное", "отлично":
+            self = .excellent
+        case "хорошее", "хорошо":
+            self = .good
+        case "удовлетворительное", "удовлетворительно":
+            self = .satisfactory
+        case "требует ремонта", "ремонт":
+            self = .needsRepair
+        default:
+            // Если значение не найдено, используем первое по умолчанию
+            self = .excellent
+        }
+    }
+}
+
 struct Property: Identifiable, Codable {
     var id: String
     var name: String
-    var type: String
+    var type: PropertyType
     var address: String
     var area: Double
     var purchasePrice: Double
     var purchaseDate: String
-    var status: String
+    var status: PropertyStatus
     var source: String? // Источник объекта (может отсутствовать в JSON)
     var tenants: [Tenant]
     var months: [String: [String: MonthData]]
     var propertyTax: Double?
     var insuranceCost: Double?
     var exitPrice: Double?
-    var condition: String? // Состояние объекта (Отличное, Хорошее, Требует ремонта и т.д.)
+    var condition: PropertyCondition? // Состояние объекта
     var icon: String? // Иконка объекта (warehouse, house и т.д.)
     var image: String? // Base64-кодированное изображение объекта (data:image/jpeg;base64,...)
     var gallery: [String]? // Массив base64-кодированных изображений для галереи

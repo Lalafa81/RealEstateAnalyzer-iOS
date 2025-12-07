@@ -17,14 +17,35 @@ struct HeaderView: View {
     @State private var editingAddress: String = ""
     @State private var editingArea: String = ""
     @State private var editingPurchasePrice: String = ""
-    @State private var editingPurchaseDate: String = ""
+    @State private var editingPurchaseDate: Date = Date()
     @State private var editingPropertyTax: String = ""
     @State private var editingInsuranceCost: String = ""
     @State private var editingExitPrice: String = ""
     
-    let propertyTypes = ["Жилая", "Коммерческая", "Промышленная", "Земельный участок"]
-    let statusOptions = ["Сдано", "Свободно", "На ремонте", "Продано"]
-    let conditionOptions = ["Отличное", "Хорошее", "Удовлетворительное", "Требует ремонта"]
+    // DateFormatter для преобразования String <-> Date
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd.MM.yyyy"
+        formatter.locale = Locale(identifier: "ru_RU")
+        return formatter
+    }()
+    
+    // Binding для преобразования String (property.purchaseDate) <-> Date (editingPurchaseDate)
+    private var purchaseDateBinding: Binding<Date> {
+        Binding(
+            get: {
+                if let date = dateFormatter.date(from: property.purchaseDate) {
+                    return date
+                }
+                return Date() // Возвращаем текущую дату, если не удалось распарсить
+            },
+            set: { newDate in
+                property.purchaseDate = dateFormatter.string(from: newDate)
+            }
+        )
+    }
+    
+    // Используем enum'ы вместо массивов строк
     
     // Доступные иконки для объектов
     let availableIcons: [(name: String, sfSymbol: String)] = [
@@ -37,23 +58,6 @@ struct HeaderView: View {
         ("Гараж", "carport.fill")
     ]
     
-    // Маппинг старых иконок на правильные SF Symbols
-    private func getIconName(_ icon: String?) -> String {
-        guard let icon = icon else { return "house.fill" }
-        
-        switch icon.lowercased() {
-        case "warehouse":
-            return "archivebox.fill"
-        case "house":
-            return "house.fill"
-        case "building", "office":
-            return "building.2.fill"
-        case "land", "земельный участок":
-            return "square.fill"
-        default:
-            return icon
-        }
-    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -103,7 +107,7 @@ struct HeaderView: View {
                             HStack {
                                 Text("Название")
                                 Spacer()
-                                TextField("Название", text: $editingName)
+                                TextField("Склад на Апаринках", text: $editingName)
                                     .multilineTextAlignment(.trailing)
                             }
                             
@@ -116,20 +120,18 @@ struct HeaderView: View {
                             }
                             
                             // Тип
-                            Picker("Тип", selection: Binding(
-                                get: { property.type },
-                                set: { property.type = $0 }
-                            )) {
-                                ForEach(propertyTypes, id: \.self) { type in
-                                    Text(type).tag(type)
+                            Picker("Тип", selection: $property.type) {
+                                ForEach(PropertyType.allCases) { type in
+                                    Text(type.rawValue).tag(type)
                                 }
                             }
+                            .pickerStyle(MenuPickerStyle())
                             
                             // Адрес
                             HStack {
                                 Text("Адрес")
                                 Spacer()
-                                TextField("Адрес", text: $editingAddress)
+                                TextField("г. Москва, ...", text: $editingAddress)
                                     .multilineTextAlignment(.trailing)
                             }
                             
@@ -137,7 +139,7 @@ struct HeaderView: View {
                             HStack {
                                 Text("Площадь")
                                 Spacer()
-                                TextField("0", text: $editingArea)
+                                TextField("1000", text: $editingArea)
                                     .keyboardType(.decimalPad)
                                     .multilineTextAlignment(.trailing)
                                 Text("м²")
@@ -150,38 +152,36 @@ struct HeaderView: View {
                             HStack {
                                 Text("Цена покупки")
                                 Spacer()
-                                TextField("0", text: $editingPurchasePrice)
+                                TextField("25000000", text: $editingPurchasePrice)
                                     .keyboardType(.decimalPad)
                                     .multilineTextAlignment(.trailing)
                             }
                             
                             // Дата покупки
-                            HStack {
-                                Text("Дата покупки")
-                                Spacer()
-                                TextField("дд.мм.гггг", text: $editingPurchaseDate)
-                                    .multilineTextAlignment(.trailing)
-                            }
+                            DatePicker(
+                                "Дата покупки",
+                                selection: purchaseDateBinding,
+                                displayedComponents: .date
+                            )
                             
                             // Статус
-                            Picker("Статус", selection: Binding(
-                                get: { property.status },
-                                set: { property.status = $0 }
-                            )) {
-                                ForEach(statusOptions, id: \.self) { status in
-                                    Text(status).tag(status)
+                            Picker("Статус", selection: $property.status) {
+                                ForEach(PropertyStatus.allCases) { status in
+                                    Text(status.rawValue).tag(status)
                                 }
                             }
+                            .pickerStyle(MenuPickerStyle())
                             
                             // Состояние
                             Picker("Состояние", selection: Binding(
-                                get: { property.condition ?? "Отличное" },
+                                get: { property.condition ?? .excellent },
                                 set: { property.condition = $0 }
                             )) {
-                                ForEach(conditionOptions, id: \.self) { condition in
-                                    Text(condition).tag(condition)
+                                ForEach(PropertyCondition.allCases) { condition in
+                                    Text(condition.rawValue).tag(condition)
                                 }
                             }
+                            .pickerStyle(MenuPickerStyle())
                         }
                         
                         Section(header: Text("Финансы")) {
@@ -220,7 +220,7 @@ struct HeaderView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     // Первая строка: Иконка и название
                     HStack(spacing: 12) {
-                        Image(systemName: getIconName(property.icon))
+                        Image(systemName: property.icon.getIconName())
                             .foregroundColor(.purple)
                             .font(.title)
                             .frame(width: 50)
@@ -244,20 +244,20 @@ struct HeaderView: View {
                         GridItem(.flexible(), alignment: .leading)
                     ], alignment: .leading, spacing: 16) {
                         InfoCell(label: "ID", value: property.id)
-                        InfoCell(label: "Тип", value: property.type)
+                        InfoCell(label: "Тип", value: property.type.rawValue)
                         InfoCell(label: "Площадь", value: "\(Int(property.area)) м²")
-                        InfoCell(label: "Статус", value: property.status)
-                        InfoCell(label: "Цена покупки", value: formatCurrency(property.purchasePrice))
+                        InfoCell(label: "Статус", value: property.status.rawValue)
+                        InfoCell(label: "Цена покупки", value: property.purchasePrice.formatCurrency())
                         InfoCell(label: "Дата покупки", value: property.purchaseDate)
-                        InfoCell(label: "Состояние", value: property.condition ?? "Не указано")
+                        InfoCell(label: "Состояние", value: property.condition?.rawValue ?? "Не указано")
                         if let tax = property.propertyTax, tax > 0 {
-                            InfoCell(label: "Налоги (в год)", value: formatCurrency(tax))
+                            InfoCell(label: "Налоги (в год)", value: tax.formatCurrency())
                         }
                         if let insurance = property.insuranceCost, insurance > 0 {
-                            InfoCell(label: "Страхование (в год)", value: formatCurrency(insurance))
+                            InfoCell(label: "Страхование (в год)", value: insurance.formatCurrency())
                         }
                         if let exitPrice = property.exitPrice, exitPrice > 0 {
-                            InfoCell(label: "Ожидаемая цена продажи", value: formatCurrency(exitPrice))
+                            InfoCell(label: "Ожидаемая цена продажи", value: exitPrice.formatCurrency())
                         }
                     }
                     .padding(.horizontal)
@@ -298,7 +298,12 @@ struct HeaderView: View {
         editingAddress = property.address
         editingArea = String(format: "%.0f", property.area)
         editingPurchasePrice = String(format: "%.0f", property.purchasePrice)
-        editingPurchaseDate = property.purchaseDate
+        // Преобразуем строку даты в Date
+        if let date = dateFormatter.date(from: property.purchaseDate) {
+            editingPurchaseDate = date
+        } else {
+            editingPurchaseDate = Date() // Если не удалось распарсить, используем текущую дату
+        }
         editingPropertyTax = String(format: "%.0f", property.propertyTax ?? 0)
         editingInsuranceCost = String(format: "%.0f", property.insuranceCost ?? 0)
         editingExitPrice = String(format: "%.0f", property.exitPrice ?? 0)
@@ -311,20 +316,13 @@ struct HeaderView: View {
         property.address = editingAddress
         property.area = Double(editingArea) ?? property.area
         property.purchasePrice = Double(editingPurchasePrice) ?? property.purchasePrice
-        property.purchaseDate = editingPurchaseDate
+        // Дата уже обновляется через purchaseDateBinding, но на всякий случай обновим явно
+        property.purchaseDate = dateFormatter.string(from: editingPurchaseDate)
         property.propertyTax = Double(editingPropertyTax).flatMap { $0 > 0 ? $0 : nil }
         property.insuranceCost = Double(editingInsuranceCost).flatMap { $0 > 0 ? $0 : nil }
         property.exitPrice = Double(editingExitPrice).flatMap { $0 > 0 ? $0 : nil }
         
         onSave()
-    }
-    
-    private func formatCurrency(_ value: Double) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.groupingSeparator = " "
-        formatter.maximumFractionDigits = 0
-        return formatter.string(from: NSNumber(value: value)) ?? "\(Int(value))"
     }
 }
 

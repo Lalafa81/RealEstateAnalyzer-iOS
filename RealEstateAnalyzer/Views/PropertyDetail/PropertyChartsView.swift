@@ -28,7 +28,7 @@ struct MiniChartView: View {
     
     // Получаем данные по месяцам для выбранного года
     var monthlyData: [(month: String, income: Double, expense: Double)] {
-        let monthNames = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]
+        let monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
         let monthKeys = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
         
         guard let yearData = property.months[String(selectedYear)] else {
@@ -41,25 +41,11 @@ struct MiniChartView: View {
             if let monthData = yearData[monthKey] {
                 let income = (monthData.income ?? 0) + (monthData.incomeVariable ?? 0)
                 
-                // Расходы с учетом настроек
-                let admin = monthData.expensesAdmin ?? 0
-                let maintenance = monthData.expensesMaintenance ?? 0
-                let utilities = monthData.expensesUtilities ?? 0
-                let financial = monthData.expensesFinancial ?? 0
-                let operational = monthData.expensesOperational ?? 0
-                let other = monthData.expensesOther ?? 0
-                let direct = monthData.expensesDirect ?? 0
-                
-                let hasNewFields = admin > 0 || maintenance > 0 || utilities > 0 || financial > 0 || operational > 0
-                
-                var expense: Double
-                if hasNewFields {
-                    expense = utilities + direct
-                    expense += admin + maintenance + financial + operational
-                    expense += other
-                } else {
-                    expense = direct + admin + other
-                }
+                // Расходы: 3 вида
+                let expense =
+                    (monthData.expensesMaintenance ?? 0) +
+                    (monthData.expensesOperational ?? 0) +
+                    (monthData.expensesOther ?? 0)
                 
                 result.append((month: monthNames[index], income: income, expense: expense))
             } else {

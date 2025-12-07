@@ -80,13 +80,15 @@ class MetricsCalculator {
     
     static func tenantRiskAssessment(_ tenants: [Tenant]) -> String {
         var maxYears: Double = 0
+        let currentDate = Date()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd.MM.yyyy"
         
         for tenant in tenants {
-            guard let startDateStr = tenant.startDate,
-                  let endDateStr = tenant.endDate else { continue }
+            guard let startDateStr = tenant.startDate else { continue }
             
-            let formatter = DateFormatter()
-            formatter.dateFormat = "dd.MM.yyyy"
+            // Если endDate отсутствует (текущий договор), используем текущую дату
+            let endDateStr = tenant.endDate ?? formatter.string(from: currentDate)
             
             if let startDate = formatter.date(from: startDateStr),
                let endDate = formatter.date(from: endDateStr) {
@@ -105,102 +107,103 @@ class MetricsCalculator {
     
     static func extractMonthlyFinancials(
         property: Property,
-        year: Int?,
-        includeAdmin: Bool = true,
-        includeOther: Bool = true,
-        onlySelectedYear: Bool = false
+        year: Int? = nil
     ) -> FinancialData {
         let monthsDict = property.months
-        let years = monthsDict.keys.compactMap { Int($0) }.sorted()
         
-        // Если onlySelectedYear = true, используем year для фильтрации
-        // Если onlySelectedYear = false, обрабатываем все года (year игнорируется)
-        let targetYear: Int? = onlySelectedYear ? (year ?? Calendar.current.component(.year, from: Date())) : nil
+        let allYears = monthsDict.keys.compactMap { Int($0) }.sorted()
+        let yearsToUse = year.map { [$0] } ?? allYears
         
         var incomes: [Double] = []
-        var expenses: [Double] = []
+        var expensesMaintenance: [Double] = []
+        var expensesOperating: [Double] = []
+        var expensesOther: [Double] = []
         
-        for y in years {
-            // Если onlySelectedYear = true, пропускаем года, которые не равны targetYear
-            // Если onlySelectedYear = false, обрабатываем все года
-            if let target = targetYear, onlySelectedYear {
-                if y != target {
-                    continue
-                }
-            }
-            
+        for y in yearsToUse {
             guard let yearData = monthsDict[String(y)] else { continue }
             
-            for monthData in yearData.values {
-                let income = (monthData.income ?? 0) + (monthData.incomeVariable ?? 0)
+            // Сортируем месяцы, чтобы порядок был стабильным
+            // Месяцы хранятся как "01", "02", ..., "12"
+            let monthKeys = yearData.keys.sorted()
+            
+            for monthKey in monthKeys {
+                guard let monthData = yearData[monthKey] else { continue }
+                
+                let income =
+                    (monthData.income ?? 0) +
+                    (monthData.incomeVariable ?? 0)
+                
+                let em = monthData.expensesMaintenance ?? 0
+                let eo = monthData.expensesOperational ?? 0
+                let eo2 = monthData.expensesOther ?? 0
+                
                 incomes.append(income)
-                
-                // Используем новые поля, если они есть
-                let admin = monthData.expensesAdmin ?? 0
-                let maintenance = monthData.expensesMaintenance ?? 0
-                let utilities = monthData.expensesUtilities ?? 0
-                let financial = monthData.expensesFinancial ?? 0
-                let operational = monthData.expensesOperational ?? 0
-                let other = monthData.expensesOther ?? 0
-                
-                let hasNewFields = admin > 0 || maintenance > 0 || utilities > 0 || financial > 0 || operational > 0
-                
-                var expense: Double
-                if hasNewFields {
-                    expense = utilities
-                    if includeAdmin {
-                        expense += admin + maintenance + financial + operational
-                    }
-                    if includeOther {
-                        expense += other
-                    }
-                } else {
-                    // Старая логика для обратной совместимости
-                    expense = monthData.expensesDirect ?? 0
-                    if includeAdmin {
-                        expense += monthData.expensesAdmin ?? 0
-                    }
-                    if includeOther {
-                        expense += other
-                    }
-                }
-                expenses.append(expense)
+                expensesMaintenance.append(em)
+                expensesOperating.append(eo)
+                expensesOther.append(eo2)
             }
         }
         
         let propertyTax = property.propertyTax ?? 0
         let insuranceCost = property.insuranceCost ?? 0
-        let annualExpense = expenses.reduce(0, +) + propertyTax + insuranceCost
-        let annualIncome = incomes.reduce(0, +)
         
-        let monthsWithIncome = incomes.filter { $0 > 0 }.count
-        let monthsWithExpense = expenses.filter { $0 > 0 }.count
+        // Подсчитываем месяцы с расходами (если хотя бы один тип расходов > 0)
+        let allExpenses = zip(zip(expensesMaintenance, expensesOperating), expensesOther).map { $0.0.0 + $0.0.1 + $0.1 }
+        let monthsWithExpense = allExpenses.filter { $0 > 0 }.count
         
         return FinancialData(
             incomes: incomes,
-            expenses: expenses,
-            annualIncome: annualIncome,
-            annualExpense: annualExpense,
+            expensesMaintenance: expensesMaintenance,
+            expensesOperating: expensesOperating,
+            expensesOther: expensesOther,
             propertyTax: propertyTax,
             insuranceCost: insuranceCost,
-            monthsWithIncome: monthsWithIncome,
+            monthsWithIncome: incomes.filter { $0 > 0 }.count,
             monthsWithExpense: monthsWithExpense,
-            onlySelectedYear: onlySelectedYear
+            onlySelectedYear: (year != nil)
         )
     }
     
     // MARK: - Вычисление всех метрик
     
-    static func computeAllMetrics(financialData: FinancialData, property: Property) -> Analytics {
+    static func computeAllMetrics(
+        financialData: FinancialData,
+        property: Property,
+        includeMaintenance: Bool = true,
+        includeOperating: Bool = true
+    ) -> Analytics {
         let incomes = financialData.incomes
-        let expenses = financialData.expenses
-        let annualIncome = financialData.annualIncome
-        let annualExpense = financialData.annualExpense
+        let annualIncome = financialData.totalIncome()
+        let annualExpense = financialData.totalExpenses(
+            includeMaintenance: includeMaintenance,
+            includeOperating: includeOperating
+        )
         let propertyTax = financialData.propertyTax
         let insuranceCost = financialData.insuranceCost
         let monthsWithIncome = financialData.monthsWithIncome
         let monthsWithExpense = financialData.monthsWithExpense
         let onlySelectedYear = financialData.onlySelectedYear
+        
+        // Собираем объединенный массив расходов для расчета максимумов
+        var allExpenses: [Double] = []
+        for i in 0..<incomes.count {
+            var expense: Double = 0
+            
+            // Административные расходы (техническое обслуживание)
+            if includeMaintenance {
+                expense += financialData.expensesMaintenance[safe: i] ?? 0
+            }
+            
+            // Эксплуатационные расходы
+            if includeOperating {
+                expense += financialData.expensesOperating[safe: i] ?? 0
+            }
+            
+            // Прочие расходы - всегда учитываются
+            expense += financialData.expensesOther[safe: i] ?? 0
+            
+            allExpenses.append(expense)
+        }
         
         let area = property.area > 0 ? property.area : 1
         let price = property.purchasePrice > 0 ? property.purchasePrice : 1
@@ -218,11 +221,11 @@ class MetricsCalculator {
         let busyPercent = totalMonths > 0 ? round((Double(busyMonths) / Double(totalMonths) * 100) * 10) / 10 : 0
         
         // Месяцы с максимумами
-        let monthNames = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]
+        let monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
         let maxIncome = incomes.max() ?? 0
-        let maxExpense = expenses.max() ?? 0
+        let maxExpense = allExpenses.max() ?? 0
         let maxIncomeMonth = incomes.isEmpty ? nil : monthNames[incomes.firstIndex(of: maxIncome)! % 12]
-        let maxExpenseMonth = expenses.isEmpty ? nil : monthNames[expenses.firstIndex(of: maxExpense)! % 12]
+        let maxExpenseMonth = allExpenses.isEmpty ? nil : monthNames[allExpenses.firstIndex(of: maxExpense)! % 12]
         
         // Дополнительные метрики
         let rentPerM2 = incomePerSquareMeter(income: avgIncome, area: area)
@@ -230,7 +233,7 @@ class MetricsCalculator {
         let profitPerM2 = area > 0 ? round(((avgIncome - avgExpense) / area) * 100) / 100 : 0
         
         // Концентрация арендаторов
-        let tenantsIncomes = property.tenants.compactMap { $0.income ?? 0 }
+        let tenantsIncomes = property.tenants.map { $0.income ?? 0 }
         let maxTenant = tenantsIncomes.max() ?? 0
         let sumTenants = tenantsIncomes.reduce(0, +)
         let tenantConcentration = sumTenants > 0 ? round((maxTenant / sumTenants * 100) * 10) / 10 : 0

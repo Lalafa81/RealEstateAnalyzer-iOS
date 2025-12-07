@@ -266,12 +266,12 @@ class DataManager: ObservableObject {
         let property1 = Property(
             id: "001",
             name: "Квартира на Тверской",
-            type: "Жилая",
+            type: .residential,
             address: "г. Москва, ул. Тверская, д. 10, кв. 45",
             area: 65.5,
             purchasePrice: 12_500_000,
             purchaseDate: purchaseDate,
-            status: "Сдано",
+            status: .rented,
             source: "Покупка",
             tenants: [
                 Tenant(
@@ -294,12 +294,12 @@ class DataManager: ObservableObject {
         let property2 = Property(
             id: "002",
             name: "Офис в БЦ",
-            type: "Коммерческая",
+            type: .commercial,
             address: "г. Москва, ул. Ленина, д. 5, оф. 301",
             area: 120.0,
             purchasePrice: 25_000_000,
             purchaseDate: purchaseDate,
-            status: "Сдано",
+            status: .rented,
             source: "Покупка",
             tenants: [
                 Tenant(
@@ -322,12 +322,12 @@ class DataManager: ObservableObject {
         let property3 = Property(
             id: "003",
             name: "Склад на окраине",
-            type: "Складская",
+            type: .industrial,
             address: "Московская обл., г. Химки, складской комплекс",
             area: 500.0,
             purchasePrice: 45_000_000,
             purchaseDate: purchaseDate,
-            status: "Сдано",
+            status: .rented,
             source: "Покупка",
             tenants: [
                 Tenant(

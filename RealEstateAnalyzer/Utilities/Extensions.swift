@@ -18,12 +18,53 @@ extension Date {
 }
 
 extension Double {
+    /// Форматирует число как валюту (с пробелами для тысяч, без символа валюты)
+    func formatCurrency() -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = " "
+        formatter.maximumFractionDigits = 0
+        return formatter.string(from: NSNumber(value: self)) ?? "\(Int(self))"
+    }
+    
+    /// Форматирует число как валюту с символом валюты (старый метод, оставлен для совместимости)
     func formattedCurrency(currencyCode: String = "RUB") -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.currencyCode = currencyCode
         formatter.maximumFractionDigits = 0
         return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
+    }
+}
+
+extension Optional where Wrapped == String {
+    /// Получает имя SF Symbol для иконки объекта недвижимости
+    func getIconName() -> String {
+        guard let icon = self else { return "house.fill" }
+        
+        switch icon.lowercased() {
+        case "warehouse":
+            return "archivebox.fill"
+        case "house":
+            return "house.fill"
+        case "building", "office":
+            return "building.2.fill"
+        case "land", "земельный участок":
+            return "square.fill"
+        case "store", "магазин":
+            return "storefront.fill"
+        case "garage", "гараж":
+            return "carport.fill"
+        default:
+            return icon
+        }
+    }
+}
+
+extension Array {
+    /// Безопасный доступ к элементу массива по индексу
+    subscript(safe index: Int) -> Element? {
+        return indices.contains(index) ? self[index] : nil
     }
 }
 

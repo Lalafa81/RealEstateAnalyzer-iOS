@@ -35,14 +35,45 @@ struct Analytics: Codable {
 }
 
 struct FinancialData {
-    var incomes: [Double]
-    var expenses: [Double]
-    var annualIncome: Double
-    var annualExpense: Double
-    var propertyTax: Double
-    var insuranceCost: Double
-    var monthsWithIncome: Int
-    var monthsWithExpense: Int
-    var onlySelectedYear: Bool
+    let incomes: [Double]
+    
+    let expensesMaintenance: [Double]
+    let expensesOperating: [Double]
+    let expensesOther: [Double]
+    
+    let propertyTax: Double
+    let insuranceCost: Double
+    
+    let monthsWithIncome: Int
+    let monthsWithExpense: Int
+    let onlySelectedYear: Bool
+}
+
+extension FinancialData {
+    func totalExpenses(
+        includeMaintenance: Bool = true,
+        includeOperating: Bool = true
+    ) -> Double {
+        var total: Double = 0
+        
+        // Административные расходы (техническое обслуживание)
+        if includeMaintenance {
+            total += expensesMaintenance.reduce(0, +)
+        }
+        
+        // Эксплуатационные расходы
+        if includeOperating {
+            total += expensesOperating.reduce(0, +)
+        }
+        
+        // Прочие расходы - всегда учитываются
+        total += expensesOther.reduce(0, +)
+        
+        return total + propertyTax + insuranceCost
+    }
+    
+    func totalIncome() -> Double {
+        incomes.reduce(0, +)
+    }
 }
 

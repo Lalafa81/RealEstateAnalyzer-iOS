@@ -65,13 +65,13 @@ struct StatisticsView: View {
     var totalIncome: Double {
         properties.reduce(0) { sum, property in
             let financialData = MetricsCalculator.extractMonthlyFinancials(property: property, year: nil)
-            return sum + financialData.annualIncome
+            return sum + financialData.totalIncome()
         }
     }
     var totalExpenses: Double {
         properties.reduce(0) { sum, property in
             let financialData = MetricsCalculator.extractMonthlyFinancials(property: property, year: nil)
-            return sum + financialData.annualExpense
+            return sum + financialData.totalExpenses()
         }
     }
     var totalProfit: Double { totalIncome - totalExpenses }
@@ -79,21 +79,13 @@ struct StatisticsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             StatRow(label: "Количество объектов:", value: "\(totalObjects)")
-            StatRow(label: "Стоимость портфеля:", value: formatCurrency(totalPortfolioValue))
+            StatRow(label: "Стоимость портфеля:", value: totalPortfolioValue.formatCurrency())
             StatRow(label: "Общая площадь:", value: String(format: "%.0f м²", totalArea))
-            StatRow(label: "Суммарный доход:", value: formatCurrency(totalIncome))
-            StatRow(label: "Общие расходы:", value: formatCurrency(totalExpenses))
-            StatRow(label: "Чистая прибыль:", value: formatCurrency(totalProfit))
+            StatRow(label: "Суммарный доход:", value: totalIncome.formatCurrency())
+            StatRow(label: "Общие расходы:", value: totalExpenses.formatCurrency())
+            StatRow(label: "Чистая прибыль:", value: totalProfit.formatCurrency())
         }
         .padding(.vertical, 4)
-    }
-    
-    private func formatCurrency(_ value: Double) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "RUB"
-        formatter.maximumFractionDigits = 0
-        return formatter.string(from: NSNumber(value: value)) ?? "\(value)"
     }
 }
 
@@ -117,25 +109,6 @@ struct PropertyRowView: View {
     let property: Property
     let index: Int
     
-    // Маппинг старых иконок на правильные SF Symbols
-    private func getIconName(_ icon: String?) -> String {
-        guard let icon = icon else { return "house.fill" }
-        
-        // Маппинг старых названий на правильные SF Symbols
-        switch icon.lowercased() {
-        case "warehouse":
-            return "archivebox.fill"
-        case "house":
-            return "house.fill"
-        case "building", "office":
-            return "building.2.fill"
-        case "land", "земельный участок":
-            return "square.fill"
-        default:
-            // Если это уже правильная SF Symbol, возвращаем как есть
-            return icon
-        }
-    }
     
     var body: some View {
         HStack {
@@ -148,7 +121,7 @@ struct PropertyRowView: View {
             VStack(alignment: .leading, spacing: 4) {
                 // Название с иконкой
                 HStack(spacing: 6) {
-                    Image(systemName: getIconName(property.icon))
+                    Image(systemName: property.icon.getIconName())
                         .foregroundColor(.purple)
                         .font(.subheadline)
                     Text(property.name)
@@ -159,7 +132,7 @@ struct PropertyRowView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 HStack {
-                    Text(property.status)
+                    Text(property.status.rawValue)
                         .font(.caption)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
@@ -190,7 +163,7 @@ struct AddPropertyView: View {
     @EnvironmentObject var dataManager: DataManager
     
     @State private var name = ""
-    @State private var type = "Жилая"
+    @State private var type: PropertyType = .residential
     @State private var address = ""
     @State private var area = ""
     @State private var purchasePrice = ""
@@ -201,7 +174,11 @@ struct AddPropertyView: View {
             Form {
                 Section(header: Text("Основная информация")) {
                     TextField("Название", text: $name)
-                    TextField("Тип", text: $type)
+                    Picker("Тип", selection: $type) {
+                        ForEach(PropertyType.allCases) { type in
+                            Text(type.rawValue).tag(type)
+                        }
+                    }
                     TextField("Адрес", text: $address)
                     TextField("Площадь (м²)", text: $area)
                         .keyboardType(.decimalPad)
@@ -237,7 +214,7 @@ struct AddPropertyView: View {
             area: Double(area) ?? 0,
             purchasePrice: Double(purchasePrice) ?? 0,
             purchaseDate: purchaseDate,
-            status: "Сдано",
+            status: .rented,
             source: "",
             tenants: [],
             months: [:],

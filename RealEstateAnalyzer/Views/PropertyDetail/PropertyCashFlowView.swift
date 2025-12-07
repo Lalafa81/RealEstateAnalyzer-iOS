@@ -37,14 +37,11 @@ struct CashFlowView: View {
             if let monthData = yearData[monthNum] {
                 totalIncome += (monthData.income ?? 0) + (monthData.incomeVariable ?? 0)
                 
-                var monthExpense: Double = 0
-                monthExpense += monthData.expensesDirect ?? 0
-                monthExpense += monthData.expensesAdmin ?? 0
-                monthExpense += monthData.expensesMaintenance ?? 0
-                monthExpense += monthData.expensesUtilities ?? 0
-                monthExpense += monthData.expensesFinancial ?? 0
-                monthExpense += monthData.expensesOperational ?? 0
-                monthExpense += monthData.expensesOther ?? 0
+                // Расходы: 3 вида
+                let monthExpense =
+                    (monthData.expensesMaintenance ?? 0) +
+                    (monthData.expensesOperational ?? 0) +
+                    (monthData.expensesOther ?? 0)
                 totalExpense += monthExpense
             }
         }
@@ -67,14 +64,11 @@ struct CashFlowView: View {
                 if let monthData = yearData[monthNum] {
                     totalIncome += (monthData.income ?? 0) + (monthData.incomeVariable ?? 0)
                     
-                    var monthExpense: Double = 0
-                    monthExpense += monthData.expensesDirect ?? 0
-                    monthExpense += monthData.expensesAdmin ?? 0
-                    monthExpense += monthData.expensesMaintenance ?? 0
-                    monthExpense += monthData.expensesUtilities ?? 0
-                    monthExpense += monthData.expensesFinancial ?? 0
-                    monthExpense += monthData.expensesOperational ?? 0
-                    monthExpense += monthData.expensesOther ?? 0
+                    // Расходы: 3 вида
+                    let monthExpense =
+                        (monthData.expensesMaintenance ?? 0) +
+                        (monthData.expensesOperational ?? 0) +
+                        (monthData.expensesOther ?? 0)
                     totalExpense += monthExpense
                 }
             }
@@ -99,7 +93,7 @@ struct CashFlowView: View {
                         .multilineTextAlignment(.center)
                     
                     HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        Text(formatCurrency(totalCashFlow))
+                        Text(totalCashFlow.formatCurrency())
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(totalCashFlow >= 0 ? .green : .red)
                         Text("₽")
@@ -122,7 +116,7 @@ struct CashFlowView: View {
                         .multilineTextAlignment(.center)
                     
                     HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        Text(formatCurrency(totalCashFlowAllPeriods))
+                        Text(totalCashFlowAllPeriods.formatCurrency())
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(totalCashFlowAllPeriods >= 0 ? .green : .red)
                         Text("₽")
@@ -155,14 +149,6 @@ struct CashFlowView: View {
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)
-    }
-    
-    private func formatCurrency(_ value: Double) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.groupingSeparator = " "
-        formatter.maximumFractionDigits = 0
-        return formatter.string(from: NSNumber(value: value)) ?? "\(Int(value))"
     }
 }
 
@@ -249,71 +235,92 @@ struct YearPickerView: View {
             .disabled(availableYears.firstIndex(of: selectedYear) == 0)
             
             // Года с прокруткой
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    // Кнопка добавления года слева
-                    Button(action: {
-                        addYear(minYear - 1)
-                    }) {
-                        VStack(spacing: 2) {
-                            Text("+")
-                                .font(.caption)
-                            Text(String(minYear - 1))
-                                .font(.subheadline)
-                        }
-                        .foregroundColor(.primary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 6)
-                        .background(Color(.systemGray5))
-                        .cornerRadius(8)
-                    }
-                    
-                    // Существующие года
-                    ForEach(availableYears, id: \.self) { year in
-                        HStack(spacing: 4) {
-                            Button(action: {
-                                selectedYear = year
-                                onYearChanged?()
-                            }) {
-                                Text(String(year))
-                                    .font(.subheadline)
-                                    .fontWeight(year == selectedYear ? .bold : .regular)
-                                    .foregroundColor(year == selectedYear ? .white : .primary)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(year == selectedYear ? Color.blue : Color(.systemGray5))
-                                    .cornerRadius(8)
-                            }
-                            
-                            // Крестик для удаления года
-                            Button(action: {
-                                deleteYear(year)
-                            }) {
-                                Image(systemName: "xmark.circle.fill")
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        // Кнопка добавления года слева
+                        Button(action: {
+                            addYear(minYear - 1)
+                        }) {
+                            VStack(spacing: 2) {
+                                Text("+")
                                     .font(.caption)
-                                    .foregroundColor(.red)
+                                Text(String(minYear - 1))
+                                    .font(.subheadline)
                             }
+                            .foregroundColor(.primary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 6)
+                            .background(Color(.systemGray5))
+                            .cornerRadius(8)
+                        }
+                        
+                        // Существующие года
+                        ForEach(availableYears, id: \.self) { year in
+                            HStack(spacing: 4) {
+                                Button(action: {
+                                    selectedYear = year
+                                    onYearChanged?()
+                                    // Прокручиваем к выбранному году
+                                    withAnimation {
+                                        proxy.scrollTo(year, anchor: .center)
+                                    }
+                                }) {
+                                    Text(String(year))
+                                        .font(.subheadline)
+                                        .fontWeight(year == selectedYear ? .bold : .regular)
+                                        .foregroundColor(year == selectedYear ? .white : .primary)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(year == selectedYear ? Color.blue : Color(.systemGray5))
+                                        .cornerRadius(8)
+                                }
+                                
+                                // Крестик для удаления года
+                                Button(action: {
+                                    deleteYear(year)
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.caption)
+                                        .foregroundColor(.red)
+                                }
+                            }
+                            .id(year) // Добавляем id для прокрутки
+                        }
+                        
+                        // Кнопка добавления года справа
+                        Button(action: {
+                            addYear(maxYear + 1)
+                        }) {
+                            VStack(spacing: 2) {
+                                Text("+")
+                                    .font(.caption)
+                                Text(String(maxYear + 1))
+                                    .font(.subheadline)
+                            }
+                            .foregroundColor(.primary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 6)
+                            .background(Color(.systemGray5))
+                            .cornerRadius(8)
                         }
                     }
-                    
-                    // Кнопка добавления года справа
-                    Button(action: {
-                        addYear(maxYear + 1)
-                    }) {
-                        VStack(spacing: 2) {
-                            Text("+")
-                                .font(.caption)
-                            Text(String(maxYear + 1))
-                                .font(.subheadline)
+                    .padding(.horizontal, 4)
+                }
+                .onAppear {
+                    // Прокручиваем к выбранному году при появлении
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        withAnimation {
+                            proxy.scrollTo(selectedYear, anchor: .center)
                         }
-                        .foregroundColor(.primary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 6)
-                        .background(Color(.systemGray5))
-                        .cornerRadius(8)
                     }
                 }
-                .padding(.horizontal, 4)
+                .onChange(of: selectedYear) { newYear in
+                    // Прокручиваем к выбранному году при изменении
+                    withAnimation {
+                        proxy.scrollTo(newYear, anchor: .center)
+                    }
+                }
             }
             
             // Стрелка вправо
@@ -344,13 +351,13 @@ struct CashFlowTableView: View {
     @State private var editingMonth: String? = nil
     @State private var editingIncome: String = ""
     @State private var editingIncomeVariable: String = ""
-    @State private var editingExpenseDirect: String = ""
-    @State private var editingExpenseAdmin: String = ""
+    @State private var editingExpenseMaintenance: String = ""
+    @State private var editingExpenseOperational: String = ""
     @State private var editingExpenseOther: String = ""
     @State private var showingDetailEditor = false
     
     var monthlyData: [(month: String, monthNum: String, income: Double, expense: Double, monthData: Property.MonthData?)] {
-        let monthNames = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]
+        let monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
         let monthNumbers = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
         
         let yearData = property.months[String(selectedYear)] ?? [:]
@@ -361,14 +368,11 @@ struct CashFlowTableView: View {
             if let monthData = yearData[monthNum] {
                 let income = (monthData.income ?? 0) + (monthData.incomeVariable ?? 0)
                 
-                var expense: Double = 0
-                expense += monthData.expensesDirect ?? 0
-                expense += monthData.expensesAdmin ?? 0
-                expense += monthData.expensesMaintenance ?? 0
-                expense += monthData.expensesUtilities ?? 0
-                expense += monthData.expensesFinancial ?? 0
-                expense += monthData.expensesOperational ?? 0
-                expense += monthData.expensesOther ?? 0
+                // Расходы: 3 вида
+                let expense =
+                    (monthData.expensesMaintenance ?? 0) +
+                    (monthData.expensesOperational ?? 0) +
+                    (monthData.expensesOther ?? 0)
                 
                 result.append((month: monthNames[index], monthNum: monthNum, income: income, expense: expense, monthData: monthData))
             } else {
@@ -390,18 +394,16 @@ struct CashFlowTableView: View {
             editingIncome = String(format: "%.0f", monthData.income ?? 0)
             // Показываем переменный доход
             editingIncomeVariable = String(format: "%.0f", monthData.incomeVariable ?? 0)
-            // Показываем базовый расход
-            editingExpenseDirect = String(format: "%.0f", monthData.expensesDirect ?? 0)
-            // Показываем административные расходы
-            editingExpenseAdmin = String(format: "%.0f", monthData.expensesAdmin ?? 0)
-            // Показываем прочие расходы
+            // Показываем расходы: 3 вида
+            editingExpenseMaintenance = String(format: "%.0f", monthData.expensesMaintenance ?? 0)
+            editingExpenseOperational = String(format: "%.0f", monthData.expensesOperational ?? 0)
             editingExpenseOther = String(format: "%.0f", monthData.expensesOther ?? 0)
         } else {
             // Если данных нет, показываем 0
             editingIncome = "0"
             editingIncomeVariable = "0"
-            editingExpenseDirect = "0"
-            editingExpenseAdmin = "0"
+            editingExpenseMaintenance = "0"
+            editingExpenseOperational = "0"
             editingExpenseOther = "0"
         }
     }
@@ -410,8 +412,8 @@ struct CashFlowTableView: View {
         // Парсим все значения
         let incomeValue = Double(editingIncome) ?? 0
         let incomeVariableValue = Double(editingIncomeVariable) ?? 0
-        let expenseDirectValue = Double(editingExpenseDirect) ?? 0
-        let expenseAdminValue = Double(editingExpenseAdmin) ?? 0
+        let expenseMaintenanceValue = Double(editingExpenseMaintenance) ?? 0
+        let expenseOperationalValue = Double(editingExpenseOperational) ?? 0
         let expenseOtherValue = Double(editingExpenseOther) ?? 0
         
         let yearKey = String(selectedYear)
@@ -426,8 +428,8 @@ struct CashFlowTableView: View {
         // Сохраняем все поля (сохраняем даже 0, чтобы явно указать отсутствие значения)
         monthData.income = incomeValue > 0 ? incomeValue : nil
         monthData.incomeVariable = incomeVariableValue > 0 ? incomeVariableValue : nil
-        monthData.expensesDirect = expenseDirectValue > 0 ? expenseDirectValue : nil
-        monthData.expensesAdmin = expenseAdminValue > 0 ? expenseAdminValue : nil
+        monthData.expensesMaintenance = expenseMaintenanceValue > 0 ? expenseMaintenanceValue : nil
+        monthData.expensesOperational = expenseOperationalValue > 0 ? expenseOperationalValue : nil
         monthData.expensesOther = expenseOtherValue > 0 ? expenseOtherValue : nil
         
         yearData[monthNum] = monthData
@@ -441,7 +443,7 @@ struct CashFlowTableView: View {
         // Сохраняем изменения в data.json - это обновит аналитику автоматически
         print("💾 Сохранение данных для месяца \(monthNum) года \(selectedYear)")
         print("   Доход: \(incomeValue), Переменный: \(incomeVariableValue)")
-        print("   Расход прямой: \(expenseDirectValue), Админ: \(expenseAdminValue), Прочие: \(expenseOtherValue)")
+        print("   Расходы: Maintenance=\(expenseMaintenanceValue), Operational=\(expenseOperationalValue), Other=\(expenseOtherValue)")
         onSave()
     }
     
@@ -452,7 +454,8 @@ struct CashFlowTableView: View {
                 Text("Месяц")
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .frame(width: 60, alignment: .leading)
+                    .frame(width: 90, alignment: .leading)
+                    .padding(.leading, 12)
                 Spacer()
                 Text("Доход")
                     .font(.subheadline)
@@ -462,6 +465,7 @@ struct CashFlowTableView: View {
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .frame(width: 100, alignment: .trailing)
+                    .padding(.trailing, 12)
             }
             .padding(.vertical, 8)
             .background(Color(.systemGray5))
@@ -473,7 +477,8 @@ struct CashFlowTableView: View {
                 HStack {
                     Text(data.month)
                         .font(.subheadline)
-                        .frame(width: 60, alignment: .leading)
+                        .frame(width: 90, alignment: .leading)
+                        .padding(.leading, 12)
                     Spacer()
                     
                     if editingMonth == data.monthNum {
@@ -484,28 +489,33 @@ struct CashFlowTableView: View {
                             .frame(width: 100)
                             .font(.subheadline)
                         
-                        TextField("Расход", text: $editingExpenseDirect)
-                            .keyboardType(.decimalPad)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .frame(width: 100)
+                        // В упрощенном режиме показываем сумму всех расходов
+                        Text(((Double(editingExpenseMaintenance) ?? 0) + (Double(editingExpenseOperational) ?? 0) + (Double(editingExpenseOther) ?? 0)).formatCurrency())
                             .font(.subheadline)
+                            .foregroundColor(.red)
+                            .frame(width: 100, alignment: .trailing)
                         
-                        Button("✓") {
+                        Button(action: {
                             saveMonthData(monthNum: data.monthNum)
+                        }) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.title3)
                         }
-                        .foregroundColor(.green)
-                        .font(.headline)
-                        .frame(width: 30)
+                        .frame(width: 35)
                         
-                        Button("...") {
+                        Button(action: {
                             showingDetailEditor = true
+                        }) {
+                            Image(systemName: "ellipsis.circle.fill")
+                                .foregroundColor(.blue)
+                                .font(.title3)
                         }
-                        .foregroundColor(.blue)
-                        .font(.caption)
-                        .frame(width: 30)
+                        .frame(width: 35)
+                        .padding(.trailing, 12)
                     } else {
                         // Режим просмотра
-                        Text(formatCurrency(data.income))
+                        Text(data.income.formatCurrency())
                             .font(.subheadline)
                             .foregroundColor(.green)
                             .frame(width: 100, alignment: .trailing)
@@ -514,10 +524,11 @@ struct CashFlowTableView: View {
                                 startEditing(monthNum: data.monthNum, income: data.income, expense: data.expense)
                             }
                         
-                        Text(formatCurrency(data.expense))
+                        Text(data.expense.formatCurrency())
                             .font(.subheadline)
                             .foregroundColor(.red)
                             .frame(width: 100, alignment: .trailing)
+                            .padding(.trailing, 12)
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 startEditing(monthNum: data.monthNum, income: data.income, expense: data.expense)
@@ -546,8 +557,8 @@ struct CashFlowTableView: View {
                     selectedYear: selectedYear,
                     editingIncome: $editingIncome,
                     editingIncomeVariable: $editingIncomeVariable,
-                    editingExpenseDirect: $editingExpenseDirect,
-                    editingExpenseAdmin: $editingExpenseAdmin,
+                    editingExpenseMaintenance: $editingExpenseMaintenance,
+                    editingExpenseOperational: $editingExpenseOperational,
                     editingExpenseOther: $editingExpenseOther,
                     onSave: {
                         saveMonthData(monthNum: monthNum)
@@ -558,13 +569,6 @@ struct CashFlowTableView: View {
         }
     }
     
-    private func formatCurrency(_ value: Double) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.groupingSeparator = " "
-        formatter.maximumFractionDigits = 0
-        return formatter.string(from: NSNumber(value: value)) ?? "\(Int(value))"
-    }
 }
 
 // MARK: - Детальный редактор месяца
@@ -576,8 +580,8 @@ struct MonthDetailEditorView: View {
     let selectedYear: Int
     @Binding var editingIncome: String
     @Binding var editingIncomeVariable: String
-    @Binding var editingExpenseDirect: String
-    @Binding var editingExpenseAdmin: String
+    @Binding var editingExpenseMaintenance: String
+    @Binding var editingExpenseOperational: String
     @Binding var editingExpenseOther: String
     let onSave: () -> Void
     @Environment(\.presentationMode) var presentationMode
@@ -608,7 +612,7 @@ struct MonthDetailEditorView: View {
                         Text("Итого доход:")
                             .font(.system(.subheadline, design: .default).weight(.semibold))
                         Spacer()
-                        Text(formatCurrency((Double(editingIncome) ?? 0) + (Double(editingIncomeVariable) ?? 0)))
+                        Text(((Double(editingIncome) ?? 0) + (Double(editingIncomeVariable) ?? 0)).formatCurrency())
                             .font(.system(.subheadline, design: .default).weight(.semibold))
                             .foregroundColor(.green)
                     }
@@ -616,18 +620,18 @@ struct MonthDetailEditorView: View {
                 
                 Section(header: Text("Расходы за \(monthName) \(selectedYear)")) {
                     HStack {
-                        Text("Прямые расходы:")
+                        Text("Административные расходы:")
                         Spacer()
-                        TextField("0", text: $editingExpenseDirect)
+                        TextField("0", text: $editingExpenseMaintenance)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 150)
                     }
                     
                     HStack {
-                        Text("Административные:")
+                        Text("Эксплуатационные расходы:")
                         Spacer()
-                        TextField("0", text: $editingExpenseAdmin)
+                        TextField("0", text: $editingExpenseOperational)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 150)
@@ -646,11 +650,11 @@ struct MonthDetailEditorView: View {
                         Text("Итого расход:")
                             .font(.system(.subheadline, design: .default).weight(.semibold))
                         Spacer()
-                        Text(formatCurrency(
-                            (Double(editingExpenseDirect) ?? 0) +
-                            (Double(editingExpenseAdmin) ?? 0) +
+                        Text((
+                            (Double(editingExpenseMaintenance) ?? 0) +
+                            (Double(editingExpenseOperational) ?? 0) +
                             (Double(editingExpenseOther) ?? 0)
-                        ))
+                        ).formatCurrency())
                         .font(.system(.subheadline, design: .default).weight(.semibold))
                         .foregroundColor(.red)
                     }
@@ -674,12 +678,5 @@ struct MonthDetailEditorView: View {
         }
     }
     
-    private func formatCurrency(_ value: Double) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.groupingSeparator = " "
-        formatter.maximumFractionDigits = 0
-        return formatter.string(from: NSNumber(value: value)) ?? "\(Int(value))"
-    }
 }
 

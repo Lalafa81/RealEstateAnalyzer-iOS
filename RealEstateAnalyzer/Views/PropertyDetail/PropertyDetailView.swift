@@ -13,9 +13,10 @@ struct PropertyDetailView: View {
     let property: Property
     @State private var editableProperty: Property
     @State private var selectedYear: Int = Calendar.current.component(.year, from: Date())
-    @State private var includeAdmin = true
-    @State private var includeOther = true
+    @State private var onlySelectedYear = false
     @State private var isEditingProperty = false
+    @State private var includeMaintenance = true
+    @State private var includeOperating = true
     
     init(property: Property) {
         self.property = property
@@ -23,17 +24,19 @@ struct PropertyDetailView: View {
     }
     
     // Аналитика пересчитывается автоматически при изменении editableProperty
-    // Всегда рассчитывается для всего периода (все года)
+    // Может рассчитываться для всего периода или только для выбранного года
     var analytics: Analytics {
         let financialData = MetricsCalculator.extractMonthlyFinancials(
             property: editableProperty,
-            year: nil,
-            includeAdmin: includeAdmin,
-            includeOther: includeOther,
-            onlySelectedYear: false
+            year: onlySelectedYear ? selectedYear : nil
         )
         
-        return MetricsCalculator.computeAllMetrics(financialData: financialData, property: editableProperty)
+        return MetricsCalculator.computeAllMetrics(
+            financialData: financialData,
+            property: editableProperty,
+            includeMaintenance: includeMaintenance,
+            includeOperating: includeOperating
+        )
     }
     
     private func saveChanges() {
@@ -66,8 +69,9 @@ struct PropertyDetailView: View {
                 // Аналитика
                 AnalyticsView(
                     analytics: analytics,
-                    includeAdmin: $includeAdmin,
-                    includeOther: $includeOther
+                    onlySelectedYear: $onlySelectedYear,
+                    includeMaintenance: $includeMaintenance,
+                    includeOperating: $includeOperating
                 )
                 
                 // Графики

@@ -7,28 +7,11 @@
 
 import SwiftUI
 
-struct AnalyticsControlsView: View {
-    @Binding var includeAdmin: Bool
-    @Binding var includeOther: Bool
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Настройки аналитики")
-                .font(.headline)
-            
-            Toggle("Включать административные расходы", isOn: $includeAdmin)
-            Toggle("Включать прочие расходы", isOn: $includeOther)
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
-}
-
 struct AnalyticsView: View {
     let analytics: Analytics
-    @Binding var includeAdmin: Bool
-    @Binding var includeOther: Bool
+    @Binding var onlySelectedYear: Bool
+    @Binding var includeMaintenance: Bool
+    @Binding var includeOperating: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -41,21 +24,30 @@ struct AnalyticsView: View {
                 Spacer()
                 
                 // Настройки аналитики
-                VStack(alignment: .trailing, spacing: 8) {
+                VStack(alignment: .trailing, spacing: 6) {
                     HStack(spacing: 6) {
-                        Text("Включать административные расходы")
+                        Text("Только выбранный год")
                             .font(.caption2)
                             .foregroundColor(.secondary)
-                        Toggle("", isOn: $includeAdmin)
+                        Toggle("", isOn: $onlySelectedYear)
                             .toggleStyle(SwitchToggleStyle(tint: .green))
                             .scaleEffect(0.5)
                             .frame(width: 30, height: 15)
                     }
                     HStack(spacing: 6) {
-                        Text("Включать прочие расходы")
+                        Text("Включать техобслуживание")
                             .font(.caption2)
                             .foregroundColor(.secondary)
-                        Toggle("", isOn: $includeOther)
+                        Toggle("", isOn: $includeMaintenance)
+                            .toggleStyle(SwitchToggleStyle(tint: .green))
+                            .scaleEffect(0.5)
+                            .frame(width: 30, height: 15)
+                    }
+                    HStack(spacing: 6) {
+                        Text("Включать эксплуатационные")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Toggle("", isOn: $includeOperating)
                             .toggleStyle(SwitchToggleStyle(tint: .green))
                             .scaleEffect(0.5)
                             .frame(width: 30, height: 15)
@@ -65,8 +57,8 @@ struct AnalyticsView: View {
             
             // I. БАЗОВЫЕ ПОКАЗАТЕЛИ ОБЪЕКТА
             SectionView(title: "I. БАЗОВЫЕ ПОКАЗАТЕЛИ ОБЪЕКТА") {
-                MetricRow(label: "Ежемесячный доход", value: formatCurrency(analytics.monthlyIncome), note: "(Доходы за год / 12)")
-                MetricRow(label: "Ежемесячные расходы", value: formatCurrency(analytics.monthlyExpenses), note: "(Расходы за год / 12)")
+                MetricRow(label: "Ежемесячный доход", value: analytics.monthlyIncome.formatCurrency(), note: "(Доходы за год / 12)")
+                MetricRow(label: "Ежемесячные расходы", value: analytics.monthlyExpenses.formatCurrency(), note: "(Расходы за год / 12)")
                 MetricRow(label: "Рентабельность м²", value: String(format: "%.2f ₽", analytics.profitPerM2), note: "(прибыль / площадь)")
                 MetricRow(label: "Коэф. эффективности", value: String(format: "%.2f (%@)", analytics.efficiency, analytics.efficiencyLevel), note: "(Средний доход / площадь)")
             }
@@ -113,14 +105,6 @@ struct AnalyticsView: View {
             }
         }
         .padding()
-    }
-    
-    private func formatCurrency(_ value: Double) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "RUB"
-        formatter.maximumFractionDigits = 0
-        return formatter.string(from: NSNumber(value: value)) ?? "\(value)"
     }
 }
 
@@ -174,24 +158,4 @@ struct MetricRow: View {
     }
 }
 
-struct MetricCard: View {
-    let title: String
-    let value: String
-    let color: Color
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            Text(value)
-                .font(.headline)
-                .foregroundColor(color)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(8)
-    }
-}
 
