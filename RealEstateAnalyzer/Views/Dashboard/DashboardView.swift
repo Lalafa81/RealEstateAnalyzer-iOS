@@ -127,19 +127,24 @@ struct StatisticsView: View {
     }
     
     var body: some View {
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-            StatCard(label: "Количество объектов", value: "\(totalObjects)", formula: "Общее количество объектов в портфеле")
-            StatCard(label: "Стоимость портфеля", value: totalPortfolioValue.formatCurrency(), formula: "Сумма всех цен покупки объектов")
-            StatCard(label: "Общая площадь", value: String(format: "%.0f м²", totalArea), formula: "Сумма площадей всех объектов")
-            StatCard(label: "Суммарный доход", value: totalIncome.formatCurrency(), formula: "Сумма всех доходов по всем объектам за весь период")
-            StatCard(label: "Общие расходы", value: totalExpenses.formatCurrency(), formula: "Сумма всех расходов по всем объектам за весь период")
-            StatCard(label: "Чистая прибыль", value: totalProfit.formatCurrency(), formula: "Чистая прибыль = Суммарный доход - Общие расходы")
-            StatCard(label: "Средний ROI", value: String(format: "%.2f%%", averageROI), formula: "ROI = ((Средний доход - Средний расход) × 12 / Цена покупки) × 100%")
-            StatCard(label: "Средний Cap Rate", value: String(format: "%.2f%%", averageCapRate), formula: "Cap Rate = (NOI / Цена покупки) × 100%\n\nNOI = Годовой доход - Годовой расход - Налоги - Страхование")
-            StatCard(label: "Средняя загруженность", value: String(format: "%.1f%%", averageOccupancy), formula: "Загруженность = (Месяцы с доходом > 0 / Общее количество месяцев) × 100%")
-            StatCard(label: "Средний срок владения", value: String(format: "%.1f лет", averageHoldingPeriod), formula: "Срок владения = (Текущая дата - Дата покупки) / 365")
-            StatCard(label: "Стоимость выхода", value: totalExitValue > 0 ? totalExitValue.formatCurrency() : "—", formula: "Сумма всех цен продажи (exitPrice) объектов.\n\nЦена продажи — это планируемая или фактическая стоимость объекта при продаже.")
-            StatCard(label: "Средняя цена за м²", value: String(format: "%.0f", averagePricePerM2), formula: "Средняя цена за м² = Стоимость портфеля / Общая площадь")
+        VStack(spacing: 12) {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                StatCard(label: "Количество объектов", value: "\(totalObjects)", formula: "Общее количество объектов в портфеле")
+                StatCard(label: "Стоимость портфеля", value: totalPortfolioValue.formatCurrency(), formula: "Сумма всех цен покупки объектов")
+                StatCard(label: "Общая площадь", value: String(format: "%.0f м²", totalArea), formula: "Сумма площадей всех объектов")
+                StatCard(label: "Суммарный доход", value: totalIncome.formatCurrency(), formula: "Сумма всех доходов по всем объектам за весь период")
+                StatCard(label: "Общие расходы", value: totalExpenses.formatCurrency(), formula: "Сумма всех расходов по всем объектам за весь период")
+                StatCard(label: "Чистая прибыль", value: totalProfit.formatCurrency(), formula: "Чистая прибыль = Суммарный доход - Общие расходы")
+                StatCard(label: "Средний ROI", value: String(format: "%.2f%%", averageROI), formula: "ROI = ((Средний доход - Средний расход) × 12 / Цена покупки) × 100%")
+                StatCard(label: "Средний Cap Rate", value: String(format: "%.2f%%", averageCapRate), formula: "Cap Rate = (NOI / Цена покупки) × 100%\n\nNOI = Годовой доход - Годовой расход - Налоги - Страхование")
+                StatCard(label: "Средняя загруженность", value: String(format: "%.1f%%", averageOccupancy), formula: "Загруженность = (Месяцы с доходом > 0 / Общее количество месяцев) × 100%")
+            }
+            
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                StatCard(label: "Средний срок владения", value: String(format: "%.1f лет", averageHoldingPeriod), formula: "Срок владения = (Текущая дата - Дата покупки) / 365")
+                StatCard(label: "Стоимость выхода", value: totalExitValue > 0 ? totalExitValue.formatCurrency() : "—", formula: "Сумма всех цен продажи (exitPrice) объектов.\n\nЦена продажи — это планируемая или фактическая стоимость объекта при продаже.")
+                StatCard(label: "Средняя цена за м²", value: String(format: "%.0f", averagePricePerM2), formula: "Средняя цена за м² = Стоимость портфеля / Общая площадь")
+            }
         }
         .padding(.vertical, 8)
     }
