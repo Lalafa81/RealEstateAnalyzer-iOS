@@ -77,14 +77,14 @@ struct MiniChartView: View {
                             if data.income > 0 {
                                 Rectangle()
                                     .fill(Color.green)
-                                    .frame(height: maxValue > 0 ? CGFloat(data.income / maxValue) * geometry.size.height * 0.5 : 0)
+                                    .frame(height: maxValue > 0 ? CGFloat(data.income / maxValue) * geometry.size.height * 0.6 : 0)
                             }
                             
                             // Расходы (красный) - снизу
                             if data.expense > 0 {
                                 Rectangle()
                                     .fill(Color.red)
-                                    .frame(height: maxValue > 0 ? CGFloat(data.expense / maxValue) * geometry.size.height * 0.5 : 0)
+                                    .frame(height: maxValue > 0 ? CGFloat(data.expense / maxValue) * geometry.size.height * 0.6 : 0)
                             }
                             
                             // Подпись месяца
@@ -100,7 +100,7 @@ struct MiniChartView: View {
                     }
                 }
             }
-            .frame(height: 150)
+            .frame(height: 180)
             
             // Легенда
             HStack(spacing: 16) {
