@@ -23,6 +23,7 @@
 		AA0000310000000000000001 /* PropertyCashFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000320000000000000001 /* PropertyCashFlowView.swift */; };
 		AA0000330000000000000001 /* data.json in Resources */ = {isa = PBXBuildFile; fileRef = AA0000340000000000000001 /* data.json */; };
 		AA0000350000000000000001 /* PropertyGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000360000000000000001 /* PropertyGalleryView.swift */; };
+		AA0000370000000000000001 /* images.json in Resources */ = {isa = PBXBuildFile; fileRef = AA0000380000000000000001 /* images.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +44,7 @@
 		AA0000320000000000000001 /* PropertyCashFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyCashFlowView.swift; sourceTree = "<group>"; };
 		AA0000340000000000000001 /* data.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = data.json; sourceTree = "<group>"; };
 		AA0000360000000000000001 /* PropertyGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyGalleryView.swift; sourceTree = "<group>"; };
+		AA0000380000000000000001 /* images.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = images.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,6 +83,7 @@
 				AA0000190000000000000001 /* Views */,
 				AA00001A0000000000000001 /* Utilities */,
 				AA0000340000000000000001 /* data.json */,
+				AA0000380000000000000001 /* images.json */,
 			);
 			path = RealEstateAnalyzer;
 			sourceTree = "<group>";
@@ -210,6 +213,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA0000330000000000000001 /* data.json in Resources */,
+				AA0000370000000000000001 /* images.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

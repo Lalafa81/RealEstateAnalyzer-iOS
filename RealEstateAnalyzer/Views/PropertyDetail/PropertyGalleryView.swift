@@ -10,6 +10,7 @@ import UIKit
 
 struct PropertyGalleryView: View {
     @Binding var property: Property
+    @EnvironmentObject var dataManager: DataManager
     let onSave: () -> Void
     @State private var selectedImageIndex: Int = 0
     @State private var showingImagePicker = false
@@ -17,17 +18,19 @@ struct PropertyGalleryView: View {
     @State private var fullScreenImageIndex = 0
     @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
     
-    // Извлекаем все изображения из property.gallery и property.image (base64)
+    // Извлекаем все изображения из images.json через DataManager
     var images: [String] {
         var allImages: [String] = []
         
+        let (mainImage, galleryImages) = dataManager.getPropertyImages(propertyId: property.id)
+        
         // Добавляем основное изображение, если оно есть
-        if let mainImage = property.image {
+        if let mainImage = mainImage {
             allImages.append(mainImage)
         }
         
         // Добавляем изображения из галереи
-        if let galleryImages = property.gallery {
+        if let galleryImages = galleryImages {
             allImages.append(contentsOf: galleryImages)
         }
         
@@ -131,39 +134,58 @@ struct PropertyGalleryView: View {
         let base64String = imageData.base64EncodedString()
         let base64WithPrefix = "data:image/jpeg;base64,\(base64String)"
         
+        let (currentImage, currentGallery) = dataManager.getPropertyImages(propertyId: property.id)
+        
+        var newImage: String?
+        var newGallery: [String]?
+        
         // Если основного изображения нет, используем его
-        if property.image == nil {
-            property.image = base64WithPrefix
+        if currentImage == nil {
+            newImage = base64WithPrefix
+            newGallery = currentGallery
         } else {
             // Иначе добавляем в галерею
-            if property.gallery == nil {
-                property.gallery = []
-            }
-            property.gallery?.append(base64WithPrefix)
+            var gallery = currentGallery ?? []
+            gallery.append(base64WithPrefix)
+            newImage = currentImage
+            newGallery = gallery
         }
         
+        dataManager.updatePropertyImages(propertyId: property.id, image: newImage, gallery: newGallery)
         onSave()
     }
     
     // Удаляет изображение по индексу
     private func deleteImage(at index: Int) {
-        if index == 0 && property.image != nil {
+        let (currentImage, currentGallery) = dataManager.getPropertyImages(propertyId: property.id)
+        
+        var newImage: String?
+        var newGallery: [String]?
+        
+        if index == 0 && currentImage != nil {
             // Удаляем основное изображение
-            property.image = nil
             // Если есть галерея, первое изображение становится основным
-            if let gallery = property.gallery, !gallery.isEmpty {
-                property.image = gallery[0]
-                property.gallery = Array(gallery.dropFirst())
+            if let gallery = currentGallery, !gallery.isEmpty {
+                newImage = gallery[0]
+                newGallery = Array(gallery.dropFirst())
+            } else {
+                newImage = nil
+                newGallery = nil
             }
         } else {
             // Удаляем из галереи
-            let galleryIndex = property.image != nil ? index - 1 : index
-            if var gallery = property.gallery, galleryIndex >= 0 && galleryIndex < gallery.count {
+            let galleryIndex = currentImage != nil ? index - 1 : index
+            if var gallery = currentGallery, galleryIndex >= 0 && galleryIndex < gallery.count {
                 gallery.remove(at: galleryIndex)
-                property.gallery = gallery.isEmpty ? nil : gallery
+                newImage = currentImage
+                newGallery = gallery.isEmpty ? nil : gallery
+            } else {
+                newImage = currentImage
+                newGallery = currentGallery
             }
         }
         
+        dataManager.updatePropertyImages(propertyId: property.id, image: newImage, gallery: newGallery)
         onSave()
     }
     

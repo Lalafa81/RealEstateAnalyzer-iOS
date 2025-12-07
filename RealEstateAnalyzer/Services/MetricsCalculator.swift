@@ -180,8 +180,6 @@ class MetricsCalculator {
         )
         let propertyTax = financialData.propertyTax
         let insuranceCost = financialData.insuranceCost
-        let monthsWithIncome = financialData.monthsWithIncome
-        let monthsWithExpense = financialData.monthsWithExpense
         let onlySelectedYear = financialData.onlySelectedYear
         
         // Собираем объединенный массив расходов для расчета максимумов
@@ -209,8 +207,11 @@ class MetricsCalculator {
         let price = property.purchasePrice > 0 ? property.purchasePrice : 1
         
         // Средние значения
-        let avgExpense = round((annualExpense / Double(onlySelectedYear ? 12 : max(monthsWithExpense, 1))) * 100) / 100
-        let avgIncome = round((annualIncome / Double(onlySelectedYear ? 12 : max(monthsWithIncome, 1))) * 100) / 100
+        // Когда onlySelectedYear = true: делим на 12 (месяцев в году)
+        // Когда onlySelectedYear = false: делим на количество месяцев с данными, чтобы получить средний месячный показатель
+        let monthsForAverage = onlySelectedYear ? 12 : max(incomes.count, 1)
+        let avgExpense = round((annualExpense / Double(monthsForAverage)) * 100) / 100
+        let avgIncome = round((annualIncome / Double(monthsForAverage)) * 100) / 100
         
         // Срок владения
         let ownYears = ownershipDurationYears(purchaseDate: property.purchaseDate)
@@ -224,8 +225,14 @@ class MetricsCalculator {
         let monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
         let maxIncome = incomes.max() ?? 0
         let maxExpense = allExpenses.max() ?? 0
-        let maxIncomeMonth = incomes.isEmpty ? nil : monthNames[incomes.firstIndex(of: maxIncome)! % 12]
-        let maxExpenseMonth = allExpenses.isEmpty ? nil : monthNames[allExpenses.firstIndex(of: maxExpense)! % 12]
+        let maxIncomeMonth: String? = {
+            guard !incomes.isEmpty, let index = incomes.firstIndex(of: maxIncome) else { return nil }
+            return monthNames[index % 12]
+        }()
+        let maxExpenseMonth: String? = {
+            guard !allExpenses.isEmpty, let index = allExpenses.firstIndex(of: maxExpense) else { return nil }
+            return monthNames[index % 12]
+        }()
         
         // Дополнительные метрики
         let rentPerM2 = incomePerSquareMeter(income: avgIncome, area: area)
@@ -238,11 +245,15 @@ class MetricsCalculator {
         let sumTenants = tenantsIncomes.reduce(0, +)
         let tenantConcentration = sumTenants > 0 ? round((maxTenant / sumTenants * 100) * 10) / 10 : 0
         
-        // IRR (упрощенная версия, без numpy-financial)
+        // IRR расчет
         let netCashFlow = (avgIncome - avgExpense) * 12
         let exitPrice = property.exitPrice ?? 0
-        // IRR требует итеративного решения, упрощаем
-        let irr: Double? = nil // TODO: Реализовать расчет IRR
+        let irr = calculateIRR(
+            investment: price,
+            annualCashFlow: netCashFlow,
+            holdingYears: ownYears > 0 ? ownYears : 1,
+            exitPrice: exitPrice
+        )
         
         // Equity Multiple
         let holdingYears = ownYears > 0 ? ownYears : 1
@@ -287,6 +298,82 @@ class MetricsCalculator {
     }
     
     // MARK: - Вспомогательные функции
+    
+    /// Рассчитывает IRR (Internal Rate of Return) методом бисекции
+    /// IRR - это ставка дисконтирования, при которой NPV = 0
+    private static func calculateIRR(
+        investment: Double,
+        annualCashFlow: Double,
+        holdingYears: Double,
+        exitPrice: Double
+    ) -> Double? {
+        // Если нет инвестиции или отрицательный cash flow без exit price, IRR не может быть рассчитан
+        guard investment > 0 else { return nil }
+        
+        // Если cash flow отрицательный и нет exit price, IRR не может быть рассчитан
+        if annualCashFlow <= 0 && exitPrice <= 0 {
+            return nil
+        }
+        
+        // Функция для расчета NPV при заданной ставке дисконтирования
+        func npv(rate: Double) -> Double {
+            var npvValue = -investment // Начальная инвестиция (отрицательная)
+            
+            // Добавляем годовые cash flows
+            for year in 1...Int(holdingYears) {
+                npvValue += annualCashFlow / pow(1.0 + rate, Double(year))
+            }
+            
+            // Добавляем exit price в последний год
+            if exitPrice > 0 {
+                npvValue += exitPrice / pow(1.0 + rate, holdingYears)
+            }
+            
+            return npvValue
+        }
+        
+        // Используем метод бисекции для поиска IRR
+        // Диапазон поиска: от -0.99 (отрицательные 99%) до 10.0 (1000%)
+        var low: Double = -0.99
+        var high: Double = 10.0
+        let tolerance: Double = 0.0001 // Точность расчета
+        let maxIterations = 100
+        
+        // Проверяем границы
+        let npvLow = npv(rate: low)
+        let npvHigh = npv(rate: high)
+        
+        // Если оба значения одного знака, решение не найдено
+        if npvLow * npvHigh > 0 {
+            // Если NPV всегда положительный даже при -99%, возвращаем nil
+            if npvLow > 0 {
+                return nil
+            }
+            // Если NPV всегда отрицательный даже при 1000%, возвращаем nil
+            return nil
+        }
+        
+        // Итеративный поиск методом бисекции
+        for _ in 0..<maxIterations {
+            let mid = (low + high) / 2.0
+            let npvMid = npv(rate: mid)
+            
+            if abs(npvMid) < tolerance {
+                // Нашли решение с достаточной точностью
+                return round(mid * 10000) / 100 // Округляем до 2 знаков после запятой в процентах
+            }
+            
+            if npvMid > 0 {
+                low = mid
+            } else {
+                high = mid
+            }
+        }
+        
+        // Если не нашли точное решение, возвращаем среднее значение
+        let result = (low + high) / 2.0
+        return round(result * 10000) / 100
+    }
     
     private static func ownershipDurationYears(purchaseDate: String) -> Double {
         guard !purchaseDate.isEmpty else { return 0 }

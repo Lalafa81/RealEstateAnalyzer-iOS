@@ -28,7 +28,7 @@ struct MiniChartView: View {
     
     // Получаем данные по месяцам для выбранного года
     var monthlyData: [(month: String, income: Double, expense: Double)] {
-        let monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
+        let monthNames = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]
         let monthKeys = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
         
         guard let yearData = property.months[String(selectedYear)] else {
@@ -72,7 +72,7 @@ struct MiniChartView: View {
                 HStack(alignment: .bottom, spacing: 4) {
                     ForEach(0..<12, id: \.self) { index in
                         let data = monthlyData[index]
-                        VStack(spacing: 2) {
+                        VStack(spacing: 0) {
                             // Доходы (зеленый) - сверху
                             if data.income > 0 {
                                 Rectangle()
@@ -89,15 +89,18 @@ struct MiniChartView: View {
                             
                             // Подпись месяца
                             Text(data.month)
-                                .font(.system(size: 9))
+                                .font(.system(size: 8))
                                 .foregroundColor(.secondary)
-                                .frame(height: 20)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
+                                .frame(height: 12)
+                                .padding(.top, 1)
                         }
                         .frame(maxWidth: .infinity)
                     }
                 }
             }
-            .frame(height: 180)
+            .frame(height: 150)
             
             // Легенда
             HStack(spacing: 16) {
@@ -118,7 +121,6 @@ struct MiniChartView: View {
                         .foregroundColor(.secondary)
                 }
             }
-            .padding(.top, 4)
         }
         .padding()
         .background(Color(.systemGray6))

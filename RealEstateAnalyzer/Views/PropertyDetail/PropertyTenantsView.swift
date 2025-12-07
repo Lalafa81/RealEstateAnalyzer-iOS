@@ -40,7 +40,7 @@ struct TenantsView: View {
             }
             
             // Таблица арендаторов
-            if tenants.filter({ !$0.name.isEmpty }).isEmpty {
+            if tenants.isEmpty {
                 Text("Нет арендаторов")
                     .foregroundColor(.secondary)
                     .padding()
@@ -53,18 +53,18 @@ struct TenantsView: View {
                                 .font(.caption)
                                 .fontWeight(.semibold)
                                 .frame(width: 150, alignment: .leading)
-                            Text("$/мес")
+                            Text("Доход")
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .frame(width: 80, alignment: .trailing)
+                                .frame(width: 100, alignment: .trailing)
                             Text("Площадь")
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .frame(width: 80, alignment: .trailing)
+                                .frame(width: 90, alignment: .trailing)
                             Text("% от общей")
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .frame(width: 80, alignment: .trailing)
+                                .frame(width: 90, alignment: .trailing)
                             Text("Начало")
                                 .font(.caption)
                                 .fontWeight(.semibold)
@@ -76,18 +76,18 @@ struct TenantsView: View {
                             Text("Индексация")
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .frame(width: 80, alignment: .trailing)
+                                .frame(width: 90, alignment: .trailing)
                             Text("")
                                 .frame(width: 40)
                         }
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 10)
                         .padding(.horizontal, 12)
                         .background(Color(.systemGray5))
                         
                         Divider()
                         
-                        // Строки арендаторов
-                        ForEach(tenants.filter { !$0.name.isEmpty }) { tenant in
+                        // Строки арендаторов (временно без фильтра для отладки)
+                        ForEach(tenants) { tenant in
                             TenantRowView(
                                 tenant: Binding(
                                     get: { tenant },
@@ -115,26 +115,46 @@ struct TenantsView: View {
                 }
             }
         }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
         .sheet(isPresented: $showingAddTenant) {
-            if let tenant = editingTenant {
+            if editingTenant != nil {
                 TenantEditView(
                     tenant: Binding(
-                        get: { tenant },
-                        set: { newTenant in
-                            editingTenant = newTenant
-                        }
+                        get: { editingTenant! },
+                        set: { editingTenant = $0 }
                     ),
                     onSave: {
-                        if let index = tenants.firstIndex(where: { $0.id == tenant.id }) {
-                            tenants[index] = editingTenant ?? tenant
-                        } else {
-                            tenants.append(editingTenant ?? tenant)
+                        guard let updatedTenant = editingTenant else {
+                            print("❌ editingTenant is nil in onSave")
+                            return
                         }
+                        
+                        print("💾 Сохранение арендатора:")
+                        print("   ID: \(updatedTenant.id)")
+                        print("   Имя: \(updatedTenant.name)")
+                        print("   Доход: \(updatedTenant.income ?? 0)")
+                        print("   Количество арендаторов ДО: \(tenants.count)")
+                        
+                        if let index = tenants.firstIndex(where: { $0.id == updatedTenant.id }) {
+                            // Обновляем существующего арендатора
+                            print("   ✅ Обновление существующего арендатора по индексу: \(index)")
+                            tenants[index] = updatedTenant
+                        } else {
+                            // Добавляем нового арендатора
+                            print("   ✅ Добавление нового арендатора")
+                            tenants.append(updatedTenant)
+                        }
+                        
+                        print("   Количество арендаторов ПОСЛЕ: \(tenants.count)")
+                        
                         onSave()
                         showingAddTenant = false
                         editingTenant = nil
                     },
                     onCancel: {
+                        print("❌ Отмена редактирования арендатора")
                         showingAddTenant = false
                         editingTenant = nil
                     }
@@ -167,18 +187,19 @@ struct TenantRowView: View {
                     onEdit()
                 }
             
-            // $/мес
-            Text("$\((tenant.income ?? 0).formatCurrency())")
+            // Доход
+            Text((tenant.income ?? 0).formatCurrency())
                 .font(.subheadline)
-                .frame(width: 80, alignment: .trailing)
+                .foregroundColor(.green)
+                .frame(width: 100, alignment: .trailing)
                 .onTapGesture {
                     onEdit()
                 }
             
             // Площадь
-            Text(tenant.area != nil ? String(format: "%.0f", tenant.area!) : "—")
+            Text(tenant.area != nil ? String(format: "%.0f м²", tenant.area!) : "—")
                 .font(.subheadline)
-                .frame(width: 80, alignment: .trailing)
+                .frame(width: 90, alignment: .trailing)
                 .onTapGesture {
                     onEdit()
                 }
@@ -186,7 +207,7 @@ struct TenantRowView: View {
             // % от общей
             Text(String(format: "%.1f%%", percentageOfTotal))
                 .font(.subheadline)
-                .frame(width: 80, alignment: .trailing)
+                .frame(width: 90, alignment: .trailing)
             
             // Начало
             Text(tenant.startDate ?? "—")
@@ -207,7 +228,7 @@ struct TenantRowView: View {
             // Индексация
             Text(tenant.indexation ?? "—")
                 .font(.subheadline)
-                .frame(width: 80, alignment: .trailing)
+                .frame(width: 90, alignment: .trailing)
                 .onTapGesture {
                     onEdit()
                 }
@@ -245,7 +266,7 @@ struct TenantEditView: View {
                     TextField("Название компании", text: $editingName)
                     
                     HStack {
-                        Text("Доход ($/мес):")
+                        Text("Доход (₽/мес):")
                         Spacer()
                         TextField("0", text: $editingIncome)
                             .keyboardType(.decimalPad)
@@ -306,6 +327,7 @@ struct TenantEditView: View {
                 loadCurrentValues()
             }
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     private func loadCurrentValues() {
@@ -318,12 +340,37 @@ struct TenantEditView: View {
     }
     
     private func saveChanges() {
-        tenant.name = editingName
-        tenant.income = Double(editingIncome).flatMap { $0 > 0 ? $0 : nil }
-        tenant.area = Double(editingArea).flatMap { $0 > 0 ? $0 : nil }
-        tenant.startDate = editingStartDate.isEmpty ? nil : editingStartDate
-        tenant.endDate = editingEndDate.isEmpty ? nil : editingEndDate
-        tenant.indexation = editingIndexation.isEmpty ? nil : editingIndexation
+        // Обновляем tenant через binding
+        tenant.name = editingName.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Парсим доход с удалением пробелов
+        let incomeString = editingIncome.replacingOccurrences(of: " ", with: "")
+        if let incomeValue = Double(incomeString), incomeValue > 0 {
+            tenant.income = incomeValue
+        } else {
+            tenant.income = nil
+        }
+        
+        // Парсим площадь с удалением пробелов
+        let areaString = editingArea.replacingOccurrences(of: " ", with: "")
+        if let areaValue = Double(areaString), areaValue > 0 {
+            tenant.area = areaValue
+        } else {
+            tenant.area = nil
+        }
+        
+        // Валидация и форматирование дат
+        let trimmedStartDate = editingStartDate.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedEndDate = editingEndDate.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        tenant.startDate = trimmedStartDate.isEmpty ? nil : trimmedStartDate
+        tenant.endDate = trimmedEndDate.isEmpty ? nil : trimmedEndDate
+        
+        // Индексация
+        let trimmedIndexation = editingIndexation.trimmingCharacters(in: .whitespacesAndNewlines)
+        tenant.indexation = trimmedIndexation.isEmpty ? nil : trimmedIndexation
+        
+        // Вызываем onSave, который добавит/обновит арендатора в массиве
         onSave()
     }
 }

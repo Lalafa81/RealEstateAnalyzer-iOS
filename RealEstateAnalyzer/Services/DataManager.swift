@@ -16,6 +16,10 @@ class DataManager: ObservableObject {
     
     private let dataFileName = "data.json"
     private let assetMapFileName = "asset_map.json"
+    private let imagesFileName = "images.json"
+    
+    // Кэш изображений
+    private var propertyImages: PropertyImages = PropertyImages()
     
     private init() {}
     
@@ -43,14 +47,8 @@ class DataManager: ObservableObject {
     func forceReloadFromBundle() {
         let documentsURL = getDocumentsURL().appendingPathComponent(dataFileName)
         
-        // Удаляем старый файл из Documents
         if FileManager.default.fileExists(atPath: documentsURL.path) {
-            do {
-                try FileManager.default.removeItem(at: documentsURL)
-                print("🗑️ Удален старый файл из Documents")
-            } catch {
-                print("⚠️ Не удалось удалить файл: \(error)")
-            }
+            try? FileManager.default.removeItem(at: documentsURL)
         }
         
         // Загружаем из Bundle
@@ -60,84 +58,45 @@ class DataManager: ObservableObject {
     func loadData() {
         let documentsURL = getDocumentsURL().appendingPathComponent(dataFileName)
         
-        // СНАЧАЛА пробуем загрузить из Bundle (ресурсы проекта) - это приоритетный источник
-        if let bundleURL = Bundle.main.url(forResource: "data", withExtension: "json") {
-            print("📦 Найден data.json в Bundle: \(bundleURL.path)")
-            if loadData(from: bundleURL) {
-                // Копируем из bundle в Documents для дальнейшего использования
-                // Но только если в Documents нет файла или он пустой
-                if !FileManager.default.fileExists(atPath: documentsURL.path) {
-                    copyFile(from: bundleURL, to: documentsURL)
-                } else {
-                    print("ℹ️ Файл в Documents уже существует, не перезаписываем")
-                }
-                return
-            }
-        } else {
-            print("⚠️ Файл data.json не найден в Bundle")
-        }
-        
-        // Если в Bundle нет или не загрузился, пробуем загрузить из Documents (пользовательские данные)
+        // 1. Если есть файл в Documents → читаем его и используем (это всегда пользовательские данные)
         if FileManager.default.fileExists(atPath: documentsURL.path) {
-            print("📁 Найден data.json в Documents: \(documentsURL.path)")
             if loadData(from: documentsURL) {
-                // Проверяем, не являются ли это тестовые данные
-                if isTestData() {
-                    print("⚠️ Обнаружены тестовые данные в Documents, перезагружаем из Bundle")
-                    try? FileManager.default.removeItem(at: documentsURL)
-                    // Пробуем снова загрузить из Bundle
-                    if let bundleURL = Bundle.main.url(forResource: "data", withExtension: "json") {
-                        if loadData(from: bundleURL) {
-                            copyFile(from: bundleURL, to: documentsURL)
-                            return
-                        }
-                    }
-                } else {
-                    return
-                }
+                loadImages()
+                return
             } else {
-                print("⚠️ Файл в Documents не загрузился, удаляем его")
-                // Удаляем поврежденный файл
+                // Если файл поврежден, удаляем его
                 try? FileManager.default.removeItem(at: documentsURL)
             }
-        } else {
-            print("⚠️ Файл data.json не найден в Documents")
         }
         
-        // Если ничего не найдено, загружаем тестовые данные
-        print("❌ Файл данных не найден. Загружаем тестовые данные.")
+        // 2. Если в Documents нет файла → пробуем взять data.json из Bundle
+        if let bundleURL = Bundle.main.url(forResource: "data", withExtension: "json") {
+            if loadData(from: bundleURL) {
+                // Копируем Bundle → Documents и читаем
+                copyFile(from: bundleURL, to: documentsURL)
+                loadImages()
+                return
+            }
+        }
+        
+        // 3. Если и в Bundle нет → создаём тестовые данные и сразу сохраняем в Documents
         loadSampleData()
+        loadImages()
     }
     
     private func loadData(from url: URL) -> Bool {
         do {
             let data = try Data(contentsOf: url)
-            print("📊 Размер файла: \(data.count) байт")
-            
             let decoder = JSONDecoder()
             let propertyData = try decoder.decode(PropertyData.self, from: data)
             self.properties = propertyData.objects
             self.settings = propertyData.settings
             
-            // Мигрируем старые UUID в простые ID
             migrateIDsToSimpleFormat()
-            
-            // Мигрируем старые иконки на правильные SF Symbols
             migrateIconsToSFSymbols()
             
-            // Если данных нет, возвращаем false
-            if self.properties.isEmpty {
-                print("⚠️ Файл найден, но объектов нет.")
-                return false
-            } else {
-                print("✅ Загружено объектов: \(self.properties.count)")
-                for (index, prop) in self.properties.enumerated() {
-                    print("  \(index + 1). \(prop.name) (ID: \(prop.id))")
-                }
-                return true
-            }
+            return !self.properties.isEmpty
         } catch {
-            print("❌ Ошибка загрузки данных из \(url.path): \(error)")
             return false
         }
     }
@@ -183,7 +142,6 @@ class DataManager: ObservableObject {
         
         if needsSave {
             saveData()
-            print("✅ Миграция иконок завершена")
         }
     }
     
@@ -199,161 +157,25 @@ class DataManager: ObservableObject {
         }
         
         if needsMigration {
-            print("🔄 Миграция ID объектов в простой формат...")
             for i in 0..<properties.count {
-                // Если ID не является числом, заменяем его на простой номер
                 if Int(properties[i].id) == nil {
                     properties[i].id = String(format: "%03d", i + 1)
                 }
             }
-            // Сохраняем мигрированные данные
             saveData()
-            print("✅ Миграция завершена")
         }
     }
     
     private func copyFile(from source: URL, to destination: URL) {
-        do {
-            try FileManager.default.copyItem(at: source, to: destination)
-            print("✅ Файл скопирован из bundle в Documents")
-        } catch {
-            print("⚠️ Не удалось скопировать файл: \(error)")
-        }
+        try? FileManager.default.copyItem(at: source, to: destination)
     }
     
-    // MARK: - Проверка данных
+    // MARK: - Тестовые данные (fallback, если нет Bundle/data.json)
     
-    /// Проверяет, являются ли загруженные данные тестовыми
-    private func isTestData() -> Bool {
-        // Проверяем по характерным признакам тестовых данных
-        let testNames = ["Квартира на Тверской", "Офис в БЦ", "Склад на окраине"]
-        return properties.contains { property in
-            testNames.contains(property.name)
-        }
-    }
-    
-    // MARK: - Тестовые данные
-    
-    /// Загружает тестовые данные для демонстрации функциональности
+    /// Создает пустые данные (fallback, если нет файла ни в Documents, ни в Bundle)
     func loadSampleData() {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd.MM.yyyy"
-        let currentDate = Date()
-        let purchaseDate = formatter.string(from: currentDate.addingTimeInterval(-365 * 24 * 60 * 60 * 2)) // 2 года назад
-        
-        // Создаем данные за последние 12 месяцев
-        var monthsData: [String: [String: Property.MonthData]] = [:]
-        let currentYear = Calendar.current.component(.year, from: Date())
-        let monthNames = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-        
-        var yearData: [String: Property.MonthData] = [:]
-        for month in monthNames {
-            yearData[month] = Property.MonthData(
-                income: Double.random(in: 50000...80000),
-                incomeVariable: nil,
-                expensesDirect: nil,
-                expensesAdmin: Double.random(in: 5000...10000),
-                expensesMaintenance: Double.random(in: 10000...20000),
-                expensesUtilities: Double.random(in: 8000...15000),
-                expensesFinancial: nil,
-                expensesOperational: Double.random(in: 5000...10000),
-                expensesOther: Double.random(in: 2000...5000)
-            )
-        }
-        monthsData[String(currentYear)] = yearData
-        
-        // Объект 1: Квартира в Москве
-        let property1 = Property(
-            id: "001",
-            name: "Квартира на Тверской",
-            type: .residential,
-            address: "г. Москва, ул. Тверская, д. 10, кв. 45",
-            area: 65.5,
-            purchasePrice: 12_500_000,
-            purchaseDate: purchaseDate,
-            status: .rented,
-            source: "Покупка",
-            tenants: [
-                Tenant(
-                    name: "Иванов Иван",
-                    income: 75000,
-                    startDate: "01.01.\(currentYear)",
-                    endDate: "31.12.\(currentYear)",
-                    area: 65.5,
-                    indexation: "5%"
-                )
-            ],
-            months: monthsData,
-            propertyTax: 15000,
-            insuranceCost: 12000,
-            exitPrice: 13_500_000,
-            icon: "house.fill"
-        )
-        
-        // Объект 2: Офисное помещение
-        let property2 = Property(
-            id: "002",
-            name: "Офис в БЦ",
-            type: .commercial,
-            address: "г. Москва, ул. Ленина, д. 5, оф. 301",
-            area: 120.0,
-            purchasePrice: 25_000_000,
-            purchaseDate: purchaseDate,
-            status: .rented,
-            source: "Покупка",
-            tenants: [
-                Tenant(
-                    name: "ООО Компания",
-                    income: 150000,
-                    startDate: "01.01.\(currentYear)",
-                    endDate: "31.12.\(currentYear)",
-                    area: 120.0,
-                    indexation: "3%"
-                )
-            ],
-            months: monthsData,
-            propertyTax: 30000,
-            insuranceCost: 25000,
-            exitPrice: 27_000_000,
-            icon: "building.2.fill"
-        )
-        
-        // Объект 3: Склад
-        let property3 = Property(
-            id: "003",
-            name: "Склад на окраине",
-            type: .industrial,
-            address: "Московская обл., г. Химки, складской комплекс",
-            area: 500.0,
-            purchasePrice: 45_000_000,
-            purchaseDate: purchaseDate,
-            status: .rented,
-            source: "Покупка",
-            tenants: [
-                Tenant(
-                    name: "Логистика Плюс",
-                    income: 400000,
-                    startDate: "01.01.\(currentYear)",
-                    endDate: "31.12.\(currentYear)",
-                    area: 500.0,
-                    indexation: "7%"
-                )
-            ],
-            months: monthsData,
-            propertyTax: 80000,
-            insuranceCost: 60000,
-            exitPrice: 50_000_000,
-            icon: "archivebox.fill"
-        )
-        
-        self.properties = [property1, property2, property3]
-        self.settings = PropertyData.Settings(locale: "ru_RU", summaryCurrency: "RUB")
-        
-        print("✅ Загружено тестовых объектов: \(self.properties.count)")
-        for (index, prop) in self.properties.enumerated() {
-            print("  \(index + 1). \(prop.name) - \(prop.address)")
-        }
-        
+        self.properties = []
+        self.settings = PropertyData.Settings(locale: "ru", summaryCurrency: "RUB")
         saveData()
     }
     
@@ -362,7 +184,14 @@ class DataManager: ObservableObject {
     func saveData() {
         let url = getDocumentsURL().appendingPathComponent(dataFileName)
         
-        let propertyData = PropertyData(objects: properties, settings: settings)
+        // Создаем копию properties без изображений для сохранения в data.json
+        var propertiesWithoutImages = properties
+        for i in 0..<propertiesWithoutImages.count {
+            propertiesWithoutImages[i].image = nil
+            propertiesWithoutImages[i].gallery = nil
+        }
+        
+        let propertyData = PropertyData(objects: propertiesWithoutImages, settings: settings)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         
@@ -370,8 +199,81 @@ class DataManager: ObservableObject {
             let data = try encoder.encode(propertyData)
             try data.write(to: url)
         } catch {
-            print("Ошибка сохранения данных: \(error)")
+            // Ошибка сохранения данных
         }
+    }
+    
+    // MARK: - Работа с изображениями
+    
+    private func loadImages() {
+        let documentsURL = getDocumentsURL().appendingPathComponent(imagesFileName)
+        
+        if FileManager.default.fileExists(atPath: documentsURL.path) {
+            if loadImages(from: documentsURL) {
+                return
+            }
+        }
+        
+        if let bundleURL = Bundle.main.url(forResource: "images", withExtension: "json") {
+            if loadImages(from: bundleURL) {
+                return
+            }
+        }
+        
+        propertyImages = PropertyImages()
+    }
+    
+    private func loadImages(from url: URL) -> Bool {
+        do {
+            let data = try Data(contentsOf: url)
+            let decoder = JSONDecoder()
+            propertyImages = try decoder.decode(PropertyImages.self, from: data)
+            return true
+        } catch {
+            return false
+        }
+    }
+    
+    func saveImages() {
+        let documentsURL = getDocumentsURL().appendingPathComponent(imagesFileName)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        
+        do {
+            let data = try encoder.encode(propertyImages)
+            try data.write(to: documentsURL)
+            
+            if let bundleURL = Bundle.main.url(forResource: "data", withExtension: "json") {
+                let projectDir = bundleURL.deletingLastPathComponent()
+                let projectURL = projectDir.appendingPathComponent(imagesFileName)
+                try? data.write(to: projectURL)
+            }
+        } catch {
+            // Ошибка сохранения изображений
+        }
+    }
+    
+    /// Получает изображения для объекта
+    func getPropertyImages(propertyId: String) -> (image: String?, gallery: [String]?) {
+        guard let imageData = propertyImages.images[propertyId] else {
+            return (nil, nil)
+        }
+        return (imageData.image, imageData.gallery)
+    }
+    
+    /// Обновляет изображения для объекта
+    func updatePropertyImages(propertyId: String, image: String?, gallery: [String]?) {
+        var imageData = PropertyImages.PropertyImageData()
+        imageData.image = image
+        imageData.gallery = gallery
+        propertyImages.images[propertyId] = imageData
+        saveImages()
+    }
+    
+    /// Удаляет изображения для объекта
+    func deletePropertyImages(propertyId: String) {
+        propertyImages.images.removeValue(forKey: propertyId)
+        saveImages()
     }
     
     func saveAssetMap(_ assetMapData: [String: Any]) {
@@ -381,7 +283,7 @@ class DataManager: ObservableObject {
             let jsonData = try JSONSerialization.data(withJSONObject: assetMapData, options: [.prettyPrinted, .sortedKeys])
             try jsonData.write(to: url)
         } catch {
-            print("Ошибка сохранения карты активов: \(error)")
+            // Ошибка сохранения карты активов
         }
     }
     
@@ -400,16 +302,13 @@ class DataManager: ObservableObject {
     func updateProperty(_ property: Property) {
         if let index = properties.firstIndex(where: { $0.id == property.id }) {
             properties[index] = property
-            print("💾 Обновление объекта: \(property.name)")
             saveData()
-            print("✅ Данные сохранены в data.json")
-        } else {
-            print("⚠️ Объект с id \(property.id) не найден")
         }
     }
     
     func deleteProperty(_ property: Property) {
         properties.removeAll { $0.id == property.id }
+        deletePropertyImages(propertyId: property.id)
         saveData()
     }
     
@@ -419,6 +318,3 @@ class DataManager: ObservableObject {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }
 }
-
-
-

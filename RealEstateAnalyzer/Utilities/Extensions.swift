@@ -40,23 +40,25 @@ extension Double {
 extension Optional where Wrapped == String {
     /// Получает имя SF Symbol для иконки объекта недвижимости
     func getIconName() -> String {
-        guard let icon = self else { return "house.fill" }
+        guard let icon = self else { return "house" }
         
         switch icon.lowercased() {
-        case "warehouse":
-            return "archivebox.fill"
-        case "house":
-            return "house.fill"
-        case "building", "office":
-            return "building.2.fill"
-        case "land", "земельный участок":
-            return "square.fill"
+        case "warehouse", "складская", "склад":
+            return "shippingbox"
+        case "house", "жилая", "дом":
+            return "house"
+        case "building", "office", "торговая", "торговое":
+            return "building.2"
+        case "land", "земельный участок", "земля", "участок":
+            return "square"
         case "store", "магазин":
-            return "storefront.fill"
+            return "storefront"
         case "garage", "гараж":
-            return "carport.fill"
+            return "carport"
+        case "other", "другое":
+            return "square.grid.2x2"
         default:
-            return icon
+            return "house"
         }
     }
 }

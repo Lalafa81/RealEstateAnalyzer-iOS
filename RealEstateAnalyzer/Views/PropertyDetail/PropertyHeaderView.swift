@@ -47,16 +47,7 @@ struct HeaderView: View {
     
     // Используем enum'ы вместо массивов строк
     
-    // Доступные иконки для объектов
-    let availableIcons: [(name: String, sfSymbol: String)] = [
-        ("Дом", "house.fill"),
-        ("Здание", "building.2.fill"),
-        ("Склад", "archivebox.fill"),
-        ("Офис", "building.2.crop.circle.fill"),
-        ("Участок", "square.fill"),
-        ("Магазин", "storefront.fill"),
-        ("Гараж", "carport.fill")
-    ]
+    // Иконка теперь определяется типом недвижимости (property.type.iconName)
     
     
     var body: some View {
@@ -69,6 +60,7 @@ struct HeaderView: View {
                         saveChanges()
                         isEditing = false
                     } else {
+                        // Загружаем текущие значения перед редактированием
                         loadCurrentValues()
                         isEditing = true
                     }
@@ -84,24 +76,7 @@ struct HeaderView: View {
                 ScrollView {
                     Form {
                         Section(header: Text("Основная информация")) {
-                            // Иконка
-                            HStack {
-                                Text("Иконка")
-                                Spacer()
-                                Picker("", selection: Binding(
-                                    get: { property.icon ?? "house.fill" },
-                                    set: { property.icon = $0 }
-                                )) {
-                                    ForEach(availableIcons, id: \.sfSymbol) { icon in
-                                        HStack {
-                                            Image(systemName: icon.sfSymbol)
-                                            Text(icon.name)
-                                        }
-                                        .tag(icon.sfSymbol)
-                                    }
-                                }
-                                .pickerStyle(MenuPickerStyle())
-                            }
+                            // Иконка теперь определяется типом недвижимости
                             
                             // Название
                             HStack {
@@ -119,8 +94,8 @@ struct HeaderView: View {
                                     .multilineTextAlignment(.trailing)
                             }
                             
-                            // Тип
-                            Picker("Тип", selection: $property.type) {
+                            // Назначение
+                            Picker("Назначение", selection: $property.type) {
                                 ForEach(PropertyType.allCases) { type in
                                     Text(type.rawValue).tag(type)
                                 }
@@ -220,7 +195,7 @@ struct HeaderView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     // Первая строка: Иконка и название
                     HStack(spacing: 12) {
-                        Image(systemName: property.icon.getIconName())
+                        Image(systemName: property.type.iconName)
                             .foregroundColor(.purple)
                             .font(.title)
                             .frame(width: 50)
@@ -244,7 +219,7 @@ struct HeaderView: View {
                         GridItem(.flexible(), alignment: .leading)
                     ], alignment: .leading, spacing: 16) {
                         InfoCell(label: "ID", value: property.id)
-                        InfoCell(label: "Тип", value: property.type.rawValue)
+                        InfoCell(label: "Назначение", value: property.type.rawValue)
                         InfoCell(label: "Площадь", value: "\(Int(property.area)) м²")
                         InfoCell(label: "Статус", value: property.status.rawValue)
                         InfoCell(label: "Цена покупки", value: property.purchasePrice.formatCurrency())

@@ -7,34 +7,69 @@
 
 import Foundation
 
+// MARK: - Модель для хранения изображений объектов
+
+struct PropertyImages: Codable {
+    var images: [String: PropertyImageData] // [propertyId: PropertyImageData]
+    
+    struct PropertyImageData: Codable {
+        var image: String? // Base64-кодированное основное изображение
+        var gallery: [String]? // Массив base64-кодированных изображений для галереи
+    }
+    
+    init() {
+        self.images = [:]
+    }
+}
+
 // MARK: - Enums для типов, статусов и состояний
 
 enum PropertyType: String, CaseIterable, Identifiable, Codable {
-    case residential = "Жилая"
-    case commercial = "Коммерческая"
-    case industrial = "Промышленная"
-    case land = "Земельный участок"
+    case residential = "Жилое"
+    case office = "Офисное"
+    case warehouse = "Складское"
+    case industrial = "Производственное"
+    case other = "Другое"
     
     var id: String { rawValue }
+    
+    /// Возвращает SF Symbol для назначения помещения
+    var iconName: String {
+        switch self {
+        case .residential:
+            return "house"
+        case .office:
+            return "building.2"
+        case .warehouse:
+            return "shippingbox"
+        case .industrial:
+            return "gearshape.2"
+        case .other:
+            return "square.grid.2x2"
+        }
+    }
     
     // Инициализатор для обработки старых значений из JSON
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let stringValue = try container.decode(String.self)
         
-        // Маппинг старых значений на новые
+        // Маппинг старых значений на новые канонические типы
         switch stringValue.lowercased() {
-        case "производство", "промышленная":
-            self = .industrial
         case "жилая", "жилое":
             self = .residential
-        case "коммерческая", "коммерческое":
-            self = .commercial
-        case "земельный участок", "участок", "земля":
-            self = .land
+        case "офисное", "офис", "торговая", "торговое", "коммерческая", "коммерческое":
+            self = .office
+        case "складская", "складское", "склад":
+            self = .warehouse
+        case "производственное", "производство", "промышленная", "промышленное":
+            self = .industrial
+        case "земля", "земельный участок", "участок":
+            // Земля теперь относится к "Другое"
+            self = .other
         default:
-            // Если значение не найдено, используем первое по умолчанию
-            self = .commercial
+            // Если значение не найдено, используем "Другое"
+            self = .other
         }
     }
 }
@@ -120,24 +155,19 @@ struct Property: Identifiable, Codable {
     var gallery: [String]? // Массив base64-кодированных изображений для галереи
     
     struct MonthData: Codable {
-        var income: Double?
-        var incomeVariable: Double?
-        var expensesDirect: Double?
-        var expensesAdmin: Double?
-        var expensesMaintenance: Double?
-        var expensesUtilities: Double?
-        var expensesFinancial: Double?
-        var expensesOperational: Double?
-        var expensesOther: Double?
+        // Доходы
+        var income: Double?              // Постоянный доход
+        var incomeVariable: Double?       // Переменный доход
+        
+        // Расходы
+        var expensesMaintenance: Double?  // Административные расходы (техническое обслуживание)
+        var expensesOperational: Double?  // Эксплуатационные расходы
+        var expensesOther: Double?       // Прочие расходы
         
         enum CodingKeys: String, CodingKey {
             case income
             case incomeVariable = "income_variable"
-            case expensesDirect = "expenses_direct"
-            case expensesAdmin = "expenses_admin"
             case expensesMaintenance = "expenses_maintenance"
-            case expensesUtilities = "expenses_utilities"
-            case expensesFinancial = "expenses_financial"
             case expensesOperational = "expenses_operational"
             case expensesOther = "expenses_other"
         }

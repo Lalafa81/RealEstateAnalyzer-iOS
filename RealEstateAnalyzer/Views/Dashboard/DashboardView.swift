@@ -121,7 +121,7 @@ struct PropertyRowView: View {
             VStack(alignment: .leading, spacing: 4) {
                 // Название с иконкой
                 HStack(spacing: 6) {
-                    Image(systemName: property.icon.getIconName())
+                    Image(systemName: property.type.iconName)
                         .foregroundColor(.purple)
                         .font(.subheadline)
                     Text(property.name)
@@ -174,7 +174,7 @@ struct AddPropertyView: View {
             Form {
                 Section(header: Text("Основная информация")) {
                     TextField("Название", text: $name)
-                    Picker("Тип", selection: $type) {
+                    Picker("Назначение", selection: $type) {
                         ForEach(PropertyType.allCases) { type in
                             Text(type.rawValue).tag(type)
                         }

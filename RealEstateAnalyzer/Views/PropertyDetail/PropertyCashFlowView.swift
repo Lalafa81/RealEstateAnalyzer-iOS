@@ -386,28 +386,60 @@ struct CashFlowTableView: View {
     private func startEditing(monthNum: String, income: Double, expense: Double) {
         editingMonth = monthNum
         
-        // Загружаем все поля для редактирования
+        // Загружаем данные для простого редактирования
         let yearKey = String(selectedYear)
         if let yearData = property.months[yearKey],
            let monthData = yearData[monthNum] {
-            // Показываем базовый доход
+            // Для простого редактирования: доход → базовый доход, расход → прочий расход
             editingIncome = String(format: "%.0f", monthData.income ?? 0)
-            // Показываем переменный доход
+            editingExpenseOther = String(format: "%.0f", monthData.expensesOther ?? 0)
+            
+            // Загружаем все поля для детального редактора (на случай открытия через 3 точки)
             editingIncomeVariable = String(format: "%.0f", monthData.incomeVariable ?? 0)
-            // Показываем расходы: 3 вида
             editingExpenseMaintenance = String(format: "%.0f", monthData.expensesMaintenance ?? 0)
             editingExpenseOperational = String(format: "%.0f", monthData.expensesOperational ?? 0)
-            editingExpenseOther = String(format: "%.0f", monthData.expensesOther ?? 0)
         } else {
             // Если данных нет, показываем 0
             editingIncome = "0"
+            editingExpenseOther = "0"
             editingIncomeVariable = "0"
             editingExpenseMaintenance = "0"
             editingExpenseOperational = "0"
-            editingExpenseOther = "0"
         }
     }
     
+    /// Сохранение при простом редактировании (доход → income, расход → expensesOther)
+    private func saveMonthDataSimple(monthNum: String) {
+        let incomeValue = Double(editingIncome) ?? 0
+        let expenseOtherValue = Double(editingExpenseOther) ?? 0
+        
+        let yearKey = String(selectedYear)
+        
+        // Создаем полную копию словаря months, чтобы SwiftUI заметил изменение
+        var monthsCopy = property.months
+        var yearData = monthsCopy[yearKey] ?? [:]
+        
+        // Получаем существующие данные или создаем новые
+        var monthData = yearData[monthNum] ?? Property.MonthData()
+        
+        // Сохраняем только базовый доход и прочий расход
+        monthData.income = incomeValue > 0 ? incomeValue : nil
+        monthData.expensesOther = expenseOtherValue > 0 ? expenseOtherValue : nil
+        // Остальные поля не трогаем (сохраняем существующие значения)
+        
+        yearData[monthNum] = monthData
+        monthsCopy[yearKey] = yearData
+        
+        // Обновляем property через binding - создаем новую копию, чтобы SwiftUI заметил изменение
+        property.months = monthsCopy
+        
+        editingMonth = nil
+        
+        // Сохраняем изменения в data.json - это обновит аналитику автоматически
+        onSave()
+    }
+    
+    /// Сохранение при детальном редактировании (все поля)
     private func saveMonthData(monthNum: String) {
         // Парсим все значения
         let incomeValue = Double(editingIncome) ?? 0
@@ -441,9 +473,6 @@ struct CashFlowTableView: View {
         editingMonth = nil
         
         // Сохраняем изменения в data.json - это обновит аналитику автоматически
-        print("💾 Сохранение данных для месяца \(monthNum) года \(selectedYear)")
-        print("   Доход: \(incomeValue), Переменный: \(incomeVariableValue)")
-        print("   Расходы: Maintenance=\(expenseMaintenanceValue), Operational=\(expenseOperationalValue), Other=\(expenseOtherValue)")
         onSave()
     }
     
@@ -482,21 +511,25 @@ struct CashFlowTableView: View {
                     Spacer()
                     
                     if editingMonth == data.monthNum {
-                        // Режим редактирования - упрощенный (только основные поля)
+                        // Режим редактирования - упрощенный (прямое редактирование)
+                        // Доход → базовый доход (income)
                         TextField("Доход", text: $editingIncome)
                             .keyboardType(.decimalPad)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .frame(width: 100)
                             .font(.subheadline)
                         
-                        // В упрощенном режиме показываем сумму всех расходов
-                        Text(((Double(editingExpenseMaintenance) ?? 0) + (Double(editingExpenseOperational) ?? 0) + (Double(editingExpenseOther) ?? 0)).formatCurrency())
+                        // Расход → прочий расход (expensesOther) - можно редактировать напрямую
+                        TextField("Расход", text: $editingExpenseOther)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 100)
                             .font(.subheadline)
                             .foregroundColor(.red)
-                            .frame(width: 100, alignment: .trailing)
                         
                         Button(action: {
-                            saveMonthData(monthNum: data.monthNum)
+                            saveMonthDataSimple(monthNum: data.monthNum)
                         }) {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)

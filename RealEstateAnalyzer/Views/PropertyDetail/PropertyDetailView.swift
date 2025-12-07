@@ -42,7 +42,6 @@ struct PropertyDetailView: View {
     private func saveChanges() {
         // Сохраняем изменения в DataManager
         dataManager.updateProperty(editableProperty)
-        print("✅ Данные сохранены, аналитика пересчитана")
     }
     
     var body: some View {
@@ -66,6 +65,13 @@ struct PropertyDetailView: View {
                     onSave: saveChanges
                 )
                 
+                // Арендаторы
+                TenantsView(
+                    tenants: $editableProperty.tenants,
+                    propertyArea: editableProperty.area,
+                    onSave: saveChanges
+                )
+                
                 // Аналитика
                 AnalyticsView(
                     analytics: analytics,
@@ -76,13 +82,6 @@ struct PropertyDetailView: View {
                 
                 // Графики
                 ChartsView(property: editableProperty, selectedYear: selectedYear)
-                
-                // Арендаторы
-                TenantsView(
-                    tenants: $editableProperty.tenants,
-                    propertyArea: editableProperty.area,
-                    onSave: saveChanges
-                )
                 
                 // Галерея изображений (в самом низу)
                 PropertyGalleryView(
