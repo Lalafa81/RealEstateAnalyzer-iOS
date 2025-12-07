@@ -221,17 +221,62 @@ class MetricsCalculator {
         let totalMonths = Int(ownYears * 12)
         let busyPercent = totalMonths > 0 ? round((Double(busyMonths) / Double(totalMonths) * 100) * 10) / 10 : 0
         
-        // Месяцы с максимумами
+        // Месяцы с максимумами (ищем напрямую в property.months, чтобы получить год)
         let monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
-        let maxIncome = incomes.max() ?? 0
-        let maxExpense = allExpenses.max() ?? 0
+        let monthKeys = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+        
+        var maxIncomeValue: Double = 0
+        var maxIncomeYear: Int?
+        var maxIncomeMonthIndex: Int?
+        
+        var maxExpenseValue: Double = 0
+        var maxExpenseYear: Int?
+        var maxExpenseMonthIndex: Int?
+        
+        // Проходим по всем годам и месяцам
+        let allYears = property.months.keys.compactMap { Int($0) }.sorted()
+        for year in allYears {
+            guard let yearData = property.months[String(year)] else { continue }
+            let sortedMonthKeys = yearData.keys.sorted()
+            
+            for monthKey in sortedMonthKeys {
+                guard let monthData = yearData[monthKey],
+                      let monthIndex = monthKeys.firstIndex(of: monthKey) else { continue }
+                
+                // Доход
+                let income = (monthData.income ?? 0) + (monthData.incomeVariable ?? 0)
+                if income > maxIncomeValue {
+                    maxIncomeValue = income
+                    maxIncomeYear = year
+                    maxIncomeMonthIndex = monthIndex
+                }
+                
+                // Расход
+                var expense: Double = 0
+                if includeMaintenance {
+                    expense += monthData.expensesMaintenance ?? 0
+                }
+                if includeOperating {
+                    expense += monthData.expensesOperational ?? 0
+                }
+                expense += monthData.expensesOther ?? 0
+                
+                if expense > maxExpenseValue {
+                    maxExpenseValue = expense
+                    maxExpenseYear = year
+                    maxExpenseMonthIndex = monthIndex
+                }
+            }
+        }
+        
         let maxIncomeMonth: String? = {
-            guard !incomes.isEmpty, let index = incomes.firstIndex(of: maxIncome) else { return nil }
-            return monthNames[index % 12]
+            guard let year = maxIncomeYear, let monthIndex = maxIncomeMonthIndex else { return nil }
+            return "\(monthNames[monthIndex]) \(year)"
         }()
+        
         let maxExpenseMonth: String? = {
-            guard !allExpenses.isEmpty, let index = allExpenses.firstIndex(of: maxExpense) else { return nil }
-            return monthNames[index % 12]
+            guard let year = maxExpenseYear, let monthIndex = maxExpenseMonthIndex else { return nil }
+            return "\(monthNames[monthIndex]) \(year)"
         }()
         
         // Дополнительные метрики
