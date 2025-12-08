@@ -17,24 +17,33 @@ struct PropertyGalleryView: View {
     @State private var showingFullScreen = false
     @State private var fullScreenImageIndex = 0
     @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
+    @State private var refreshID = UUID() // Для принудительного обновления view
     
-    // Извлекаем все изображения из images.json через DataManager
-    var images: [String] {
-        var allImages: [String] = []
+    // Структура для хранения изображения с его индексом и именем файла
+    struct ImageWithInfo: Identifiable {
+        let id: String      // Уникальный ID для SwiftUI (fileName_index)
+        let fileName: String // Реальное имя файла для DataManager
+        let image: UIImage
+        let index: Int
+    }
+    
+    // Извлекаем все изображения с информацией о файлах
+    var imagesWithInfo: [ImageWithInfo] {
+        let galleryFileNames = dataManager.getPropertyGallery(propertyId: property.id)
         
-        let (mainImage, galleryImages) = dataManager.getPropertyImages(propertyId: property.id)
-        
-        // Добавляем основное изображение, если оно есть
-        if let mainImage = mainImage {
-            allImages.append(mainImage)
+        return galleryFileNames.enumerated().compactMap { index, fileName in
+            guard let image = dataManager.loadImageFile(fileName) else {
+                return nil
+            }
+            // id делаем уникальным даже при дублях имён
+            let uniqueId = "\(fileName)_\(index)"
+            return ImageWithInfo(id: uniqueId, fileName: fileName, image: image, index: index)
         }
-        
-        // Добавляем изображения из галереи
-        if let galleryImages = galleryImages {
-            allImages.append(contentsOf: galleryImages)
-        }
-        
-        return allImages
+    }
+    
+    // Извлекаем все изображения как UIImage из файлов через DataManager (для совместимости)
+    var images: [UIImage] {
+        imagesWithInfo.map { $0.image }
     }
     
     var body: some View {
@@ -88,22 +97,24 @@ struct PropertyGalleryView: View {
                 // Сетка изображений
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
-                        ForEach(0..<images.count, id: \.self) { index in
+                        ForEach(imagesWithInfo, id: \.id) { item in
                             GalleryImageView(
-                                base64String: images[index],
-                                index: index,
+                                image: item.image,
+                                index: item.index,
                                 onTap: {
-                                    fullScreenImageIndex = index
+                                    fullScreenImageIndex = item.index
                                     showingFullScreen = true
                                 },
                                 onDelete: {
-                                    deleteImage(at: index)
+                                    deleteImage(fileName: item.fileName)
                                 }
                             )
+                            .id(item.id)
                         }
                     }
                     .padding(.horizontal, 4)
                 }
+                .id(refreshID) // Принудительное обновление при изменении refreshID
             }
         }
         .padding()
@@ -118,94 +129,46 @@ struct PropertyGalleryView: View {
             FullScreenImageView(
                 images: images,
                 currentIndex: $fullScreenImageIndex,
-                onDelete: { index in
-                    deleteImage(at: index)
-                    if fullScreenImageIndex >= images.count {
-                        fullScreenImageIndex = max(0, images.count - 1)
-                    }
-                }
+                onDelete: { _ in } // Пустой обработчик, так как удаление убрано
             )
+            .id(refreshID) // Принудительное обновление fullScreen view
         }
     }
     
     // Добавляет новое изображение
     private func addImage(_ image: UIImage) {
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
-        let base64String = imageData.base64EncodedString()
-        let base64WithPrefix = "data:image/jpeg;base64,\(base64String)"
+        // Закрываем picker сразу, чтобы избежать повторных вызовов
+        showingImagePicker = false
         
-        let (currentImage, currentGallery) = dataManager.getPropertyImages(propertyId: property.id)
+        // Все изображения добавляются в галерею
+        _ = dataManager.addPropertyGalleryImage(propertyId: property.id, image: image)
         
-        var newImage: String?
-        var newGallery: [String]?
-        
-        // Если основного изображения нет, используем его
-        if currentImage == nil {
-            newImage = base64WithPrefix
-            newGallery = currentGallery
-        } else {
-            // Иначе добавляем в галерею
-            var gallery = currentGallery ?? []
-            gallery.append(base64WithPrefix)
-            newImage = currentImage
-            newGallery = gallery
-        }
-        
-        dataManager.updatePropertyImages(propertyId: property.id, image: newImage, gallery: newGallery)
+        // Обновляем view
+        refreshID = UUID()
         onSave()
     }
     
-    // Удаляет изображение по индексу
-    private func deleteImage(at index: Int) {
-        let (currentImage, currentGallery) = dataManager.getPropertyImages(propertyId: property.id)
+    // Удаляет изображение по имени файла
+    private func deleteImage(fileName: String) {
+        // Удаляем из DataManager
+        dataManager.deletePropertyImage(propertyId: property.id, fileName: fileName)
         
-        var newImage: String?
-        var newGallery: [String]?
+        // Принудительно обновляем view
+        refreshID = UUID()
         
-        if index == 0 && currentImage != nil {
-            // Удаляем основное изображение
-            // Если есть галерея, первое изображение становится основным
-            if let gallery = currentGallery, !gallery.isEmpty {
-                newImage = gallery[0]
-                newGallery = Array(gallery.dropFirst())
-            } else {
-                newImage = nil
-                newGallery = nil
-            }
-        } else {
-            // Удаляем из галереи
-            let galleryIndex = currentImage != nil ? index - 1 : index
-            if var gallery = currentGallery, galleryIndex >= 0 && galleryIndex < gallery.count {
-                gallery.remove(at: galleryIndex)
-                newImage = currentImage
-                newGallery = gallery.isEmpty ? nil : gallery
-            } else {
-                newImage = currentImage
-                newGallery = currentGallery
-            }
+        // Обновляем fullScreenImageIndex если нужно
+        if fullScreenImageIndex >= imagesWithInfo.count {
+            fullScreenImageIndex = max(0, imagesWithInfo.count - 1)
         }
         
-        dataManager.updatePropertyImages(propertyId: property.id, image: newImage, gallery: newGallery)
+        // Сохраняем изменения
         onSave()
-    }
-    
-    // Декодирует base64 строку в UIImage
-    private func decodeBase64Image(_ base64String: String) -> UIImage? {
-        let base64 = base64String.contains(",") 
-            ? String(base64String.split(separator: ",").last ?? "")
-            : base64String
-        
-        guard let imageData = Data(base64Encoded: base64, options: .ignoreUnknownCharacters) else {
-            return nil
-        }
-        
-        return UIImage(data: imageData)
     }
 }
 
 // Компонент для отображения одного изображения в галерее
 struct GalleryImageView: View {
-    let base64String: String
+    let image: UIImage
     let index: Int
     let onTap: () -> Void
     let onDelete: () -> Void
@@ -214,28 +177,29 @@ struct GalleryImageView: View {
     var body: some View {
         ZStack(alignment: .topTrailing) {
             // Изображение
-            if let imageData = decodeBase64Image(base64String) {
-                Image(uiImage: imageData)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 150, height: 150)
-                    .clipped()
-                    .cornerRadius(12)
-                    .onTapGesture {
-                        onTap()
-                    }
-            }
+            Image(uiImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 150, height: 150)
+                .clipped()
+                .cornerRadius(12)
             
             // Кнопка удаления
             Button(action: {
                 showingDeleteAlert = true
             }) {
                 Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 24))
                     .foregroundColor(.white)
-                    .background(Color.black.opacity(0.6))
+                    .background(Color.red.opacity(0.8))
                     .clipShape(Circle())
             }
-            .padding(8)
+            .buttonStyle(PlainButtonStyle())
+            .padding(6)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
         }
         .alert(isPresented: $showingDeleteAlert) {
             Alert(
@@ -247,27 +211,14 @@ struct GalleryImageView: View {
             )
         }
     }
-    
-    private func decodeBase64Image(_ base64String: String) -> UIImage? {
-        let base64 = base64String.contains(",") 
-            ? String(base64String.split(separator: ",").last ?? "")
-            : base64String
-        
-        guard let imageData = Data(base64Encoded: base64, options: .ignoreUnknownCharacters) else {
-            return nil
-        }
-        
-        return UIImage(data: imageData)
-    }
 }
 
 // Полноэкранный просмотр изображений
 struct FullScreenImageView: View {
-    let images: [String]
+    let images: [UIImage]
     @Binding var currentIndex: Int
     let onDelete: (Int) -> Void
     @Environment(\.presentationMode) var presentationMode
-    @State private var showingDeleteAlert = false
     
     var body: some View {
         ZStack {
@@ -275,12 +226,10 @@ struct FullScreenImageView: View {
             
             TabView(selection: $currentIndex) {
                 ForEach(0..<images.count, id: \.self) { index in
-                    if let imageData = decodeBase64Image(images[index]) {
-                        Image(uiImage: imageData)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .tag(index)
-                    }
+                    Image(uiImage: images[index])
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .tag(index)
                 }
             }
             .tabViewStyle(PageTabViewStyle())
@@ -301,45 +250,8 @@ struct FullScreenImageView: View {
                     .padding()
                 }
                 Spacer()
-                HStack {
-                    Spacer()
-                    Button(action: {
-                        showingDeleteAlert = true
-                    }) {
-                        Image(systemName: "trash.circle.fill")
-                            .font(.title)
-                            .foregroundColor(.white)
-                            .background(Color.red.opacity(0.8))
-                            .clipShape(Circle())
-                    }
-                    .padding()
-                }
             }
         }
-        .alert(isPresented: $showingDeleteAlert) {
-            Alert(
-                title: Text("Удалить изображение?"),
-                primaryButton: .destructive(Text("Удалить")) {
-                    onDelete(currentIndex)
-                    if currentIndex >= images.count {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                },
-                secondaryButton: .cancel(Text("Отмена"))
-            )
-        }
-    }
-    
-    private func decodeBase64Image(_ base64String: String) -> UIImage? {
-        let base64 = base64String.contains(",") 
-            ? String(base64String.split(separator: ",").last ?? "")
-            : base64String
-        
-        guard let imageData = Data(base64Encoded: base64, options: .ignoreUnknownCharacters) else {
-            return nil
-        }
-        
-        return UIImage(data: imageData)
     }
 }
 
@@ -364,16 +276,27 @@ struct ImagePicker: UIViewControllerRepresentable {
     
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
         let onImagePicked: (UIImage) -> Void
+        private var hasCalledCallback = false
         
         init(onImagePicked: @escaping (UIImage) -> Void) {
             self.onImagePicked = onImagePicked
         }
         
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let image = info[.originalImage] as? UIImage {
-                onImagePicked(image)
+            // Предотвращаем повторные вызовы
+            guard !hasCalledCallback else {
+                picker.dismiss(animated: true)
+                return
             }
-            picker.dismiss(animated: true)
+            
+            if let image = info[.originalImage] as? UIImage {
+                hasCalledCallback = true
+                picker.dismiss(animated: true) {
+                    self.onImagePicked(image)
+                }
+            } else {
+                picker.dismiss(animated: true)
+            }
         }
         
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {

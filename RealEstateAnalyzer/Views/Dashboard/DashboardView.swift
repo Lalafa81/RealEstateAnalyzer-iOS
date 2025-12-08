@@ -127,68 +127,43 @@ struct StatisticsView: View {
     }
     
     var body: some View {
-        VStack(spacing: 12) {
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                StatCard(label: "Количество объектов", value: "\(totalObjects)", formula: "Общее количество объектов в портфеле")
-                StatCard(label: "Стоимость портфеля", value: totalPortfolioValue.formatCurrency(), formula: "Сумма всех цен покупки объектов")
-                StatCard(label: "Общая площадь", value: String(format: "%.0f м²", totalArea), formula: "Сумма площадей всех объектов")
-                StatCard(label: "Суммарный доход", value: totalIncome.formatCurrency(), formula: "Сумма всех доходов по всем объектам за весь период")
-                StatCard(label: "Общие расходы", value: totalExpenses.formatCurrency(), formula: "Сумма всех расходов по всем объектам за весь период")
-                StatCard(label: "Чистая прибыль", value: totalProfit.formatCurrency(), formula: "Чистая прибыль = Суммарный доход - Общие расходы")
-                StatCard(label: "Средний ROI", value: String(format: "%.2f%%", averageROI), formula: "ROI = ((Средний доход - Средний расход) × 12 / Цена покупки) × 100%")
-                StatCard(label: "Средний Cap Rate", value: String(format: "%.2f%%", averageCapRate), formula: "Cap Rate = (NOI / Цена покупки) × 100%\n\nNOI = Годовой доход - Годовой расход - Налоги - Страхование")
-                StatCard(label: "Средняя загруженность", value: String(format: "%.1f%%", averageOccupancy), formula: "Загруженность = (Месяцы с доходом > 0 / Общее количество месяцев) × 100%")
+        VStack(alignment: .leading, spacing: 8) {
+            Group {
+                StatRow(label: "Количество объектов", value: "\(totalObjects)")
+                StatRow(label: "Стоимость портфеля", value: totalPortfolioValue.formatCurrency())
+                StatRow(label: "Общая площадь", value: String(format: "%.0f м²", totalArea))
+                StatRow(label: "Суммарный доход", value: totalIncome.formatCurrency())
+                StatRow(label: "Общие расходы", value: totalExpenses.formatCurrency())
+                StatRow(label: "Чистая прибыль", value: totalProfit.formatCurrency())
+                StatRow(label: "Средний ROI", value: String(format: "%.2f%%", averageROI))
+                StatRow(label: "Средний Cap Rate", value: String(format: "%.2f%%", averageCapRate))
+                StatRow(label: "Средняя загруженность", value: String(format: "%.1f%%", averageOccupancy))
+                StatRow(label: "Средний срок владения", value: String(format: "%.1f лет", averageHoldingPeriod))
             }
-            
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                StatCard(label: "Средний срок владения", value: String(format: "%.1f лет", averageHoldingPeriod), formula: "Срок владения = (Текущая дата - Дата покупки) / 365")
-                StatCard(label: "Стоимость выхода", value: totalExitValue > 0 ? totalExitValue.formatCurrency() : "—", formula: "Сумма всех цен продажи (exitPrice) объектов.\n\nЦена продажи — это планируемая или фактическая стоимость объекта при продаже.")
-                StatCard(label: "Средняя цена за м²", value: String(format: "%.0f", averagePricePerM2), formula: "Средняя цена за м² = Стоимость портфеля / Общая площадь")
+            Group {
+                StatRow(label: "Стоимость выхода", value: totalExitValue > 0 ? totalExitValue.formatCurrency() : "—")
+                StatRow(label: "Средняя цена за м²", value: String(format: "%.0f", averagePricePerM2))
             }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 4)
     }
 }
 
-struct StatCard: View {
+
+struct StatRow: View {
     let label: String
     let value: String
-    let formula: String
-    
-    @State private var showingFormula = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(label)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
-                Spacer()
-                Button(action: {
-                    showingFormula = true
-                }) {
-                    Image(systemName: "questionmark.circle")
-                        .font(.caption2)
-                        .foregroundColor(.blue)
-                }
-            }
-            
+        HStack {
+            Text(label)
+                .foregroundColor(.secondary)
+            Spacer()
             Text(value)
-                .font(.subheadline)
                 .fontWeight(.semibold)
-                .foregroundColor(.primary)
+                .foregroundColor(.blue)
         }
-        .padding(10)
-        .background(Color(.systemGray6))
-        .cornerRadius(8)
-        .alert(isPresented: $showingFormula) {
-            Alert(
-                title: Text("Формула расчета"),
-                message: Text(formula),
-                dismissButton: .default(Text("Понятно"))
-            )
-        }
+        .font(.system(size: 14))
     }
 }
 
@@ -218,7 +193,7 @@ struct PropertyRowView: View {
                 Text(property.address)
                     .font(.caption)
                     .foregroundColor(.secondary)
-                HStack {
+                HStack(spacing: 8) {
                     Text(property.status.rawValue)
                         .font(.caption)
                         .padding(.horizontal, 6)
@@ -227,9 +202,17 @@ struct PropertyRowView: View {
                         .cornerRadius(4)
                     
                     if let analytics = calculateQuickMetrics() {
+                        // Доход: желтый если 0, иначе синий
+                        let incomeColor: Color = analytics.monthlyIncome == 0 ? .yellow : .blue
+                        Text("Д: \(analytics.monthlyIncome.formatCurrency())")
+                            .font(.caption)
+                            .foregroundColor(incomeColor)
+                        
+                        // ROI: красный если отрицательный, иначе зеленый
+                        let roiColor: Color = analytics.roi < 0 ? .red : .green
                         Text("ROI: \(String(format: "%.1f", analytics.roi))%")
                             .font(.caption)
-                            .foregroundColor(.green)
+                            .foregroundColor(roiColor)
                     }
                 }
             }

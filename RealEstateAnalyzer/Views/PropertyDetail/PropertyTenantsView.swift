@@ -127,34 +127,20 @@ struct TenantsView: View {
                     ),
                     onSave: {
                         guard let updatedTenant = editingTenant else {
-                            print("❌ editingTenant is nil in onSave")
                             return
                         }
                         
-                        print("💾 Сохранение арендатора:")
-                        print("   ID: \(updatedTenant.id)")
-                        print("   Имя: \(updatedTenant.name)")
-                        print("   Доход: \(updatedTenant.income ?? 0)")
-                        print("   Количество арендаторов ДО: \(tenants.count)")
-                        
                         if let index = tenants.firstIndex(where: { $0.id == updatedTenant.id }) {
-                            // Обновляем существующего арендатора
-                            print("   ✅ Обновление существующего арендатора по индексу: \(index)")
                             tenants[index] = updatedTenant
                         } else {
-                            // Добавляем нового арендатора
-                            print("   ✅ Добавление нового арендатора")
                             tenants.append(updatedTenant)
                         }
-                        
-                        print("   Количество арендаторов ПОСЛЕ: \(tenants.count)")
                         
                         onSave()
                         showingAddTenant = false
                         editingTenant = nil
                     },
                     onCancel: {
-                        print("❌ Отмена редактирования арендатора")
                         showingAddTenant = false
                         editingTenant = nil
                     }
@@ -182,6 +168,8 @@ struct TenantRowView: View {
             // Компания
             Text(tenant.name.isEmpty ? "—" : tenant.name)
                 .font(.subheadline)
+                .strikethrough(tenant.isArchived)
+                .opacity(tenant.isArchived ? 0.5 : 1.0)
                 .frame(width: 150, alignment: .leading)
                 .onTapGesture {
                     onEdit()
@@ -191,6 +179,8 @@ struct TenantRowView: View {
             Text((tenant.income ?? 0).formatCurrency())
                 .font(.subheadline)
                 .foregroundColor(.green)
+                .strikethrough(tenant.isArchived)
+                .opacity(tenant.isArchived ? 0.5 : 1.0)
                 .frame(width: 100, alignment: .trailing)
                 .onTapGesture {
                     onEdit()
@@ -199,6 +189,8 @@ struct TenantRowView: View {
             // Площадь
             Text(tenant.area != nil ? String(format: "%.0f м²", tenant.area!) : "—")
                 .font(.subheadline)
+                .strikethrough(tenant.isArchived)
+                .opacity(tenant.isArchived ? 0.5 : 1.0)
                 .frame(width: 90, alignment: .trailing)
                 .onTapGesture {
                     onEdit()
@@ -207,11 +199,15 @@ struct TenantRowView: View {
             // % от общей
             Text(String(format: "%.1f%%", percentageOfTotal))
                 .font(.subheadline)
+                .strikethrough(tenant.isArchived)
+                .opacity(tenant.isArchived ? 0.5 : 1.0)
                 .frame(width: 90, alignment: .trailing)
             
             // Начало
             Text(tenant.startDate ?? "—")
                 .font(.subheadline)
+                .strikethrough(tenant.isArchived)
+                .opacity(tenant.isArchived ? 0.5 : 1.0)
                 .frame(width: 100, alignment: .leading)
                 .onTapGesture {
                     onEdit()
@@ -220,6 +216,8 @@ struct TenantRowView: View {
             // Конец
             Text(tenant.endDate ?? "—")
                 .font(.subheadline)
+                .strikethrough(tenant.isArchived)
+                .opacity(tenant.isArchived ? 0.5 : 1.0)
                 .frame(width: 100, alignment: .leading)
                 .onTapGesture {
                     onEdit()
@@ -228,6 +226,8 @@ struct TenantRowView: View {
             // Индексация
             Text(tenant.indexation ?? "—")
                 .font(.subheadline)
+                .strikethrough(tenant.isArchived)
+                .opacity(tenant.isArchived ? 0.5 : 1.0)
                 .frame(width: 90, alignment: .trailing)
                 .onTapGesture {
                     onEdit()
@@ -243,6 +243,7 @@ struct TenantRowView: View {
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
         .background(Color(.systemBackground))
+        .opacity(tenant.isArchived ? 0.6 : 1.0)
     }
 }
 
@@ -258,6 +259,7 @@ struct TenantEditView: View {
     @State private var editingStartDate: String = ""
     @State private var editingEndDate: String = ""
     @State private var editingIndexation: String = ""
+    @State private var editingIsArchived: Bool = false
     
     var body: some View {
         NavigationView {
@@ -307,6 +309,10 @@ struct TenantEditView: View {
                             .frame(width: 150)
                     }
                 }
+                
+                Section(header: Text("Архив")) {
+                    Toggle("Добавить в архив", isOn: $editingIsArchived)
+                }
             }
             .navigationTitle("Редактирование арендатора")
             .navigationBarTitleDisplayMode(.inline)
@@ -337,6 +343,7 @@ struct TenantEditView: View {
         editingStartDate = tenant.startDate ?? ""
         editingEndDate = tenant.endDate ?? ""
         editingIndexation = tenant.indexation ?? ""
+        editingIsArchived = tenant.isArchived
     }
     
     private func saveChanges() {
@@ -369,6 +376,9 @@ struct TenantEditView: View {
         // Индексация
         let trimmedIndexation = editingIndexation.trimmingCharacters(in: .whitespacesAndNewlines)
         tenant.indexation = trimmedIndexation.isEmpty ? nil : trimmedIndexation
+        
+        // Архив
+        tenant.isArchived = editingIsArchived
         
         // Вызываем onSave, который добавит/обновит арендатора в массиве
         onSave()

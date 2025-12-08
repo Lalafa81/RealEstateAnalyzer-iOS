@@ -13,8 +13,7 @@ struct PropertyImages: Codable {
     var images: [String: PropertyImageData] // [propertyId: PropertyImageData]
     
     struct PropertyImageData: Codable {
-        var image: String? // Base64-кодированное основное изображение
-        var gallery: [String]? // Массив base64-кодированных изображений для галереи
+        var gallery: [String] // Массив имен файлов для галереи (например, ["property_002_gallery_0.jpg", ...])
     }
     
     init() {
@@ -182,13 +181,14 @@ struct Tenant: Identifiable, Codable {
     var endDate: String?
     var area: Double?
     var indexation: String?
+    var isArchived: Bool = false
     
     enum CodingKeys: String, CodingKey {
-        case name, income, startDate, endDate, area, indexation
+        case name, income, startDate, endDate, area, indexation, isArchived
     }
     
     // Обычный инициализатор для создания Tenant вручную
-    init(id: UUID = UUID(), name: String, income: Double? = nil, startDate: String? = nil, endDate: String? = nil, area: Double? = nil, indexation: String? = nil) {
+    init(id: UUID = UUID(), name: String, income: Double? = nil, startDate: String? = nil, endDate: String? = nil, area: Double? = nil, indexation: String? = nil, isArchived: Bool = false) {
         self.id = id
         self.name = name
         self.income = income
@@ -196,6 +196,7 @@ struct Tenant: Identifiable, Codable {
         self.endDate = endDate
         self.area = area
         self.indexation = indexation
+        self.isArchived = isArchived
     }
     
     // Кастомный декодер для обработки пустых строк как nil
@@ -249,6 +250,9 @@ struct Tenant: Identifiable, Codable {
         } else {
             indexation = nil
         }
+        
+        // Обрабатываем isArchived: может отсутствовать в старых данных
+        isArchived = (try? container.decode(Bool.self, forKey: .isArchived)) ?? false
     }
 }
 

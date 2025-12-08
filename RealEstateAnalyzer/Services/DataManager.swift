@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import UIKit
 
 class DataManager: ObservableObject {
     static let shared = DataManager()
@@ -185,6 +186,7 @@ class DataManager: ObservableObject {
         let url = getDocumentsURL().appendingPathComponent(dataFileName)
         
         // Создаем копию properties без изображений для сохранения в data.json
+        // Изображения хранятся отдельно в images.json и файлах
         var propertiesWithoutImages = properties
         for i in 0..<propertiesWithoutImages.count {
             propertiesWithoutImages[i].image = nil
@@ -204,6 +206,60 @@ class DataManager: ObservableObject {
     }
     
     // MARK: - Работа с изображениями
+    
+    /// Получает URL директории для хранения изображений
+    private func getImagesDirectory() -> URL {
+        let documentsURL = getDocumentsURL()
+        let imagesDir = documentsURL.appendingPathComponent("images", isDirectory: true)
+        
+        // Создаем директорию, если её нет
+        if !FileManager.default.fileExists(atPath: imagesDir.path) {
+            try? FileManager.default.createDirectory(at: imagesDir, withIntermediateDirectories: true)
+        }
+        
+        return imagesDir
+    }
+    
+    /// Генерирует уникальное имя файла для изображения
+    private func generateImageFileName(propertyId: String) -> String {
+        let uuid = UUID().uuidString
+        return "property_\(propertyId)_gallery_\(uuid).jpg"
+    }
+    
+    /// Сохраняет UIImage как файл и возвращает имя файла
+    func saveImageFile(_ image: UIImage, propertyId: String) -> String? {
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            return nil
+        }
+        
+        let fileName = generateImageFileName(propertyId: propertyId)
+        let fileURL = getImagesDirectory().appendingPathComponent(fileName)
+        
+        do {
+            try imageData.write(to: fileURL)
+            return fileName
+        } catch {
+            return nil
+        }
+    }
+    
+    /// Загружает UIImage из файла по имени
+    func loadImageFile(_ fileName: String) -> UIImage? {
+        let fileURL = getImagesDirectory().appendingPathComponent(fileName)
+        
+        guard FileManager.default.fileExists(atPath: fileURL.path),
+              let imageData = try? Data(contentsOf: fileURL) else {
+            return nil
+        }
+        
+        return UIImage(data: imageData)
+    }
+    
+    /// Удаляет файл изображения
+    func deleteImageFile(_ fileName: String) {
+        let fileURL = getImagesDirectory().appendingPathComponent(fileName)
+        try? FileManager.default.removeItem(at: fileURL)
+    }
     
     private func loadImages() {
         let documentsURL = getDocumentsURL().appendingPathComponent(imagesFileName)
@@ -228,9 +284,46 @@ class DataManager: ObservableObject {
             let data = try Data(contentsOf: url)
             let decoder = JSONDecoder()
             propertyImages = try decoder.decode(PropertyImages.self, from: data)
+            
+            // Очищаем дубликаты имен файлов в галереях
+            cleanDuplicateFilenames()
+            
             return true
         } catch {
             return false
+        }
+    }
+    
+    /// Удаляет дубликаты имен файлов из галерей
+    private func cleanDuplicateFilenames() {
+        var needsSave = false
+        
+        for (propertyId, imageData) in propertyImages.images {
+            // Используем Set для удаления дубликатов, сохраняя порядок
+            var seen = Set<String>()
+            let uniqueGallery = imageData.gallery.filter { fileName in
+                if seen.contains(fileName) {
+                    // Дубликат найден - удаляем файл и пропускаем запись
+                    deleteImageFile(fileName)
+                    needsSave = true
+                    return false
+                } else {
+                    seen.insert(fileName)
+                    return true
+                }
+            }
+            
+            // Если были удалены дубликаты, обновляем галерею
+            if uniqueGallery.count != imageData.gallery.count {
+                let updatedImageData = PropertyImages.PropertyImageData(gallery: uniqueGallery)
+                propertyImages.images[propertyId] = updatedImageData
+                needsSave = true
+            }
+        }
+        
+        // Сохраняем изменения, если были удалены дубликаты
+        if needsSave {
+            saveImages()
         }
     }
     
@@ -242,38 +335,89 @@ class DataManager: ObservableObject {
         do {
             let data = try encoder.encode(propertyImages)
             try data.write(to: documentsURL)
-            
-            if let bundleURL = Bundle.main.url(forResource: "data", withExtension: "json") {
-                let projectDir = bundleURL.deletingLastPathComponent()
-                let projectURL = projectDir.appendingPathComponent(imagesFileName)
-                try? data.write(to: projectURL)
-            }
         } catch {
             // Ошибка сохранения изображений
         }
     }
     
-    /// Получает изображения для объекта
-    func getPropertyImages(propertyId: String) -> (image: String?, gallery: [String]?) {
+    /// Получает имена файлов галереи для объекта (без дубликатов)
+    func getPropertyGallery(propertyId: String) -> [String] {
         guard let imageData = propertyImages.images[propertyId] else {
-            return (nil, nil)
+            return []
         }
-        return (imageData.image, imageData.gallery)
+        // Убираем дубликаты на всякий случай (должно быть уже очищено в cleanDuplicateFilenames)
+        var seen = Set<String>()
+        return imageData.gallery.filter { fileName in
+            if seen.contains(fileName) {
+                return false
+            } else {
+                seen.insert(fileName)
+                return true
+            }
+        }
     }
     
-    /// Обновляет изображения для объекта
-    func updatePropertyImages(propertyId: String, image: String?, gallery: [String]?) {
-        var imageData = PropertyImages.PropertyImageData()
-        imageData.image = image
-        imageData.gallery = gallery
+    /// Получает массив UIImage для галереи объекта
+    func getPropertyGalleryImages(propertyId: String) -> [UIImage] {
+        let fileNames = getPropertyGallery(propertyId: propertyId)
+        return fileNames.compactMap { loadImageFile($0) }
+    }
+    
+    /// Обновляет галерею для объекта
+    func updatePropertyGallery(propertyId: String, gallery: [String]) {
+        let imageData = PropertyImages.PropertyImageData(gallery: gallery)
         propertyImages.images[propertyId] = imageData
         saveImages()
+        // Уведомляем об изменении для обновления UI
+        DispatchQueue.main.async {
+            self.objectWillChange.send()
+        }
     }
     
-    /// Удаляет изображения для объекта
+    /// Добавляет UIImage в галерею объекта
+    func addPropertyGalleryImage(propertyId: String, image: UIImage) -> Bool {
+        let currentGallery = getPropertyGallery(propertyId: propertyId)
+        
+        guard let fileName = saveImageFile(image, propertyId: propertyId) else {
+            return false
+        }
+        
+        var newGallery = currentGallery
+        newGallery.append(fileName)
+        updatePropertyGallery(propertyId: propertyId, gallery: newGallery)
+        return true
+    }
+    
+    /// Удаляет изображения для объекта (удаляет и файлы, и записи в JSON)
     func deletePropertyImages(propertyId: String) {
+        let galleryFileNames = getPropertyGallery(propertyId: propertyId)
+        
+        // Удаляем файлы
+        for fileName in galleryFileNames {
+            deleteImageFile(fileName)
+        }
+        
+        // Удаляем записи из JSON
         propertyImages.images.removeValue(forKey: propertyId)
         saveImages()
+    }
+    
+    /// Удаляет одно изображение из галереи по имени файла
+    func deletePropertyImage(propertyId: String, fileName: String) {
+        var gallery = getPropertyGallery(propertyId: propertyId)
+        
+        guard let index = gallery.firstIndex(of: fileName) else {
+            return
+        }
+        
+        // Удаляем файл
+        deleteImageFile(fileName)
+        
+        // Удаляем из массива
+        gallery.remove(at: index)
+        
+        // Обновляем JSON
+        updatePropertyGallery(propertyId: propertyId, gallery: gallery)
     }
     
     func saveAssetMap(_ assetMapData: [String: Any]) {
