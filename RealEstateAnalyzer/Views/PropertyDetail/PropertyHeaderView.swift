@@ -2,25 +2,17 @@
 //  PropertyHeaderView.swift
 //  RealEstateAnalyzer
 //
-//  Шапка объекта недвижимости с редактируемыми полями
+//  Шапка объекта недвижимости с inline редактированием полей прямо в карточке
 //
 
 import SwiftUI
 
 struct HeaderView: View {
     @Binding var property: Property
-    @Binding var isEditing: Bool
     let onSave: () -> Void
     
-    @State private var editingName: String = ""
-    @State private var editingId: String = ""
-    @State private var editingAddress: String = ""
-    @State private var editingArea: String = ""
-    @State private var editingPurchasePrice: String = ""
-    @State private var editingPurchaseDate: Date = Date()
-    @State private var editingPropertyTax: String = ""
-    @State private var editingInsuranceCost: String = ""
-    @State private var editingExitPrice: String = ""
+    // Состояние для отслеживания активного поля редактирования
+    @State private var activeEditingField: String? = nil
     
     // DateFormatter для преобразования String <-> Date
     private let dateFormatter: DateFormatter = {
@@ -30,169 +22,12 @@ struct HeaderView: View {
         return formatter
     }()
     
-    // Binding для преобразования String (property.purchaseDate) <-> Date (editingPurchaseDate)
-    private var purchaseDateBinding: Binding<Date> {
-        Binding(
-            get: {
-                if let date = dateFormatter.date(from: property.purchaseDate) {
-                    return date
-                }
-                return Date() // Возвращаем текущую дату, если не удалось распарсить
-            },
-            set: { newDate in
-                property.purchaseDate = dateFormatter.string(from: newDate)
-            }
-        )
-    }
-    
-    // Используем enum'ы вместо массивов строк
-    
-    // Иконка теперь определяется типом недвижимости (property.type.iconName)
-    
-    
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Кнопка редактирования вне блока
-            HStack {
-                Spacer()
-                Button(isEditing ? "Сохранить" : "Редактировать") {
-                    if isEditing {
-                        saveChanges()
-                        isEditing = false
-                    } else {
-                        // Загружаем текущие значения перед редактированием
-                        loadCurrentValues()
-                        isEditing = true
-                    }
-                }
-                .font(.subheadline)
-                .foregroundColor(.blue)
-            }
-            
+        VStack(alignment: .leading, spacing: 6) {
             // Блок с информацией
             VStack(alignment: .leading, spacing: 0) {
-                if isEditing {
-                // Режим редактирования - используем Form для удобства
-                ScrollView {
-                    Form {
-                        Section(header: Text("Основная информация")) {
-                            // Иконка теперь определяется типом недвижимости
-                            
-                            // Название
-                            HStack {
-                                Text("Название")
-                                Spacer()
-                                TextField("Склад на Апаринках", text: $editingName)
-                                    .multilineTextAlignment(.trailing)
-                            }
-                            
-                            // ID
-                            HStack {
-                                Text("ID")
-                                Spacer()
-                                TextField("ID", text: $editingId)
-                                    .multilineTextAlignment(.trailing)
-                            }
-                            
-                            // Назначение
-                            Picker("Назначение", selection: $property.type) {
-                                ForEach(PropertyType.allCases) { type in
-                                    Text(type.rawValue).tag(type)
-                                }
-                            }
-                            .pickerStyle(MenuPickerStyle())
-                            
-                            // Адрес
-                            HStack {
-                                Text("Адрес")
-                                Spacer()
-                                TextField("г. Москва, ...", text: $editingAddress)
-                                    .multilineTextAlignment(.trailing)
-                            }
-                            
-                            // Площадь
-                            HStack {
-                                Text("Площадь")
-                                Spacer()
-                                TextField("1000", text: $editingArea)
-                                    .keyboardType(.decimalPad)
-                                    .multilineTextAlignment(.trailing)
-                                Text("м²")
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        
-                        Section(header: Text("Покупка")) {
-                            // Цена покупки
-                            HStack {
-                                Text("Цена покупки")
-                                Spacer()
-                                TextField("25000000", text: $editingPurchasePrice)
-                                    .keyboardType(.decimalPad)
-                                    .multilineTextAlignment(.trailing)
-                            }
-                            
-                            // Дата покупки
-                            DatePicker(
-                                "Дата покупки",
-                                selection: purchaseDateBinding,
-                                displayedComponents: .date
-                            )
-                            
-                            // Статус
-                            Picker("Статус", selection: $property.status) {
-                                ForEach(PropertyStatus.allCases) { status in
-                                    Text(status.rawValue).tag(status)
-                                }
-                            }
-                            .pickerStyle(MenuPickerStyle())
-                            
-                            // Состояние
-                            Picker("Состояние", selection: Binding(
-                                get: { property.condition ?? .excellent },
-                                set: { property.condition = $0 }
-                            )) {
-                                ForEach(PropertyCondition.allCases) { condition in
-                                    Text(condition.rawValue).tag(condition)
-                                }
-                            }
-                            .pickerStyle(MenuPickerStyle())
-                        }
-                        
-                        Section(header: Text("Финансы")) {
-                            // Налоги
-                            HStack {
-                                Text("Налоги (в год)")
-                                Spacer()
-                                TextField("0", text: $editingPropertyTax)
-                                    .keyboardType(.decimalPad)
-                                    .multilineTextAlignment(.trailing)
-                            }
-                            
-                            // Страхование
-                            HStack {
-                                Text("Страхование (в год)")
-                                Spacer()
-                                TextField("0", text: $editingInsuranceCost)
-                                    .keyboardType(.decimalPad)
-                                    .multilineTextAlignment(.trailing)
-                            }
-                            
-                            // Ожидаемая цена продажи
-                            HStack {
-                                Text("Ожидаемая цена продажи")
-                                Spacer()
-                                TextField("0", text: $editingExitPrice)
-                                    .keyboardType(.decimalPad)
-                                    .multilineTextAlignment(.trailing)
-                            }
-                        }
-                    }
-                    .frame(minHeight: 500)
-                }
-            } else {
-                // Режим просмотра - компактное отображение
-                VStack(alignment: .leading, spacing: 12) {
+                // Режим просмотра с inline редактированием
+                VStack(alignment: .leading, spacing: 6) {
                     // Первая строка: Иконка и название
                     HStack(spacing: 12) {
                         Image(systemName: property.type.iconName)
@@ -201,103 +36,654 @@ struct HeaderView: View {
                             .frame(width: 50)
                         
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(property.name)
-                                .font(.headline)
-                            Text(property.address)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                            HStack {
+                                if activeEditingField == "name" {
+                                    HStack {
+                                        TextField("", text: Binding(
+                                            get: { property.name },
+                                            set: { property.name = $0 }
+                                        ))
+                                        .font(.headline)
+                                        .textFieldStyle(PlainTextFieldStyle())
+                                        
+                                        Button(action: {
+                                            activeEditingField = nil
+                                        }) {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .font(.headline)
+                                                .foregroundColor(.red)
+                                        }
+                                        
+                                        Button(action: {
+                                            onSave()
+                                            activeEditingField = nil
+                                        }) {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .font(.headline)
+                                                .foregroundColor(.green)
+                                        }
+                                    }
+                                } else {
+                                    HStack {
+                                        Text(property.name)
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                        Spacer()
+                                        Button(action: {
+                                            activeEditingField = "name"
+                                        }) {
+                                            Image(systemName: "pencil.circle.fill")
+                                                .font(.caption2)
+                                                .foregroundColor(.blue)
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            HStack {
+                                if activeEditingField == "address" {
+                                    HStack {
+                                        TextField("", text: Binding(
+                                            get: { property.address },
+                                            set: { property.address = $0 }
+                                        ))
+                                        .font(.subheadline)
+                                        .textFieldStyle(PlainTextFieldStyle())
+                                        
+                                        Button(action: {
+                                            activeEditingField = nil
+                                        }) {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .font(.headline)
+                                                .foregroundColor(.red)
+                                        }
+                                        
+                                        Button(action: {
+                                            onSave()
+                                            activeEditingField = nil
+                                        }) {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .font(.headline)
+                                                .foregroundColor(.green)
+                                        }
+                                    }
+                                } else {
+                                    HStack {
+                                        Text(property.address)
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                        Button(action: {
+                                            activeEditingField = "address"
+                                        }) {
+                                            Image(systemName: "pencil.circle.fill")
+                                                .font(.caption2)
+                                                .foregroundColor(.blue)
+                                        }
+                                    }
+                                }
+                            }
                         }
                         
                         Spacer()
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal, 12)
                     .padding(.top, 8)
                     
                     // Основная информация в две колонки
                     LazyVGrid(columns: [
                         GridItem(.flexible(), alignment: .leading),
                         GridItem(.flexible(), alignment: .leading)
-                    ], alignment: .leading, spacing: 16) {
-                        InfoCell(label: "ID", value: property.id)
-                        InfoCell(label: "Назначение", value: property.type.rawValue)
-                        InfoCell(label: "Площадь", value: "\(Int(property.area)) м²")
-                        InfoCell(label: "Статус", value: property.status.rawValue)
-                        InfoCell(label: "Цена покупки", value: property.purchasePrice.formatCurrency())
-                        InfoCell(label: "Дата покупки", value: property.purchaseDate)
-                        InfoCell(label: "Состояние", value: property.condition?.rawValue ?? "Не указано")
+                    ], alignment: .leading, spacing: 8) {
+                        InlineEditableText(
+                            fieldId: "id",
+                            text: property.id,
+                            label: "ID",
+                            activeField: $activeEditingField,
+                            onSave: { newValue in
+                                property.id = newValue
+                                onSave()
+                            }
+                        )
+                        
+                        InlineEditablePicker(
+                            fieldId: "type",
+                            selection: $property.type,
+                            label: "Назначение",
+                            options: PropertyType.allCases,
+                            displayValue: { $0.rawValue },
+                            activeField: $activeEditingField,
+                            onSave: { onSave() }
+                        )
+                        
+                        InlineEditableNumber(
+                            fieldId: "area",
+                            value: property.area,
+                            label: "Площадь",
+                            suffix: " м²",
+                            activeField: $activeEditingField,
+                            onSave: { newValue in
+                                property.area = newValue
+                                onSave()
+                            }
+                        )
+                        
+                        InlineEditablePicker(
+                            fieldId: "status",
+                            selection: $property.status,
+                            label: "Статус",
+                            options: PropertyStatus.allCases,
+                            displayValue: { $0.rawValue },
+                            activeField: $activeEditingField,
+                            onSave: { onSave() }
+                        )
+                        
+                        InlineEditableNumber(
+                            fieldId: "purchasePrice",
+                            value: property.purchasePrice,
+                            label: "Цена покупки",
+                            formatter: { $0.formatCurrency() },
+                            activeField: $activeEditingField,
+                            onSave: { newValue in
+                                property.purchasePrice = newValue
+                                onSave()
+                            }
+                        )
+                        
+                        InlineEditableDate(
+                            fieldId: "purchaseDate",
+                            dateString: property.purchaseDate,
+                            label: "Дата покупки",
+                            dateFormatter: dateFormatter,
+                            activeField: $activeEditingField,
+                            onSave: { newDateString in
+                                property.purchaseDate = newDateString
+                                onSave()
+                            }
+                        )
+                        
+                        InlineEditablePicker(
+                            fieldId: "condition",
+                            selection: Binding(
+                                get: { property.condition ?? .excellent },
+                                set: { property.condition = $0 }
+                            ),
+                            label: "Состояние",
+                            options: PropertyCondition.allCases,
+                            displayValue: { $0.rawValue },
+                            activeField: $activeEditingField,
+                            onSave: { onSave() }
+                        )
+                        
                         if let tax = property.propertyTax, tax > 0 {
-                            InfoCell(label: "Налоги (в год)", value: tax.formatCurrency())
+                            InlineEditableNumber(
+                                fieldId: "propertyTax",
+                                value: tax,
+                                label: "Налоги (в год)",
+                                formatter: { $0.formatCurrency() },
+                                activeField: $activeEditingField,
+                                onSave: { newValue in
+                                    property.propertyTax = newValue > 0 ? newValue : nil
+                                    onSave()
+                                }
+                            )
+                        } else {
+                            InlineEditableNumberOptional(
+                                fieldId: "propertyTax",
+                                label: "Налоги (в год)",
+                                formatter: { $0.formatCurrency() },
+                                activeField: $activeEditingField,
+                                onSave: { newValue in
+                                    property.propertyTax = newValue
+                                    onSave()
+                                }
+                            )
                         }
+                        
                         if let insurance = property.insuranceCost, insurance > 0 {
-                            InfoCell(label: "Страхование (в год)", value: insurance.formatCurrency())
+                            InlineEditableNumber(
+                                fieldId: "insuranceCost",
+                                value: insurance,
+                                label: "Страхование (в год)",
+                                formatter: { $0.formatCurrency() },
+                                activeField: $activeEditingField,
+                                onSave: { newValue in
+                                    property.insuranceCost = newValue > 0 ? newValue : nil
+                                    onSave()
+                                }
+                            )
+                        } else {
+                            InlineEditableNumberOptional(
+                                fieldId: "insuranceCost",
+                                label: "Страхование (в год)",
+                                formatter: { $0.formatCurrency() },
+                                activeField: $activeEditingField,
+                                onSave: { newValue in
+                                    property.insuranceCost = newValue
+                                    onSave()
+                                }
+                            )
                         }
+                        
                         if let exitPrice = property.exitPrice, exitPrice > 0 {
-                            InfoCell(label: "Ожидаемая цена продажи", value: exitPrice.formatCurrency())
+                            InlineEditableNumber(
+                                fieldId: "exitPrice",
+                                value: exitPrice,
+                                label: "Ожидаемая цена продажи",
+                                formatter: { $0.formatCurrency() },
+                                activeField: $activeEditingField,
+                                onSave: { newValue in
+                                    property.exitPrice = newValue > 0 ? newValue : nil
+                                    onSave()
+                                }
+                            )
+                        } else {
+                            InlineEditableNumberOptional(
+                                fieldId: "exitPrice",
+                                label: "Ожидаемая цена продажи",
+                                formatter: { $0.formatCurrency() },
+                                activeField: $activeEditingField,
+                                onSave: { newValue in
+                                    property.exitPrice = newValue
+                                    onSave()
+                                }
+                            )
                         }
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom)
+                    .padding(.horizontal, 10)
+                    .padding(.bottom, 6)
                 }
             }
-            }
-            .padding(.top, 12)
+            .padding(.top, 6)
             .background(Color(.systemGray6))
-            .cornerRadius(12)
+            .cornerRadius(10)
         }
-        .onAppear {
-            if !isEditing {
-                loadCurrentValues()
-            }
-        }
-    }
-    
-    // Вспомогательный компонент для отображения информации
-    struct InfoCell: View {
-        let label: String
-        let value: String
-        
-        var body: some View {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(label)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                Text(value)
-                    .font(.subheadline)
-            }
-        }
-    }
-    
-    private func loadCurrentValues() {
-        editingName = property.name
-        editingId = property.id
-        editingAddress = property.address
-        editingArea = String(format: "%.0f", property.area)
-        editingPurchasePrice = String(format: "%.0f", property.purchasePrice)
-        // Преобразуем строку даты в Date
-        if let date = dateFormatter.date(from: property.purchaseDate) {
-            editingPurchaseDate = date
-        } else {
-            editingPurchaseDate = Date() // Если не удалось распарсить, используем текущую дату
-        }
-        editingPropertyTax = String(format: "%.0f", property.propertyTax ?? 0)
-        editingInsuranceCost = String(format: "%.0f", property.insuranceCost ?? 0)
-        editingExitPrice = String(format: "%.0f", property.exitPrice ?? 0)
-    }
-    
-    private func saveChanges() {
-        // Обновляем все поля
-        property.name = editingName
-        property.id = editingId
-        property.address = editingAddress
-        property.area = Double(editingArea) ?? property.area
-        property.purchasePrice = Double(editingPurchasePrice) ?? property.purchasePrice
-        // Дата уже обновляется через purchaseDateBinding, но на всякий случай обновим явно
-        property.purchaseDate = dateFormatter.string(from: editingPurchaseDate)
-        property.propertyTax = Double(editingPropertyTax).flatMap { $0 > 0 ? $0 : nil }
-        property.insuranceCost = Double(editingInsuranceCost).flatMap { $0 > 0 ? $0 : nil }
-        property.exitPrice = Double(editingExitPrice).flatMap { $0 > 0 ? $0 : nil }
-        
-        onSave()
     }
 }
 
+// MARK: - Inline Editable Components
+
+struct InlineEditableText: View {
+    let fieldId: String
+    let text: String
+    let label: String
+    @Binding var activeField: String?
+    let onSave: (String) -> Void
+    
+    @State private var editingText: String = ""
+    
+    private var isEditing: Bool {
+        activeField == fieldId
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            
+            if isEditing {
+                HStack {
+                    TextField("", text: $editingText)
+                        .font(.subheadline)
+                        .textFieldStyle(PlainTextFieldStyle())
+                    
+                    Button(action: {
+                        editingText = text
+                        activeField = nil
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.headline) // РАЗМЕР кнопки "Отмена" (красный крестик)
+                            .foregroundColor(.red)
+                    }
+                    
+                    Button(action: {
+                        onSave(editingText)
+                        activeField = nil
+                    }) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.headline) // РАЗМЕР кнопки "Принять" (зеленая галочка)
+                            .foregroundColor(.green)
+                    }
+                }
+            } else {
+                Button(action: {
+                    editingText = text
+                    activeField = fieldId
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.caption2)
+                            .foregroundColor(.blue)
+                        Text(text.isEmpty ? "Не указано" : text)
+                            .font(.subheadline)
+                            .foregroundColor(text.isEmpty ? .secondary : (fieldId == "id" ? .blue : .primary))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(nil)
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct InlineEditableNumber: View {
+    let fieldId: String
+    let value: Double
+    let label: String
+    var suffix: String = ""
+    var formatter: ((Double) -> String)? = nil
+    @Binding var activeField: String?
+    let onSave: (Double) -> Void
+    
+    @State private var editingText: String = ""
+    
+    private var isEditing: Bool {
+        activeField == fieldId
+    }
+    
+    var displayValue: String {
+        if let formatter = formatter {
+            return formatter(value)
+        }
+        return String(format: "%.0f", value) + suffix
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            
+            if isEditing {
+                HStack {
+                    TextField("", text: $editingText)
+                        .font(.subheadline)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(PlainTextFieldStyle())
+                    
+                    if !suffix.isEmpty {
+                        Text(suffix)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Button(action: {
+                        editingText = String(format: "%.0f", value)
+                        activeField = nil
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.headline) // РАЗМЕР кнопки "Отмена" (красный крестик)
+                            .foregroundColor(.red)
+                    }
+                    
+                    Button(action: {
+                        if let newValue = Double(editingText) {
+                            onSave(newValue)
+                        }
+                        activeField = nil
+                    }) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.headline) // РАЗМЕР кнопки "Принять" (зеленая галочка)
+                            .foregroundColor(.green)
+                    }
+                }
+            } else {
+                Button(action: {
+                    editingText = String(format: "%.0f", value)
+                    activeField = fieldId
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.caption2)
+                            .foregroundColor(.blue)
+                        Text(displayValue)
+                            .font(.subheadline)
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct InlineEditableNumberOptional: View {
+    let fieldId: String
+    let label: String
+    var formatter: ((Double) -> String)? = nil
+    @Binding var activeField: String?
+    let onSave: (Double?) -> Void
+    
+    @State private var editingText: String = ""
+    
+    private var isEditing: Bool {
+        activeField == fieldId
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            
+            if isEditing {
+                HStack {
+                    TextField("", text: $editingText)
+                        .font(.subheadline)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(PlainTextFieldStyle())
+                    
+                    Button(action: {
+                        editingText = ""
+                        activeField = nil
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.headline) // РАЗМЕР кнопки "Отмена" (красный крестик)
+                            .foregroundColor(.red)
+                    }
+                    
+                    Button(action: {
+                        if editingText.isEmpty {
+                            onSave(nil)
+                        } else if let newValue = Double(editingText) {
+                            onSave(newValue)
+                        }
+                        activeField = nil
+                    }) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.headline) // РАЗМЕР кнопки "Принять" (зеленая галочка)
+                            .foregroundColor(.green)
+                    }
+                }
+            } else {
+                Button(action: {
+                    editingText = ""
+                    activeField = fieldId
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.caption2)
+                            .foregroundColor(.blue)
+                        Text("Не указано")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct InlineEditableDate: View {
+    let fieldId: String
+    let dateString: String
+    let label: String
+    let dateFormatter: DateFormatter
+    @Binding var activeField: String?
+    let onSave: (String) -> Void
+    
+    @State private var editingDate: Date = Date()
+    
+    private var isEditing: Bool {
+        activeField == fieldId
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            
+            if isEditing {
+                HStack {
+                    DatePicker("", selection: $editingDate, displayedComponents: .date)
+                        .labelsHidden()
+                        .datePickerStyle(CompactDatePickerStyle())
+                    
+                    Button(action: {
+                        if let date = dateFormatter.date(from: dateString) {
+                            editingDate = date
+                        }
+                        activeField = nil
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.headline) // РАЗМЕР кнопки "Отмена" (красный крестик)
+                            .foregroundColor(.red)
+                    }
+                    
+                    Button(action: {
+                        let newDateString = dateFormatter.string(from: editingDate)
+                        onSave(newDateString)
+                        activeField = nil
+                    }) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.headline) // РАЗМЕР кнопки "Принять" (зеленая галочка)
+                            .foregroundColor(.green)
+                    }
+                }
+            } else {
+                Button(action: {
+                    if let date = dateFormatter.date(from: dateString) {
+                        editingDate = date
+                    }
+                    activeField = fieldId
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.caption2)
+                            .foregroundColor(.blue)
+                        Text(dateString.isEmpty ? "Не указано" : dateString)
+                            .font(.subheadline)
+                            .foregroundColor(dateString.isEmpty ? .secondary : .blue)
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct InlineEditablePicker<T: Hashable & Identifiable>: View {
+    let fieldId: String
+    @Binding var selection: T
+    let label: String
+    let options: [T]
+    let displayValue: (T) -> String
+    @Binding var activeField: String?
+    let onSave: () -> Void
+    
+    @State private var tempSelection: T
+    
+    init(fieldId: String, selection: Binding<T>, label: String, options: [T], displayValue: @escaping (T) -> String, activeField: Binding<String?>, onSave: @escaping () -> Void) {
+        self.fieldId = fieldId
+        self._selection = selection
+        self.label = label
+        self.options = options
+        self.displayValue = displayValue
+        self._activeField = activeField
+        self.onSave = onSave
+        _tempSelection = State(initialValue: selection.wrappedValue)
+    }
+    
+    private var isEditing: Bool {
+        activeField == fieldId
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            
+            if isEditing {
+                VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(options) { option in
+                            Button(action: {
+                                tempSelection = option
+                            }) {
+                                HStack {
+                                    Text(displayValue(option))
+                                        .font(.caption2)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .lineLimit(nil)
+                                    Spacer()
+                                    if tempSelection.id == option.id {
+                                        Image(systemName: "checkmark")
+                                            .font(.caption2)
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(tempSelection.id == option.id ? Color.blue.opacity(0.1) : Color.clear)
+                                .foregroundColor(tempSelection.id == option.id ? .blue : .primary)
+                                .cornerRadius(6)
+                            }
+                        }
+                    }
+                    
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            tempSelection = selection
+                            activeField = nil
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title3)
+                                .foregroundColor(.red)
+                        }
+                        
+                        Button(action: {
+                            selection = tempSelection
+                            onSave()
+                            activeField = nil
+                        }) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.title3)
+                                .foregroundColor(.green)
+                        }
+                    }
+                }
+            } else {
+                Button(action: {
+                    tempSelection = selection
+                    activeField = fieldId
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.caption2)
+                            .foregroundColor(.blue)
+                        Text(displayValue(selection))
+                            .font(.subheadline)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(nil)
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+}

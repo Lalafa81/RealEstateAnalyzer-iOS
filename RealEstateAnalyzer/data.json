@@ -3,7 +3,7 @@
     {
       "id": "002",
       "name": "Склад'Боровка'",
-      "type": "Жилое",
+      "type": "Складское",
       "address": "Москва, Боровка 11",
       "area": 1200,
       "purchasePrice": 24000000,
@@ -142,12 +142,12 @@
     {
       "id": "003",
       "name": "Botanica",
-      "type": "Коммерческая",
+      "type": "Жилое",
       "address": "Koh Kaew",
       "area": 350,
       "purchasePrice": 20500000,
       "purchaseDate": "04.04.2023",
-      "status": "Свободен",
+      "status": "Свободно",
       "source": "",
       "tenants": [
         {
@@ -348,7 +348,7 @@
       },
       "type": "Жилое",
       "status": "Сдано",
-      "condition": "Рабочее",
+      "condition": "Хорошее",
       "propertyTax": 40000,
       "insuranceCost": 80000,
       "exitPrice": 7500000,
@@ -365,7 +365,7 @@
       "months": {},
       "type": "Производство",
       "status": "Свободно",
-      "condition": "Рабочее",
+      "condition": "Хорошее",
       "propertyTax": 15000,
       "insuranceCost": 0,
       "exitPrice": 3500000,

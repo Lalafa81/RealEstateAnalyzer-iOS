@@ -14,7 +14,6 @@ struct PropertyDetailView: View {
     @State private var editableProperty: Property
     @State private var selectedYear: Int = Calendar.current.component(.year, from: Date())
     @State private var onlySelectedYear = false
-    @State private var isEditingProperty = false
     @State private var includeMaintenance = true
     @State private var includeOperating = true
     
@@ -46,11 +45,10 @@ struct PropertyDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Заголовок с редактируемыми полями
+            VStack(alignment: .leading, spacing: 12) {
+                // Заголовок с inline редактированием полей
                 HeaderView(
                     property: $editableProperty,
-                    isEditing: $isEditingProperty,
                     onSave: saveChanges
                 )
                 
@@ -89,8 +87,8 @@ struct PropertyDetailView: View {
                     onSave: saveChanges
                 )
             }
-            .padding(.horizontal)
-            .padding(.top, 8)
+            .padding(.horizontal, 12)
+            .padding(.top, 4)
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

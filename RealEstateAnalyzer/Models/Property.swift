@@ -27,7 +27,7 @@ enum PropertyType: String, CaseIterable, Identifiable, Codable {
     case residential = "Жилое"
     case office = "Офисное"
     case warehouse = "Складское"
-    case industrial = "Производственное"
+    case industrial = "Производство"
     case other = "Другое"
     
     var id: String { rawValue }
@@ -47,30 +47,6 @@ enum PropertyType: String, CaseIterable, Identifiable, Codable {
             return "square.grid.2x2"
         }
     }
-    
-    // Инициализатор для обработки старых значений из JSON
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let stringValue = try container.decode(String.self)
-        
-        // Маппинг старых значений на новые канонические типы
-        switch stringValue.lowercased() {
-        case "жилая", "жилое":
-            self = .residential
-        case "офисное", "офис", "торговая", "торговое", "коммерческая", "коммерческое":
-            self = .office
-        case "складская", "складское", "склад":
-            self = .warehouse
-        case "производственное", "производство", "промышленная", "промышленное":
-            self = .industrial
-        case "земля", "земельный участок", "участок":
-            // Земля теперь относится к "Другое"
-            self = .other
-        default:
-            // Если значение не найдено, используем "Другое"
-            self = .other
-        }
-    }
 }
 
 enum PropertyStatus: String, CaseIterable, Identifiable, Codable {
@@ -80,57 +56,15 @@ enum PropertyStatus: String, CaseIterable, Identifiable, Codable {
     case sold = "Продано"
     
     var id: String { rawValue }
-    
-    // Инициализатор для обработки старых значений из JSON
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let stringValue = try container.decode(String.self)
-        
-        // Маппинг старых значений на новые
-        switch stringValue.lowercased() {
-        case "сдано", "сдано в аренду":
-            self = .rented
-        case "свободно", "свободное":
-            self = .vacant
-        case "на ремонте", "ремонт", "рабочее":
-            self = .underRepair
-        case "продано":
-            self = .sold
-        default:
-            // Если значение не найдено, используем первое по умолчанию
-            self = .vacant
-        }
-    }
 }
 
 enum PropertyCondition: String, CaseIterable, Identifiable, Codable {
     case excellent = "Отличное"
     case good = "Хорошее"
-    case satisfactory = "Удовлетворительное"
+    case satisfactory = "Среднее"
     case needsRepair = "Требует ремонта"
     
     var id: String { rawValue }
-    
-    // Инициализатор для обработки старых значений из JSON
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let stringValue = try container.decode(String.self)
-        
-        // Маппинг старых значений на новые
-        switch stringValue.lowercased() {
-        case "отличное", "отлично":
-            self = .excellent
-        case "хорошее", "хорошо":
-            self = .good
-        case "удовлетворительное", "удовлетворительно":
-            self = .satisfactory
-        case "требует ремонта", "ремонт":
-            self = .needsRepair
-        default:
-            // Если значение не найдено, используем первое по умолчанию
-            self = .excellent
-        }
-    }
 }
 
 struct Property: Identifiable, Codable {

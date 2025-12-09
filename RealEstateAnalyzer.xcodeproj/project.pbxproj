@@ -24,6 +24,7 @@
 		AA0000330000000000000001 /* data.json in Resources */ = {isa = PBXBuildFile; fileRef = AA0000340000000000000001 /* data.json */; };
 		AA0000350000000000000001 /* PropertyGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000360000000000000001 /* PropertyGalleryView.swift */; };
 		AA0000370000000000000001 /* images.json in Resources */ = {isa = PBXBuildFile; fileRef = AA0000380000000000000001 /* images.json */; };
+		AA0000390000000000000001 /* FormulaHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003A0000000000000001 /* FormulaHelpView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +46,7 @@
 		AA0000340000000000000001 /* data.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = data.json; sourceTree = "<group>"; };
 		AA0000360000000000000001 /* PropertyGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyGalleryView.swift; sourceTree = "<group>"; };
 		AA0000380000000000000001 /* images.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = images.json; sourceTree = "<group>"; };
+		AA00003A0000000000000001 /* FormulaHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormulaHelpView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -142,6 +144,7 @@
 				AA00002E0000000000000001 /* PropertyTenantsView.swift */,
 				AA0000300000000000000001 /* PropertyCalendarView.swift */,
 				AA0000320000000000000001 /* PropertyCashFlowView.swift */,
+				AA00003A0000000000000001 /* FormulaHelpView.swift */,
 			);
 			path = PropertyDetail;
 			sourceTree = "<group>";
@@ -239,6 +242,7 @@
 				AA00002F0000000000000001 /* PropertyCalendarView.swift in Sources */,
 				AA0000310000000000000001 /* PropertyCashFlowView.swift in Sources */,
 				AA0000350000000000000001 /* PropertyGalleryView.swift in Sources */,
+				AA0000390000000000000001 /* FormulaHelpView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

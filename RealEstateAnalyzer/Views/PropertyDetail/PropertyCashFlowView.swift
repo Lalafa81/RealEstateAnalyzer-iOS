@@ -78,57 +78,58 @@ struct CashFlowView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("ДВИЖЕНИЕ ДЕНЕЖНЫХ СРЕДСТВ")
-                .font(.headline)
+                .font(.subheadline)
+                .fontWeight(.semibold)
             
             // Итоговые значения (чистый cashflow)
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 // Cashflow за выбранный год
-                VStack(spacing: 4) {
+                VStack(spacing: 2) {
                     Text("Чистый cashflow за \(String(selectedYear)) год")
-                        .font(.system(size: 9))
+                        .font(.system(size: 8))
                         .foregroundColor(.secondary)
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
                     
                     HStack(alignment: .firstTextBaseline, spacing: 2) {
                         Text(totalCashFlow.formatCurrency())
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundColor(totalCashFlow >= 0 ? .green : .red)
                         Text("₽")
-                            .font(.system(size: 10))
+                            .font(.system(size: 9))
                             .foregroundColor(.secondary)
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 8)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 6)
                 .background(Color.blue.opacity(0.1))
-                .cornerRadius(8)
+                .cornerRadius(6)
                 
                 // Cashflow за весь период
-                VStack(spacing: 4) {
+                VStack(spacing: 2) {
                     Text("Чистый cashflow за весь период")
-                        .font(.system(size: 9))
+                        .font(.system(size: 8))
                         .foregroundColor(.secondary)
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
                     
                     HStack(alignment: .firstTextBaseline, spacing: 2) {
                         Text(totalCashFlowAllPeriods.formatCurrency())
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundColor(totalCashFlowAllPeriods >= 0 ? .green : .red)
                         Text("₽")
-                            .font(.system(size: 10))
+                            .font(.system(size: 9))
                             .foregroundColor(.secondary)
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 8)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 6)
                 .background(Color.green.opacity(0.1))
-                .cornerRadius(8)
+                .cornerRadius(6)
             }
             
             // Выбор года
@@ -146,9 +147,9 @@ struct CashFlowView: View {
                 onSave: onSave
             )
         }
-        .padding()
+        .padding(8)
         .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cornerRadius(10)
     }
 }
 
@@ -479,35 +480,46 @@ struct CashFlowTableView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Заголовок таблицы
-            HStack {
+            HStack(spacing: 0) {
                 Text("Месяц")
-                    .font(.subheadline)
+                    .font(.footnote) // РАЗМЕР ШРИФТА заголовка
                     .fontWeight(.semibold)
-                    .frame(width: 90, alignment: .leading)
-                    .padding(.leading, 12)
+                    .frame(width: 70, alignment: .leading) // ШИРИНА колонки "Месяц"
+                    .padding(.leading, 8) // ОТСТУП слева
+                
                 Spacer()
+                
                 Text("Доход")
-                    .font(.subheadline)
+                    .font(.footnote) // РАЗМЕР ШРИФТА заголовка
                     .fontWeight(.semibold)
-                    .frame(width: 100, alignment: .trailing)
+                    .frame(width: 90, alignment: .trailing) // ШИРИНА колонки "Доход"
+                
                 Text("Расход")
-                    .font(.subheadline)
+                    .font(.footnote) // РАЗМЕР ШРИФТА заголовка
                     .fontWeight(.semibold)
-                    .frame(width: 100, alignment: .trailing)
-                    .padding(.trailing, 12)
+                    .frame(width: 90, alignment: .trailing) // ШИРИНА колонки "Расход"
+                
+                // Невидимые placeholder'ы для кнопок, чтобы сохранить ширину
+                Color.clear
+                    .frame(width: 28) // ШИРИНА кнопки (галочка)
+                
+                Color.clear
+                    .frame(width: 28) // ШИРИНА кнопки (три точки)
+                    .padding(.trailing, 8) // ОТСТУП справа
             }
-            .padding(.vertical, 8)
+            .padding(.vertical, 6) // ВЕРТИКАЛЬНЫЙ ОТСТУП заголовка
             .background(Color(.systemGray5))
             
             Divider()
             
             // Строки таблицы
             ForEach(Array(monthlyData.enumerated()), id: \.offset) { index, data in
-                HStack {
+                HStack(spacing: 0) {
                     Text(data.month)
-                        .font(.subheadline)
-                        .frame(width: 90, alignment: .leading)
-                        .padding(.leading, 12)
+                        .font(.footnote) // РАЗМЕР ШРИФТА месяца
+                        .frame(width: 70, alignment: .leading) // ШИРИНА колонки "Месяц"
+                        .padding(.leading, 8) // ОТСТУП слева
+                    
                     Spacer()
                     
                     if editingMonth == data.monthNum {
@@ -516,16 +528,16 @@ struct CashFlowTableView: View {
                         TextField("Доход", text: $editingIncome)
                             .keyboardType(.decimalPad)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .frame(width: 100)
-                            .font(.subheadline)
+                            .frame(width: 90) // ШИРИНА поля "Доход"
+                            .font(.footnote) // РАЗМЕР ШРИФТА в поле редактирования
                         
                         // Расход → прочий расход (expensesOther) - можно редактировать напрямую
                         TextField("Расход", text: $editingExpenseOther)
                             .keyboardType(.decimalPad)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .multilineTextAlignment(.trailing)
-                            .frame(width: 100)
-                            .font(.subheadline)
+                            .frame(width: 90) // ШИРИНА поля "Расход"
+                            .font(.footnote) // РАЗМЕР ШРИФТА в поле редактирования
                             .foregroundColor(.red)
                         
                         Button(action: {
@@ -533,42 +545,49 @@ struct CashFlowTableView: View {
                         }) {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
-                                .font(.title3)
+                                .font(.caption) // РАЗМЕР иконки кнопки
                         }
-                        .frame(width: 35)
+                        .frame(width: 28) // ШИРИНА кнопки (галочка)
                         
                         Button(action: {
                             showingDetailEditor = true
                         }) {
                             Image(systemName: "ellipsis.circle.fill")
                                 .foregroundColor(.blue)
-                                .font(.title3)
+                                .font(.caption) // РАЗМЕР иконки кнопки
                         }
-                        .frame(width: 35)
-                        .padding(.trailing, 12)
+                        .frame(width: 28) // ШИРИНА кнопки (три точки)
+                        .padding(.trailing, 8) // ОТСТУП справа
                     } else {
-                        // Режим просмотра
+                        // Режим просмотра - резервируем место для кнопок, чтобы ширина не менялась
                         Text(data.income.formatCurrency())
-                            .font(.subheadline)
+                            .font(.footnote) // РАЗМЕР ШРИФТА значения дохода
                             .foregroundColor(.green)
-                            .frame(width: 100, alignment: .trailing)
+                            .frame(width: 90, alignment: .trailing) // ШИРИНА колонки "Доход"
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 startEditing(monthNum: data.monthNum, income: data.income, expense: data.expense)
                             }
                         
                         Text(data.expense.formatCurrency())
-                            .font(.subheadline)
+                            .font(.footnote) // РАЗМЕР ШРИФТА значения расхода
                             .foregroundColor(.red)
-                            .frame(width: 100, alignment: .trailing)
-                            .padding(.trailing, 12)
+                            .frame(width: 90, alignment: .trailing) // ШИРИНА колонки "Расход"
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 startEditing(monthNum: data.monthNum, income: data.income, expense: data.expense)
                             }
+                        
+                        // Невидимые placeholder'ы для кнопок, чтобы сохранить ширину
+                        Color.clear
+                            .frame(width: 28) // ШИРИНА placeholder кнопки (галочка)
+                        
+                        Color.clear
+                            .frame(width: 28) // ШИРИНА placeholder кнопки (три точки)
+                            .padding(.trailing, 8) // ОТСТУП справа
                     }
                 }
-                .padding(.vertical, 6)
+                .padding(.vertical, 4) // ВЕРТИКАЛЬНЫЙ ОТСТУП строки
                 
                 if index < monthlyData.count - 1 {
                     Divider()
