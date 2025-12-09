@@ -7,6 +7,37 @@
 
 import SwiftUI
 
+// MARK: - Константы
+
+private let monthNumbers = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+private let monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
+
+// MARK: - Helper функции для расчетов
+
+private func calculateIncome(from monthData: Property.MonthData) -> Double {
+    return (monthData.income ?? 0) + (monthData.incomeVariable ?? 0)
+}
+
+private func calculateExpense(from monthData: Property.MonthData) -> Double {
+    return (monthData.expensesMaintenance ?? 0) +
+           (monthData.expensesOperational ?? 0) +
+           (monthData.expensesOther ?? 0)
+}
+
+private func calculateCashFlow(for yearData: [String: Property.MonthData]) -> (income: Double, expense: Double) {
+    var totalIncome: Double = 0
+    var totalExpense: Double = 0
+    
+    for monthNum in monthNumbers {
+        if let monthData = yearData[monthNum] {
+            totalIncome += calculateIncome(from: monthData)
+            totalExpense += calculateExpense(from: monthData)
+        }
+    }
+    
+    return (totalIncome, totalExpense)
+}
+
 // MARK: - Движение денежных средств
 
 struct CashFlowView: View {
@@ -24,54 +55,24 @@ struct CashFlowView: View {
     
     // Cashflow за выбранный год
     var totalCashFlow: Double {
-        let monthNumbers = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-        
         guard let yearData = property.months[String(selectedYear)] else {
             return 0
         }
-        
-        var totalIncome: Double = 0
-        var totalExpense: Double = 0
-        
-        for monthNum in monthNumbers {
-            if let monthData = yearData[monthNum] {
-                totalIncome += (monthData.income ?? 0) + (monthData.incomeVariable ?? 0)
-                
-                // Расходы: 3 вида
-                let monthExpense =
-                    (monthData.expensesMaintenance ?? 0) +
-                    (monthData.expensesOperational ?? 0) +
-                    (monthData.expensesOther ?? 0)
-                totalExpense += monthExpense
-            }
-        }
-        
-        return totalIncome - totalExpense
+        let result = calculateCashFlow(for: yearData)
+        return result.income - result.expense
     }
     
     // Cashflow за весь период (все года)
     var totalCashFlowAllPeriods: Double {
-        let monthNumbers = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
         let years = property.months.keys.compactMap { Int($0) }.sorted()
-        
         var totalIncome: Double = 0
         var totalExpense: Double = 0
         
         for year in years {
             guard let yearData = property.months[String(year)] else { continue }
-            
-            for monthNum in monthNumbers {
-                if let monthData = yearData[monthNum] {
-                    totalIncome += (monthData.income ?? 0) + (monthData.incomeVariable ?? 0)
-                    
-                    // Расходы: 3 вида
-                    let monthExpense =
-                        (monthData.expensesMaintenance ?? 0) +
-                        (monthData.expensesOperational ?? 0) +
-                        (monthData.expensesOther ?? 0)
-                    totalExpense += monthExpense
-                }
-            }
+            let result = calculateCashFlow(for: yearData)
+            totalIncome += result.income
+            totalExpense += result.expense
         }
         
         return totalIncome - totalExpense
@@ -240,71 +241,27 @@ struct YearPickerView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         // Кнопка добавления года слева
-                        Button(action: {
-                            addYear(minYear - 1)
-                        }) {
-                            VStack(spacing: 2) {
-                                Text("+")
-                                    .font(.caption)
-                                Text(String(minYear - 1))
-                                    .font(.subheadline)
-                            }
-                            .foregroundColor(.primary)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 6)
-                            .background(Color(.systemGray5))
-                            .cornerRadius(8)
-                        }
+                        AddYearButton(year: minYear - 1, onAdd: { addYear(minYear - 1) })
                         
                         // Существующие года
                         ForEach(availableYears, id: \.self) { year in
-                            HStack(spacing: 4) {
-                                Button(action: {
+                            YearButton(
+                                year: year,
+                                isSelected: year == selectedYear,
+                                onSelect: {
                                     selectedYear = year
                                     onYearChanged?()
-                                    // Прокручиваем к выбранному году
                                     withAnimation {
                                         proxy.scrollTo(year, anchor: .center)
                                     }
-                                }) {
-                                    Text(String(year))
-                                        .font(.subheadline)
-                                        .fontWeight(year == selectedYear ? .bold : .regular)
-                                        .foregroundColor(year == selectedYear ? .white : .primary)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 6)
-                                        .background(year == selectedYear ? Color.blue : Color(.systemGray5))
-                                        .cornerRadius(8)
-                                }
-                                
-                                // Крестик для удаления года
-                                Button(action: {
-                                    deleteYear(year)
-                                }) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .font(.caption)
-                                        .foregroundColor(.red)
-                                }
-                            }
-                            .id(year) // Добавляем id для прокрутки
+                                },
+                                onDelete: { deleteYear(year) }
+                            )
+                            .id(year)
                         }
                         
                         // Кнопка добавления года справа
-                        Button(action: {
-                            addYear(maxYear + 1)
-                        }) {
-                            VStack(spacing: 2) {
-                                Text("+")
-                                    .font(.caption)
-                                Text(String(maxYear + 1))
-                                    .font(.subheadline)
-                            }
-                            .foregroundColor(.primary)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 6)
-                            .background(Color(.systemGray5))
-                            .cornerRadius(8)
-                        }
+                        AddYearButton(year: maxYear + 1, onAdd: { addYear(maxYear + 1) })
                     }
                     .padding(.horizontal, 4)
                 }
@@ -351,37 +308,29 @@ struct CashFlowTableView: View {
     
     @State private var editingMonth: String? = nil
     @State private var editingIncome: String = ""
-    @State private var editingIncomeVariable: String = ""
-    @State private var editingExpenseMaintenance: String = ""
-    @State private var editingExpenseOperational: String = ""
     @State private var editingExpenseOther: String = ""
     @State private var showingDetailEditor = false
     
+    // Состояния для popup (Double значения)
+    @State private var popupIncomeBase: Double = 0
+    @State private var popupIncomeVariable: Double = 0
+    @State private var popupAdmin: Double = 0
+    @State private var popupOperating: Double = 0
+    @State private var popupOther: Double = 0
+    
     var monthlyData: [(month: String, monthNum: String, income: Double, expense: Double, monthData: Property.MonthData?)] {
-        let monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
-        let monthNumbers = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-        
         let yearData = property.months[String(selectedYear)] ?? [:]
         
-        var result: [(month: String, monthNum: String, income: Double, expense: Double, monthData: Property.MonthData?)] = []
-        
-        for (index, monthNum) in monthNumbers.enumerated() {
+        return monthNumbers.enumerated().map { index, monthNum in
             if let monthData = yearData[monthNum] {
-                let income = (monthData.income ?? 0) + (monthData.incomeVariable ?? 0)
-                
-                // Расходы: 3 вида
-                let expense =
-                    (monthData.expensesMaintenance ?? 0) +
-                    (monthData.expensesOperational ?? 0) +
-                    (monthData.expensesOther ?? 0)
-                
-                result.append((month: monthNames[index], monthNum: monthNum, income: income, expense: expense, monthData: monthData))
+                return (month: monthNames[index], monthNum: monthNum, 
+                       income: calculateIncome(from: monthData),
+                       expense: calculateExpense(from: monthData),
+                       monthData: monthData)
             } else {
-                result.append((month: monthNames[index], monthNum: monthNum, income: 0, expense: 0, monthData: nil))
+                return (month: monthNames[index], monthNum: monthNum, income: 0, expense: 0, monthData: nil)
             }
         }
-        
-        return result
     }
     
     private func startEditing(monthNum: String, income: Double, expense: Double) {
@@ -394,86 +343,28 @@ struct CashFlowTableView: View {
             // Для простого редактирования: доход → базовый доход, расход → прочий расход
             editingIncome = String(format: "%.0f", monthData.income ?? 0)
             editingExpenseOther = String(format: "%.0f", monthData.expensesOther ?? 0)
-            
-            // Загружаем все поля для детального редактора (на случай открытия через 3 точки)
-            editingIncomeVariable = String(format: "%.0f", monthData.incomeVariable ?? 0)
-            editingExpenseMaintenance = String(format: "%.0f", monthData.expensesMaintenance ?? 0)
-            editingExpenseOperational = String(format: "%.0f", monthData.expensesOperational ?? 0)
         } else {
             // Если данных нет, показываем 0
             editingIncome = "0"
             editingExpenseOther = "0"
-            editingIncomeVariable = "0"
-            editingExpenseMaintenance = "0"
-            editingExpenseOperational = "0"
         }
     }
     
-    /// Сохранение при простом редактировании (доход → income, расход → expensesOther)
-    private func saveMonthDataSimple(monthNum: String) {
-        let incomeValue = Double(editingIncome) ?? 0
-        let expenseOtherValue = Double(editingExpenseOther) ?? 0
-        
-        let yearKey = String(selectedYear)
-        
-        // Создаем полную копию словаря months, чтобы SwiftUI заметил изменение
-        var monthsCopy = property.months
-        var yearData = monthsCopy[yearKey] ?? [:]
-        
-        // Получаем существующие данные или создаем новые
-        var monthData = yearData[monthNum] ?? Property.MonthData()
-        
-        // Сохраняем только базовый доход и прочий расход
-        monthData.income = incomeValue > 0 ? incomeValue : nil
-        monthData.expensesOther = expenseOtherValue > 0 ? expenseOtherValue : nil
-        // Остальные поля не трогаем (сохраняем существующие значения)
-        
-        yearData[monthNum] = monthData
-        monthsCopy[yearKey] = yearData
-        
-        // Обновляем property через binding - создаем новую копию, чтобы SwiftUI заметил изменение
-        property.months = monthsCopy
-        
-        editingMonth = nil
-        
-        // Сохраняем изменения в data.json - это обновит аналитику автоматически
-        onSave()
-    }
-    
-    /// Сохранение при детальном редактировании (все поля)
+    /// Сохранение данных месяца (простое редактирование)
     private func saveMonthData(monthNum: String) {
-        // Парсим все значения
-        let incomeValue = Double(editingIncome) ?? 0
-        let incomeVariableValue = Double(editingIncomeVariable) ?? 0
-        let expenseMaintenanceValue = Double(editingExpenseMaintenance) ?? 0
-        let expenseOperationalValue = Double(editingExpenseOperational) ?? 0
-        let expenseOtherValue = Double(editingExpenseOther) ?? 0
-        
         let yearKey = String(selectedYear)
-        
-        // Создаем полную копию словаря months, чтобы SwiftUI заметил изменение
         var monthsCopy = property.months
         var yearData = monthsCopy[yearKey] ?? [:]
-        
-        // Получаем существующие данные или создаем новые
         var monthData = yearData[monthNum] ?? Property.MonthData()
         
-        // Сохраняем все поля (сохраняем даже 0, чтобы явно указать отсутствие значения)
-        monthData.income = incomeValue > 0 ? incomeValue : nil
-        monthData.incomeVariable = incomeVariableValue > 0 ? incomeVariableValue : nil
-        monthData.expensesMaintenance = expenseMaintenanceValue > 0 ? expenseMaintenanceValue : nil
-        monthData.expensesOperational = expenseOperationalValue > 0 ? expenseOperationalValue : nil
-        monthData.expensesOther = expenseOtherValue > 0 ? expenseOtherValue : nil
+        // Простое редактирование: только базовый доход и прочий расход
+        monthData.income = (Double(editingIncome) ?? 0) > 0 ? Double(editingIncome) ?? nil : nil
+        monthData.expensesOther = (Double(editingExpenseOther) ?? 0) > 0 ? Double(editingExpenseOther) ?? nil : nil
         
         yearData[monthNum] = monthData
         monthsCopy[yearKey] = yearData
-        
-        // Обновляем property через binding - создаем новую копию, чтобы SwiftUI заметил изменение
         property.months = monthsCopy
-        
         editingMonth = nil
-        
-        // Сохраняем изменения в data.json - это обновит аналитику автоматически
         onSave()
     }
     
@@ -541,7 +432,7 @@ struct CashFlowTableView: View {
                             .foregroundColor(.red)
                         
                         Button(action: {
-                            saveMonthDataSimple(monthNum: data.monthNum)
+                            saveMonthData(monthNum: data.monthNum)
                         }) {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
@@ -550,6 +441,22 @@ struct CashFlowTableView: View {
                         .frame(width: 28) // ШИРИНА кнопки (галочка)
                         
                         Button(action: {
+                            // Загружаем данные для popup
+                            let yearKey = String(selectedYear)
+                            if let yearData = property.months[yearKey],
+                               let monthData = yearData[data.monthNum] {
+                                popupIncomeBase = monthData.income ?? 0
+                                popupIncomeVariable = monthData.incomeVariable ?? 0
+                                popupAdmin = monthData.expensesMaintenance ?? 0
+                                popupOperating = monthData.expensesOperational ?? 0
+                                popupOther = monthData.expensesOther ?? 0
+                            } else {
+                                popupIncomeBase = 0
+                                popupIncomeVariable = 0
+                                popupAdmin = 0
+                                popupOperating = 0
+                                popupOther = 0
+                            }
                             showingDetailEditor = true
                         }) {
                             Image(systemName: "ellipsis.circle.fill")
@@ -600,135 +507,91 @@ struct CashFlowTableView: View {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(Color(.systemGray4), lineWidth: 1)
         )
-        .sheet(isPresented: $showingDetailEditor) {
-            if let monthNum = editingMonth {
-                MonthDetailEditorView(
-                    monthNum: monthNum,
-                    monthName: monthlyData.first(where: { $0.monthNum == monthNum })?.month ?? "",
-                    property: $property,
-                    selectedYear: selectedYear,
-                    editingIncome: $editingIncome,
-                    editingIncomeVariable: $editingIncomeVariable,
-                    editingExpenseMaintenance: $editingExpenseMaintenance,
-                    editingExpenseOperational: $editingExpenseOperational,
-                    editingExpenseOther: $editingExpenseOther,
-                    onSave: {
-                        saveMonthData(monthNum: monthNum)
-                        showingDetailEditor = false
-                    }
-                )
+        .overlay(
+            Group {
+                if showingDetailEditor, let monthNum = editingMonth {
+                    MonthEditPopup(
+                        isPresented: $showingDetailEditor,
+                        incomeBase: $popupIncomeBase,
+                        incomeVariable: $popupIncomeVariable,
+                        admin: $popupAdmin,
+                        operating: $popupOperating,
+                        other: $popupOther,
+                        monthTitle: monthlyData.first(where: { $0.monthNum == monthNum })?.month ?? "",
+                        onSave: {
+                            // Сохраняем данные из popup
+                            let yearKey = String(selectedYear)
+                            var monthsCopy = property.months
+                            var yearData = monthsCopy[yearKey] ?? [:]
+                            var monthData = yearData[monthNum] ?? Property.MonthData()
+                            
+                            monthData.income = popupIncomeBase > 0 ? popupIncomeBase : nil
+                            monthData.incomeVariable = popupIncomeVariable > 0 ? popupIncomeVariable : nil
+                            monthData.expensesMaintenance = popupAdmin > 0 ? popupAdmin : nil
+                            monthData.expensesOperational = popupOperating > 0 ? popupOperating : nil
+                            monthData.expensesOther = popupOther > 0 ? popupOther : nil
+                            
+                            yearData[monthNum] = monthData
+                            monthsCopy[yearKey] = yearData
+                            property.months = monthsCopy
+                            editingMonth = nil
+                            onSave()
+                        }
+                    )
+                }
             }
-        }
+        )
     }
-    
 }
 
-// MARK: - Детальный редактор месяца
+// MARK: - Компоненты YearPickerView
 
-struct MonthDetailEditorView: View {
-    let monthNum: String
-    let monthName: String
-    @Binding var property: Property
-    let selectedYear: Int
-    @Binding var editingIncome: String
-    @Binding var editingIncomeVariable: String
-    @Binding var editingExpenseMaintenance: String
-    @Binding var editingExpenseOperational: String
-    @Binding var editingExpenseOther: String
-    let onSave: () -> Void
-    @Environment(\.presentationMode) var presentationMode
+private struct AddYearButton: View {
+    let year: Int
+    let onAdd: () -> Void
     
     var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("Доходы за \(monthName) \(selectedYear)")) {
-                    HStack {
-                        Text("Базовый доход:")
-                        Spacer()
-                        TextField("0", text: $editingIncome)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 150)
-                    }
-                    
-                    HStack {
-                        Text("Переменный доход:")
-                        Spacer()
-                        TextField("0", text: $editingIncomeVariable)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 150)
-                    }
-                    
-                    HStack {
-                        Text("Итого доход:")
-                            .font(.system(.subheadline, design: .default).weight(.semibold))
-                        Spacer()
-                        Text(((Double(editingIncome) ?? 0) + (Double(editingIncomeVariable) ?? 0)).formatCurrency())
-                            .font(.system(.subheadline, design: .default).weight(.semibold))
-                            .foregroundColor(.green)
-                    }
-                }
-                
-                Section(header: Text("Расходы за \(monthName) \(selectedYear)")) {
-                    HStack {
-                        Text("Административные расходы:")
-                        Spacer()
-                        TextField("0", text: $editingExpenseMaintenance)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 150)
-                    }
-                    
-                    HStack {
-                        Text("Эксплуатационные расходы:")
-                        Spacer()
-                        TextField("0", text: $editingExpenseOperational)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 150)
-                    }
-                    
-                    HStack {
-                        Text("Прочие расходы:")
-                        Spacer()
-                        TextField("0", text: $editingExpenseOther)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 150)
-                    }
-                    
-                    HStack {
-                        Text("Итого расход:")
-                            .font(.system(.subheadline, design: .default).weight(.semibold))
-                        Spacer()
-                        Text((
-                            (Double(editingExpenseMaintenance) ?? 0) +
-                            (Double(editingExpenseOperational) ?? 0) +
-                            (Double(editingExpenseOther) ?? 0)
-                        ).formatCurrency())
-                        .font(.system(.subheadline, design: .default).weight(.semibold))
-                        .foregroundColor(.red)
-                    }
-                }
+        Button(action: onAdd) {
+            VStack(spacing: 2) {
+                Text("+")
+                    .font(.caption)
+                Text(String(year))
+                    .font(.subheadline)
             }
-            .navigationTitle("Редактирование: \(monthName)")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Отмена") {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Сохранить") {
-                        onSave()
-                    }
-                    .font(.system(.body, design: .default).weight(.semibold))
-                }
+            .foregroundColor(.primary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(Color(.systemGray5))
+            .cornerRadius(8)
+        }
+    }
+}
+
+private struct YearButton: View {
+    let year: Int
+    let isSelected: Bool
+    let onSelect: () -> Void
+    let onDelete: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Button(action: onSelect) {
+                Text(String(year))
+                    .font(.subheadline)
+                    .fontWeight(isSelected ? .bold : .regular)
+                    .foregroundColor(isSelected ? .white : .primary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(isSelected ? Color.blue : Color(.systemGray5))
+                    .cornerRadius(8)
+            }
+            
+            Button(action: onDelete) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.caption)
+                    .foregroundColor(.red)
             }
         }
     }
-    
 }
 
