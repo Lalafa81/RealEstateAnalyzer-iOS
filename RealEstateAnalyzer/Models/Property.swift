@@ -107,6 +107,23 @@ struct Property: Identifiable, Codable {
     }
 }
 
+// Тип компании арендатора
+enum CompanyType: String, Codable, CaseIterable, Identifiable {
+    case ip = "ИП"
+    case ooo = "ООО"
+    
+    var id: String { rawValue }
+}
+
+// Тип депозита
+enum DepositType: String, Codable, Identifiable {
+    case oneMonth = "1 месяц"
+    case twoMonths = "2 месяца"
+    case custom = "Вручную"
+    
+    var id: String { rawValue }
+}
+
 struct Tenant: Identifiable, Codable {
     var id = UUID()
     var name: String
@@ -115,14 +132,17 @@ struct Tenant: Identifiable, Codable {
     var endDate: String?
     var area: Double?
     var indexation: String?
+    var companyType: CompanyType?
+    var deposit: Double?
+    var depositType: DepositType?
     var isArchived: Bool = false
     
     enum CodingKeys: String, CodingKey {
-        case name, income, startDate, endDate, area, indexation, isArchived
+        case name, income, startDate, endDate, area, indexation, companyType, deposit, depositType, isArchived
     }
     
     // Обычный инициализатор для создания Tenant вручную
-    init(id: UUID = UUID(), name: String, income: Double? = nil, startDate: String? = nil, endDate: String? = nil, area: Double? = nil, indexation: String? = nil, isArchived: Bool = false) {
+    init(id: UUID = UUID(), name: String, income: Double? = nil, startDate: String? = nil, endDate: String? = nil, area: Double? = nil, indexation: String? = nil, companyType: CompanyType? = nil, deposit: Double? = nil, depositType: DepositType? = nil, isArchived: Bool = false) {
         self.id = id
         self.name = name
         self.income = income
@@ -130,6 +150,9 @@ struct Tenant: Identifiable, Codable {
         self.endDate = endDate
         self.area = area
         self.indexation = indexation
+        self.companyType = companyType
+        self.deposit = deposit
+        self.depositType = depositType
         self.isArchived = isArchived
     }
     
@@ -183,6 +206,37 @@ struct Tenant: Identifiable, Codable {
             indexation = indexationValue
         } else {
             indexation = nil
+        }
+        
+        // Обрабатываем companyType
+        if let companyTypeValue = try? container.decode(CompanyType.self, forKey: .companyType) {
+            companyType = companyTypeValue
+        } else if let companyTypeString = try? container.decode(String.self, forKey: .companyType),
+                  !companyTypeString.isEmpty {
+            companyType = CompanyType(rawValue: companyTypeString)
+        } else {
+            companyType = nil
+        }
+        
+        // Обрабатываем deposit
+        if let depositValue = try? container.decode(Double.self, forKey: .deposit) {
+            deposit = depositValue
+        } else if let depositString = try? container.decode(String.self, forKey: .deposit),
+                  !depositString.isEmpty,
+                  let depositDouble = Double(depositString) {
+            deposit = depositDouble
+        } else {
+            deposit = nil
+        }
+        
+        // Обрабатываем depositType
+        if let depositTypeValue = try? container.decode(DepositType.self, forKey: .depositType) {
+            depositType = depositTypeValue
+        } else if let depositTypeString = try? container.decode(String.self, forKey: .depositType),
+                  !depositTypeString.isEmpty {
+            depositType = DepositType(rawValue: depositTypeString)
+        } else {
+            depositType = nil
         }
         
         // Обрабатываем isArchived: может отсутствовать в старых данных

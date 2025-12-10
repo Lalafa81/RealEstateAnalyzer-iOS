@@ -373,7 +373,7 @@ struct CashFlowTableView: View {
             // Заголовок таблицы
             HStack(spacing: 0) {
                 Text("Месяц")
-                    .font(.footnote) // РАЗМЕР ШРИФТА заголовка
+                    .font(.subheadline) // РАЗМЕР ШРИФТА заголовка
                     .fontWeight(.semibold)
                     .frame(width: 70, alignment: .leading) // ШИРИНА колонки "Месяц"
                     .padding(.leading, 8) // ОТСТУП слева
@@ -381,12 +381,12 @@ struct CashFlowTableView: View {
                 Spacer()
                 
                 Text("Доход")
-                    .font(.footnote) // РАЗМЕР ШРИФТА заголовка
+                    .font(.subheadline) // РАЗМЕР ШРИФТА заголовка
                     .fontWeight(.semibold)
                     .frame(width: 90, alignment: .trailing) // ШИРИНА колонки "Доход"
                 
                 Text("Расход")
-                    .font(.footnote) // РАЗМЕР ШРИФТА заголовка
+                    .font(.subheadline) // РАЗМЕР ШРИФТА заголовка
                     .fontWeight(.semibold)
                     .frame(width: 90, alignment: .trailing) // ШИРИНА колонки "Расход"
                 
@@ -407,7 +407,7 @@ struct CashFlowTableView: View {
             ForEach(Array(monthlyData.enumerated()), id: \.offset) { index, data in
                 HStack(spacing: 0) {
                     Text(data.month)
-                        .font(.footnote) // РАЗМЕР ШРИФТА месяца
+                        .font(.subheadline) // РАЗМЕР ШРИФТА месяца
                         .frame(width: 70, alignment: .leading) // ШИРИНА колонки "Месяц"
                         .padding(.leading, 8) // ОТСТУП слева
                     
@@ -420,7 +420,7 @@ struct CashFlowTableView: View {
                             .keyboardType(.decimalPad)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .frame(width: 90) // ШИРИНА поля "Доход"
-                            .font(.footnote) // РАЗМЕР ШРИФТА в поле редактирования
+                            .font(.subheadline) // РАЗМЕР ШРИФТА в поле редактирования
                         
                         // Расход → прочий расход (expensesOther) - можно редактировать напрямую
                         TextField("Расход", text: $editingExpenseOther)
@@ -428,7 +428,7 @@ struct CashFlowTableView: View {
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .multilineTextAlignment(.trailing)
                             .frame(width: 90) // ШИРИНА поля "Расход"
-                            .font(.footnote) // РАЗМЕР ШРИФТА в поле редактирования
+                            .font(.subheadline) // РАЗМЕР ШРИФТА в поле редактирования
                             .foregroundColor(.red)
                         
                         Button(action: {
@@ -468,7 +468,7 @@ struct CashFlowTableView: View {
                     } else {
                         // Режим просмотра - резервируем место для кнопок, чтобы ширина не менялась
                         Text(data.income.formatCurrency())
-                            .font(.footnote) // РАЗМЕР ШРИФТА значения дохода
+                            .font(.subheadline) // РАЗМЕР ШРИФТА значения дохода
                             .foregroundColor(.green)
                             .frame(width: 90, alignment: .trailing) // ШИРИНА колонки "Доход"
                             .contentShape(Rectangle())
@@ -477,7 +477,7 @@ struct CashFlowTableView: View {
                             }
                         
                         Text(data.expense.formatCurrency())
-                            .font(.footnote) // РАЗМЕР ШРИФТА значения расхода
+                            .font(.subheadline) // РАЗМЕР ШРИФТА значения расхода
                             .foregroundColor(.red)
                             .frame(width: 90, alignment: .trailing) // ШИРИНА колонки "Расход"
                             .contentShape(Rectangle())

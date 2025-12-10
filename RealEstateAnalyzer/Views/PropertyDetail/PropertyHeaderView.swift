@@ -31,13 +31,8 @@ struct HeaderView: View {
             VStack(alignment: .leading, spacing: 0) {
                 // Режим просмотра с inline редактированием
                 VStack(alignment: .leading, spacing: 6) {
-                    // Первая строка: Иконка и название
-                    HStack(spacing: 12) {
-                        Image(systemName: property.type.iconName)
-                            .foregroundColor(.purple)
-                            .font(.title)
-                            .frame(width: 50)
-                        
+                    // Первая строка: Название и адрес с иконкой типа в правом верхнем углу
+                    ZStack(alignment: .topTrailing) {
                         VStack(alignment: .leading, spacing: 4) {
                             // Название
                             if activeEditingField == "name" {
@@ -65,16 +60,16 @@ struct HeaderView: View {
                                     }
                                 }
                             } else {
-                                HStack {
-                                    Text(property.name)
-                                        .font(.headline)
-                                        .foregroundColor(.primary)
-                                    Spacer()
+                                HStack(spacing: 4) {
                                     Button(action: { activeEditingField = "name" }) {
                                         Image(systemName: "pencil.circle.fill")
                                             .font(.caption2)
                                             .foregroundColor(.blue)
                                     }
+                                    Text(property.name)
+                                        .font(.headline)
+                                        .foregroundColor(.primary)
+                                    Spacer()
                                 }
                             }
                             
@@ -104,21 +99,25 @@ struct HeaderView: View {
                                     }
                                 }
                             } else {
-                                HStack {
-                                    Text(property.address)
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                    Spacer()
+                                HStack(spacing: 4) {
                                     Button(action: { activeEditingField = "address" }) {
                                         Image(systemName: "pencil.circle.fill")
                                             .font(.caption2)
                                             .foregroundColor(.blue)
                                     }
+                                    Text(property.address)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                    Spacer()
                                 }
                             }
                         }
                         
-                        Spacer()
+                        // Иконка типа объекта в правом верхнем углу
+                        Image(systemName: property.type.iconName)
+                            .foregroundColor(.purple)
+                            .font(.title)
+                            .frame(width: 50)
                     }
                     .padding(.horizontal, 12)
                     .padding(.top, 8)

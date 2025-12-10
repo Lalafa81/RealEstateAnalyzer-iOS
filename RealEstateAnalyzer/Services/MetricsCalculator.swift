@@ -180,7 +180,6 @@ class MetricsCalculator {
         )
         let propertyTax = financialData.propertyTax
         let insuranceCost = financialData.insuranceCost
-        let onlySelectedYear = financialData.onlySelectedYear
         
         // Собираем объединенный массив расходов для расчета максимумов
         var allExpenses: [Double] = []
@@ -204,12 +203,14 @@ class MetricsCalculator {
         }
         
         let area = property.area > 0 ? property.area : 1
-        let price = property.purchasePrice > 0 ? property.purchasePrice : 1
+        // Для ROI и других метрик используем реальную цену, если она 0 - возвращаем 0 для ROI
+        let price = property.purchasePrice
         
         // Средние значения
-        // Когда onlySelectedYear = true: делим на 12 (месяцев в году)
-        // Когда onlySelectedYear = false: делим на количество месяцев с данными, чтобы получить средний месячный показатель
-        let monthsForAverage = onlySelectedYear ? 12 : max(incomes.count, 1)
+        // Когда onlySelectedYear = true: делим на количество месяцев с данными в выбранном году (но не больше 12)
+        // Когда onlySelectedYear = false: делим на количество месяцев с данными за весь период
+        // Это обеспечивает корректный расчет средних значений независимо от того, сколько месяцев данных есть
+        let monthsForAverage = max(incomes.count, 1)
         let avgExpense = round((annualExpense / Double(monthsForAverage)) * 100) / 100
         let avgIncome = round((annualIncome / Double(monthsForAverage)) * 100) / 100
         
@@ -313,17 +314,17 @@ class MetricsCalculator {
         return Analytics(
             monthlyIncome: avgIncome,
             monthlyExpenses: avgExpense,
-            roi: cashOnCashReturn(cashFlow: netCashFlow, cashInvested: price),
-            grm: grossRentMultiplier(price: price, annualIncome: annualIncome),
+            roi: price > 0 ? cashOnCashReturn(cashFlow: netCashFlow, cashInvested: price) : 0,
+            grm: price > 0 ? grossRentMultiplier(price: price, annualIncome: annualIncome) : nil,
             incomePerM2: incomePerSquareMeter(income: avgIncome, area: area),
-            capRate: capitalizationRate(
+            capRate: price > 0 ? capitalizationRate(
                 income: avgIncome * 12,
                 expenses: avgExpense * 12 + propertyTax + insuranceCost,
                 price: price
-            ),
+            ) : 0,
             efficiency: efficiencyCoefficient(income: avgIncome, area: area),
             efficiencyLevel: efficiencyRating(efficiencyCoefficient(income: avgIncome, area: area)),
-            payback: paybackPeriod(investment: price, annualCashFlow: netCashFlow),
+            payback: price > 0 ? paybackPeriod(investment: price, annualCashFlow: netCashFlow) : nil,
             tenantRisk: tenantRiskAssessment(property.tenants),
             volatility: volatility,
             volatilityLevel: volatilityLevel,
@@ -365,8 +366,14 @@ class MetricsCalculator {
             var npvValue = -investment // Начальная инвестиция (отрицательная)
             
             // Добавляем годовые cash flows
-            for year in 1...Int(holdingYears) {
-                npvValue += annualCashFlow / pow(1.0 + rate, Double(year))
+            let yearsCount = Int(holdingYears)
+            if yearsCount >= 1 {
+                for year in 1...yearsCount {
+                    npvValue += annualCashFlow / pow(1.0 + rate, Double(year))
+                }
+            } else {
+                // Если holdingYears < 1, используем пропорциональный расчет
+                npvValue += annualCashFlow * holdingYears / pow(1.0 + rate, holdingYears)
             }
             
             // Добавляем exit price в последний год

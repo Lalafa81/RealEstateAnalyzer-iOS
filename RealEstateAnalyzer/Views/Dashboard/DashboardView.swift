@@ -46,7 +46,12 @@ struct DashboardView: View {
             }
         }
         .sheet(isPresented: $showingAddProperty) {
-            AddPropertyView()
+            NewPropertySheet(
+                isPresented: $showingAddProperty,
+                onCreate: { property in
+                    dataManager.addProperty(property)
+                }
+            )
         }
     }
     
@@ -210,7 +215,17 @@ struct PropertyRowView: View {
                         
                         // ROI: красный если отрицательный, иначе зеленый
                         let roiColor: Color = analytics.roi < 0 ? .red : .green
-                        Text("ROI: \(String(format: "%.1f", analytics.roi))%")
+                        let roiValue: String = {
+                            let roi = analytics.roi
+                            if roi > 1000 {
+                                return ">1000"
+                            } else if roi < -1000 {
+                                return "<-1000"
+                            } else {
+                                return String(format: "%.1f", roi)
+                            }
+                        }()
+                        Text("ROI: \(roiValue)%")
                             .font(.caption)
                             .foregroundColor(roiColor)
                     }
@@ -228,76 +243,4 @@ struct PropertyRowView: View {
     }
 }
 
-struct AddPropertyView: View {
-    @Environment(\.presentationMode) var presentationMode
-    @EnvironmentObject var dataManager: DataManager
-    
-    @State private var name = ""
-    @State private var type: PropertyType = .residential
-    @State private var address = ""
-    @State private var area = ""
-    @State private var purchasePrice = ""
-    @State private var purchaseDate = ""
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("Основная информация")) {
-                    TextField("Название", text: $name)
-                    Picker("Назначение", selection: $type) {
-                        ForEach(PropertyType.allCases) { type in
-                            Text(type.rawValue).tag(type)
-                        }
-                    }
-                    TextField("Адрес", text: $address)
-                    TextField("Площадь (м²)", text: $area)
-                        .keyboardType(.decimalPad)
-                    TextField("Цена покупки", text: $purchasePrice)
-                        .keyboardType(.decimalPad)
-                    TextField("Дата покупки (дд.мм.гггг)", text: $purchaseDate)
-                }
-            }
-            .navigationTitle("Новый объект")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Отмена") {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Сохранить") {
-                        saveProperty()
-                    }
-                    .disabled(name.isEmpty || address.isEmpty)
-                }
-            }
-        }
-    }
-    
-    private func saveProperty() {
-        let newProperty = Property(
-            id: "", // ID будет сгенерирован автоматически в addProperty
-            name: name,
-            type: type,
-            address: address,
-            area: Double(area) ?? 0,
-            purchasePrice: Double(purchasePrice) ?? 0,
-            purchaseDate: purchaseDate,
-            status: .rented,
-            source: "",
-            tenants: [],
-            months: [:],
-            propertyTax: nil,
-            insuranceCost: nil,
-            exitPrice: nil,
-            condition: nil,
-            icon: nil,
-            image: nil,
-            gallery: nil
-        )
-        dataManager.addProperty(newProperty)
-        presentationMode.wrappedValue.dismiss()
-    }
-}
 

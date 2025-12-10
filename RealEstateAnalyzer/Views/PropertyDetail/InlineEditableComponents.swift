@@ -63,7 +63,7 @@ struct InlineEditableText: View {
                             .foregroundColor(.blue)
                         Text(text.isEmpty ? "Не указано" : text)
                             .font(.subheadline)
-                            .foregroundColor(text.isEmpty ? .secondary : (fieldId == "id" ? .blue : .primary))
+                            .foregroundColor(text.isEmpty ? .secondary : .primary)
                             .fixedSize(horizontal: false, vertical: true)
                             .lineLimit(nil)
                         Spacer()
@@ -146,6 +146,7 @@ struct InlineEditableNumber: View {
                             .foregroundColor(.blue)
                         Text(displayValue)
                             .font(.subheadline)
+                            .foregroundColor(.primary)
                         Spacer()
                     }
                 }
@@ -247,6 +248,7 @@ struct InlineEditableDate: View {
                     DatePicker("", selection: $editingDate, displayedComponents: .date)
                         .labelsHidden()
                         .datePickerStyle(CompactDatePickerStyle())
+                        .scaleEffect(0.85) // РАЗМЕР: уменьшаем размер DatePicker, чтобы шрифт не увеличивался
                     
                     Button(action: {
                         if let date = dateFormatter.date(from: dateString) {
@@ -282,7 +284,7 @@ struct InlineEditableDate: View {
                             .foregroundColor(.blue)
                         Text(dateString.isEmpty ? "Не указано" : dateString)
                             .font(.subheadline)
-                            .foregroundColor(dateString.isEmpty ? .secondary : .blue)
+                            .foregroundColor(dateString.isEmpty ? .secondary : .primary)
                         Spacer()
                     }
                 }
@@ -345,7 +347,7 @@ struct InlineEditablePicker<T: Hashable & Identifiable>: View {
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                                 .background(tempSelection.id == option.id ? Color.blue.opacity(0.1) : Color.clear)
-                                .foregroundColor(tempSelection.id == option.id ? .blue : .primary)
+                                .foregroundColor(.primary)
                                 .cornerRadius(6)
                             }
                         }
@@ -384,6 +386,7 @@ struct InlineEditablePicker<T: Hashable & Identifiable>: View {
                             .foregroundColor(.blue)
                         Text(displayValue(selection))
                             .font(.subheadline)
+                            .foregroundColor(.primary)
                             .fixedSize(horizontal: false, vertical: true)
                             .lineLimit(nil)
                         Spacer()

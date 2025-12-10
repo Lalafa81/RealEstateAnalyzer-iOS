@@ -7,13 +7,14 @@
 
 import SwiftUI
 
+// MARK: - Основной View
+
 struct TenantsView: View {
     @Binding var tenants: [Tenant]
     let propertyArea: Double
     let onSave: () -> Void
     
-    @State private var showingAddTenant = false
-    @State private var editingTenant: Tenant?
+    @Environment(\.horizontalSizeClass) var hSize
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -23,145 +24,854 @@ struct TenantsView: View {
                     .font(.headline)
                 Spacer()
                 Button(action: {
-                    editingTenant = Tenant(name: "", income: nil, startDate: nil, endDate: nil, area: nil, indexation: nil)
-                    showingAddTenant = true
+                    // Сразу добавляем нового арендатора в массив
+                    let newTenant = Tenant(name: "", income: nil, startDate: nil, endDate: nil, area: nil, indexation: nil, companyType: nil, deposit: nil, depositType: nil)
+                    tenants.append(newTenant)
+                    onSave()
                 }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "plus")
-                        Text("Добавить арендатора")
+                    HStack(spacing: 6) {
+                        Image(systemName: "person.badge.plus")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text("Добавить")
                             .font(.subheadline)
+                            .fontWeight(.semibold)
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 9)
+                    .background(
+                        ZStack {
+                            // Blur-эффект для премиум-вида
+                            Color.blue.opacity(0.15)
+                            // Градиентный эффект
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.blue.opacity(0.2),
+                                    Color.blue.opacity(0.1)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        }
+                    )
+                    .foregroundColor(.blue)
+                    .cornerRadius(12)
+                    .shadow(color: Color.blue.opacity(0.15), radius: 4, x: 0, y: 2)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.blue.opacity(0.4),
+                                        Color.blue.opacity(0.2)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
                 }
             }
             
-            // Таблица арендаторов
+            // Таблица или карточки арендаторов
             if tenants.isEmpty {
                 Text("Нет арендаторов")
                     .foregroundColor(.secondary)
                     .padding()
             } else {
-                ScrollView(.horizontal, showsIndicators: true) {
-                    VStack(spacing: 0) {
-                        // Заголовок таблицы
-                        HStack(spacing: 12) {
-                            Text("Компания")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .frame(width: 150, alignment: .leading)
-                            Text("Доход")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .frame(width: 100, alignment: .trailing)
-                            Text("Площадь")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .frame(width: 90, alignment: .trailing)
-                            Text("% от общей")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .frame(width: 90, alignment: .trailing)
-                            Text("Начало")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .frame(width: 100, alignment: .leading)
-                            Text("Конец")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .frame(width: 100, alignment: .leading)
-                            Text("Индексация")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .frame(width: 90, alignment: .trailing)
-                            Text("")
-                                .frame(width: 40)
-                        }
-                        .padding(.vertical, 10)
-                        .padding(.horizontal, 12)
-                        .background(Color(.systemGray5))
-                        
-                        Divider()
-                        
-                        // Строки арендаторов (временно без фильтра для отладки)
-                        ForEach(tenants) { tenant in
-                            TenantRowView(
+                if hSize == .compact {
+                    // 📱 iPhone — компактные карточки
+                    VStack(spacing: 8) {
+                        ForEach(tenants.indices, id: \.self) { index in
+                            TenantCardView(
                                 tenant: Binding(
-                                    get: { tenant },
-                                    set: { newTenant in
-                                        if let index = tenants.firstIndex(where: { $0.id == newTenant.id }) {
-                                            tenants[index] = newTenant
-                                            onSave()
-                                        }
-                                    }
+                                    get: { tenants[index] },
+                                    set: { tenants[index] = $0 }
                                 ),
                                 propertyArea: propertyArea,
                                 onDelete: {
-                                    tenants.removeAll { $0.id == tenant.id }
+                                    tenants.remove(at: index)
                                     onSave()
                                 },
                                 onEdit: {
-                                    editingTenant = tenant
-                                    showingAddTenant = true
-                                }
+                                    // Редактирование происходит inline, ничего не делаем
+                                },
+                                onSave: onSave
                             )
-                            
-                            Divider()
                         }
                     }
+                } else {
+                    // 💻 iPad / широкий экран — горизонтальная таблица
+                    HorizontalTenantsTable(
+                        tenants: $tenants,
+                        propertyArea: propertyArea,
+                        onSave: onSave,
+                        onEdit: { tenant in
+                            // Редактирование происходит inline, ничего не делаем
+                        }
+                    )
                 }
             }
         }
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)
-        .sheet(isPresented: $showingAddTenant) {
-            if editingTenant != nil {
-                TenantEditView(
-                    tenant: Binding(
-                        get: { editingTenant! },
-                        set: { editingTenant = $0 }
-                    ),
-                    onSave: {
-                        guard let updatedTenant = editingTenant else {
-                            return
+    }
+}
+
+// MARK: - Константы
+
+private let dateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "dd.MM.yyyy"
+    formatter.locale = Locale(identifier: "ru_RU")
+    return formatter
+}()
+
+// MARK: - Карточка арендатора для iPhone
+
+struct TenantCardView: View {
+    @Binding var tenant: Tenant
+    let propertyArea: Double
+    let onDelete: () -> Void
+    let onEdit: () -> Void
+    var onSave: (() -> Void)? = nil
+    
+    // Состояние для отслеживания активного поля редактирования
+    @State private var activeEditingField: String? = nil
+    
+    // Парсинг индексации из строки (например, "5%" -> 5.0)
+    private func parseIndexation(_ value: String) -> Double {
+        let cleaned = value.replacingOccurrences(of: "%", with: "").replacingOccurrences(of: " ", with: "")
+        return Double(cleaned) ?? 0
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            // Заголовок с названием и кнопкой удаления
+            HStack {
+                if activeEditingField == "name" {
+                    HStack {
+                        TextField("", text: Binding(
+                            get: { tenant.name },
+                            set: { tenant.name = $0 }
+                        ))
+                        .font(.headline)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        
+                        Button(action: { activeEditingField = nil }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.headline)
+                                .foregroundColor(.red)
                         }
                         
-                        if let index = tenants.firstIndex(where: { $0.id == updatedTenant.id }) {
-                            tenants[index] = updatedTenant
-                        } else {
-                            tenants.append(updatedTenant)
+                        Button(action: {
+                            onSave?()
+                            activeEditingField = nil
+                        }) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.headline)
+                                .foregroundColor(.green)
                         }
-                        
-                        onSave()
-                        showingAddTenant = false
-                        editingTenant = nil
-                    },
-                    onCancel: {
-                        showingAddTenant = false
-                        editingTenant = nil
+                    }
+                } else {
+                    HStack {
+                        Text(tenant.name.isEmpty ? "Без названия" : tenant.name)
+                            .font(.headline)
+                            .strikethrough(tenant.isArchived)
+                            .opacity(tenant.isArchived ? 0.6 : 1)
+                        Spacer()
+                        Button(action: { activeEditingField = "name" }) {
+                            Image(systemName: "pencil.circle.fill")
+                                .font(.caption2)
+                                .foregroundColor(.blue)
+                        }
+                        Button(action: onDelete) {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                        }
+                    }
+                }
+            }
+            
+            // Мини-таблица 2x3 с inline редактированием
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: 16),
+                GridItem(.flexible(), spacing: 16)
+            ], spacing: 4) {
+                // Доход
+                TenantInlineEditableNumber(
+                    fieldId: "income",
+                    value: tenant.income ?? 0,
+                    label: "Доход",
+                    valueColor: .green,
+                    formatter: { $0.formatCurrency() },
+                    activeField: $activeEditingField,
+                    onSave: { newValue in
+                        tenant.income = newValue > 0 ? newValue : nil
+                        onSave?()
                     }
                 )
+                
+                // Площадь
+                TenantInlineEditableNumber(
+                    fieldId: "area",
+                    value: tenant.area ?? 0,
+                    label: "Площадь",
+                    suffix: " м²",
+                    activeField: $activeEditingField,
+                    onSave: { newValue in
+                        tenant.area = newValue > 0 ? newValue : nil
+                        onSave?()
+                    }
+                )
+                
+                // Начало
+                TenantInlineEditableDate(
+                    fieldId: "startDate",
+                    dateString: tenant.startDate ?? "",
+                    label: "Начало",
+                    dateFormatter: dateFormatter,
+                    activeField: $activeEditingField,
+                    onSave: { newValue in
+                        tenant.startDate = newValue.isEmpty ? nil : newValue
+                        onSave?()
+                    }
+                )
+                
+                // Конец
+                TenantInlineEditableDate(
+                    fieldId: "endDate",
+                    dateString: tenant.endDate ?? "",
+                    label: "Конец",
+                    dateFormatter: dateFormatter,
+                    activeField: $activeEditingField,
+                    onSave: { newValue in
+                        tenant.endDate = newValue.isEmpty ? nil : newValue
+                        onSave?()
+                    }
+                )
+                
+                // Компания
+                TenantInlineEditableCompanyType(
+                    fieldId: "companyType",
+                    selection: Binding(
+                        get: { tenant.companyType ?? .ip },
+                        set: { tenant.companyType = $0 }
+                    ),
+                    label: "Компания",
+                    activeField: $activeEditingField,
+                    onSave: { onSave?() }
+                )
+                
+                // Индексация
+                TenantInlineEditableNumber(
+                    fieldId: "indexation",
+                    value: parseIndexation(tenant.indexation ?? ""),
+                    label: "Индексация",
+                    suffix: "%",
+                    activeField: $activeEditingField,
+                    onSave: { newValue in
+                        tenant.indexation = newValue > 0 ? String(format: "%.0f%%", newValue) : nil
+                        onSave?()
+                    }
+                )
+                
+                // Депозит
+                TenantInlineEditableDeposit(
+                    fieldId: "deposit",
+                    deposit: $tenant.deposit,
+                    depositType: $tenant.depositType,
+                    income: tenant.income,
+                    label: "Депозит",
+                    activeField: $activeEditingField,
+                    onSave: { onSave?() }
+                )
+            }
+            .font(.subheadline)
+        }
+        .padding(12)
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.03), radius: 4, y: 2)
+    }
+}
+
+// MARK: - Inline редактируемые компоненты для карточки арендатора
+
+struct TenantInlineEditableText: View {
+    let fieldId: String
+    let text: String
+    let label: String
+    @Binding var activeField: String?
+    let onSave: (String) -> Void
+    
+    @State private var editingText: String = ""
+    
+    private var isEditing: Bool {
+        activeField == fieldId
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            
+            if isEditing {
+                HStack {
+                    TextField("", text: $editingText)
+                        .font(.subheadline)
+                        .textFieldStyle(PlainTextFieldStyle())
+                    
+                    Button(action: {
+                        editingText = text
+                        activeField = nil
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.headline)
+                            .foregroundColor(.red)
+                    }
+                    
+                    Button(action: {
+                        onSave(editingText)
+                        activeField = nil
+                    }) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.headline)
+                            .foregroundColor(.green)
+                    }
+                }
+            } else {
+                Button(action: {
+                    editingText = text
+                    activeField = fieldId
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.caption2)
+                            .foregroundColor(.blue)
+                        Text(text.isEmpty ? "—" : text)
+                            .font(.subheadline)
+                            .foregroundColor(text.isEmpty ? .secondary : .primary)
+                        Spacer()
+                    }
+                }
             }
         }
     }
 }
+
+struct TenantInlineEditableNumber: View {
+    let fieldId: String
+    let value: Double
+    let label: String
+    var suffix: String = ""
+    var valueColor: Color = .primary
+    var formatter: ((Double) -> String)? = nil
+    @Binding var activeField: String?
+    let onSave: (Double) -> Void
+    
+    @State private var editingText: String = ""
+    
+    private var isEditing: Bool {
+        activeField == fieldId
+    }
+    
+    var displayValue: String {
+        if value == 0 {
+            return "—"
+        }
+        if let formatter = formatter {
+            return formatter(value)
+        }
+        return String(format: "%.0f", value) + suffix
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            
+            if isEditing {
+                HStack {
+                    TextField("", text: $editingText)
+                        .font(.subheadline)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(PlainTextFieldStyle())
+                    
+                    if !suffix.isEmpty {
+                        Text(suffix)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Button(action: {
+                        editingText = value > 0 ? String(format: "%.0f", value) : ""
+                        activeField = nil
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.headline)
+                            .foregroundColor(.red)
+                    }
+                    
+                    Button(action: {
+                        if let newValue = Double(editingText) {
+                            onSave(newValue)
+                        }
+                        activeField = nil
+                    }) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.headline)
+                            .foregroundColor(.green)
+                    }
+                }
+            } else {
+                Button(action: {
+                    editingText = value > 0 ? String(format: "%.0f", value) : ""
+                    activeField = fieldId
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.caption2)
+                            .foregroundColor(.blue)
+                        Text(displayValue)
+                            .font(.subheadline)
+                            .foregroundColor(value == 0 ? .secondary : valueColor)
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Inline редактирование даты с календарем
+
+struct TenantInlineEditableDate: View {
+    let fieldId: String
+    let dateString: String
+    let label: String
+    let dateFormatter: DateFormatter
+    @Binding var activeField: String?
+    let onSave: (String) -> Void
+    
+    @State private var editingDate: Date = Date()
+    
+    private var isEditing: Bool {
+        activeField == fieldId
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            
+            if isEditing {
+                HStack {
+                    DatePicker("", selection: $editingDate, displayedComponents: .date)
+                        .labelsHidden()
+                        .datePickerStyle(CompactDatePickerStyle())
+                        .scaleEffect(0.85) // РАЗМЕР: уменьшаем размер DatePicker, чтобы шрифт не увеличивался
+                    
+                    Button(action: {
+                        if let date = dateFormatter.date(from: dateString) {
+                            editingDate = date
+                        }
+                        activeField = nil
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.headline)
+                            .foregroundColor(.red)
+                    }
+                    
+                    Button(action: {
+                        let newDateString = dateFormatter.string(from: editingDate)
+                        onSave(newDateString)
+                        activeField = nil
+                    }) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.headline)
+                            .foregroundColor(.green)
+                    }
+                }
+            } else {
+                Button(action: {
+                    if let date = dateFormatter.date(from: dateString) {
+                        editingDate = date
+                    } else {
+                        editingDate = Date()
+                    }
+                    activeField = fieldId
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.caption2)
+                            .foregroundColor(.blue)
+                        Text(dateString.isEmpty ? "—" : dateString)
+                            .font(.subheadline)
+                            .foregroundColor(dateString.isEmpty ? .secondary : .primary)
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Горизонтальная таблица для iPad
+
+struct HorizontalTenantsTable: View {
+    @Binding var tenants: [Tenant]
+    let propertyArea: Double
+    let onSave: () -> Void
+    let onEdit: (Tenant) -> Void
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: true) {
+            VStack(spacing: 0) {
+                // Заголовок таблицы
+                HStack(spacing: 12) {
+                    Text("Компания")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .frame(width: 150, alignment: .leading)
+                    Text("Доход")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .frame(width: 100, alignment: .trailing)
+                    Text("Площадь")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .frame(width: 90, alignment: .trailing)
+                    Text("Компания")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .frame(width: 70, alignment: .trailing)
+                    Text("Депозит")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .frame(width: 100, alignment: .trailing)
+                    Text("Начало")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .frame(width: 100, alignment: .leading)
+                    Text("Конец")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .frame(width: 100, alignment: .leading)
+                    Text("Индексация")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .frame(width: 90, alignment: .trailing)
+                    Text("")
+                        .frame(width: 40)
+                }
+                .padding(.vertical, 10)
+                .padding(.horizontal, 12)
+                .background(Color(.systemGray5))
+                
+                Divider()
+                
+                // Строки арендаторов
+                ForEach(tenants) { tenant in
+                    TenantRowView(
+                        tenant: Binding(
+                            get: { tenant },
+                            set: { newTenant in
+                                if let index = tenants.firstIndex(where: { $0.id == newTenant.id }) {
+                                    tenants[index] = newTenant
+                                    onSave()
+                                }
+                            }
+                        ),
+                        propertyArea: propertyArea,
+                        onDelete: {
+                            tenants.removeAll { $0.id == tenant.id }
+                            onSave()
+                        },
+                        onEdit: {
+                            onEdit(tenant)
+                        }
+                    )
+                    
+                    Divider()
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Компоненты для редактирования компании и депозита
+
+struct TenantInlineEditableCompanyType: View {
+    let fieldId: String
+    @Binding var selection: CompanyType
+    let label: String
+    @Binding var activeField: String?
+    let onSave: () -> Void
+    
+    @State private var tempSelection: CompanyType
+    
+    init(fieldId: String, selection: Binding<CompanyType>, label: String, activeField: Binding<String?>, onSave: @escaping () -> Void) {
+        self.fieldId = fieldId
+        self._selection = selection
+        self.label = label
+        self._activeField = activeField
+        self.onSave = onSave
+        _tempSelection = State(initialValue: selection.wrappedValue)
+    }
+    
+    private var isEditing: Bool {
+        activeField == fieldId
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            
+            if isEditing {
+                VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(CompanyType.allCases, id: \.id) { option in
+                            Button(action: {
+                                tempSelection = option
+                            }) {
+                                HStack {
+                                    Text(option.rawValue)
+                                        .font(.caption2)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .lineLimit(nil)
+                                    Spacer()
+                                    if tempSelection.id == option.id {
+                                        Image(systemName: "checkmark")
+                                            .font(.caption2)
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(tempSelection.id == option.id ? Color.blue.opacity(0.1) : Color.clear)
+                                .foregroundColor(.primary)
+                                .cornerRadius(6)
+                            }
+                        }
+                    }
+                    
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            tempSelection = selection
+                            activeField = nil
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title3)
+                                .foregroundColor(.red)
+                        }
+                        
+                        Button(action: {
+                            selection = tempSelection
+                            onSave()
+                            activeField = nil
+                        }) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.title3)
+                                .foregroundColor(.green)
+                        }
+                    }
+                }
+            } else {
+                Button(action: {
+                    tempSelection = selection
+                    activeField = fieldId
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.caption2)
+                            .foregroundColor(.blue)
+                        Text(selection.rawValue)
+                            .font(.subheadline)
+                            .foregroundColor(.primary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(nil)
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct TenantInlineEditableDeposit: View {
+    let fieldId: String
+    @Binding var deposit: Double?
+    @Binding var depositType: DepositType?
+    let income: Double?
+    let label: String
+    @Binding var activeField: String?
+    let onSave: () -> Void
+    
+    @State private var tempDeposit: Double?
+    @State private var tempDepositType: DepositType?
+    @State private var customDepositText: String = ""
+    
+    init(fieldId: String, deposit: Binding<Double?>, depositType: Binding<DepositType?>, income: Double?, label: String, activeField: Binding<String?>, onSave: @escaping () -> Void) {
+        self.fieldId = fieldId
+        self._deposit = deposit
+        self._depositType = depositType
+        self.income = income
+        self.label = label
+        self._activeField = activeField
+        self.onSave = onSave
+        _tempDeposit = State(initialValue: deposit.wrappedValue)
+        _tempDepositType = State(initialValue: depositType.wrappedValue ?? .custom)
+        _customDepositText = State(initialValue: deposit.wrappedValue != nil ? String(format: "%.0f", deposit.wrappedValue!) : "")
+    }
+    
+    private var isEditing: Bool {
+        activeField == fieldId
+    }
+    
+    private var displayValue: String {
+        if let deposit = deposit {
+            return deposit.formatCurrency()
+        }
+        return "—"
+    }
+    
+    private func calculateDeposit() {
+        guard let income = income, income > 0 else { return }
+        
+        switch tempDepositType {
+        case .oneMonth:
+            tempDeposit = income
+        case .twoMonths:
+            tempDeposit = income * 2
+        case .custom:
+            if let value = Double(customDepositText) {
+                tempDeposit = value
+            } else {
+                tempDeposit = nil
+            }
+        case .none:
+            tempDeposit = nil
+        }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            
+            if isEditing {
+                VStack(alignment: .leading, spacing: 6) {
+                    // Выбор типа депозита
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach([DepositType.oneMonth, DepositType.twoMonths, DepositType.custom], id: \.id) { option in
+                            Button(action: {
+                                tempDepositType = option
+                                if option != .custom {
+                                    calculateDeposit()
+                                }
+                            }) {
+                                HStack {
+                                    Text(option.rawValue)
+                                        .font(.caption2)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .lineLimit(nil)
+                                    Spacer()
+                                    if tempDepositType?.id == option.id {
+                                        Image(systemName: "checkmark")
+                                            .font(.caption2)
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(tempDepositType?.id == option.id ? Color.blue.opacity(0.1) : Color.clear)
+                                .foregroundColor(.primary)
+                                .cornerRadius(6)
+                            }
+                        }
+                    }
+                    
+                    // Поле для ввода вручную
+                    if tempDepositType == .custom {
+                        TextField("Сумма депозита", text: $customDepositText)
+                            .keyboardType(.decimalPad)
+                            .font(.caption2)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .onChange(of: customDepositText) { _ in
+                                calculateDeposit()
+                            }
+                    }
+                    
+                    // Показываем вычисленное значение
+                    if let deposit = tempDeposit {
+                        Text("Депозит: \(deposit.formatCurrency())")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            tempDeposit = deposit
+                            tempDepositType = depositType
+                            customDepositText = deposit != nil ? String(format: "%.0f", deposit!) : ""
+                            activeField = nil
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title3)
+                                .foregroundColor(.red)
+                        }
+                        
+                        Button(action: {
+                            deposit = tempDeposit
+                            depositType = tempDepositType
+                            onSave()
+                            activeField = nil
+                        }) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.title3)
+                                .foregroundColor(.green)
+                        }
+                    }
+                }
+            } else {
+                Button(action: {
+                    tempDeposit = deposit
+                    tempDepositType = depositType ?? .custom
+                    customDepositText = deposit != nil ? String(format: "%.0f", deposit!) : ""
+                    activeField = fieldId
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.caption2)
+                            .foregroundColor(.blue)
+                        Text(displayValue)
+                            .font(.subheadline)
+                            .foregroundColor(.primary)
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Строка таблицы для iPad
 
 struct TenantRowView: View {
     @Binding var tenant: Tenant
     let propertyArea: Double
     let onDelete: () -> Void
     let onEdit: () -> Void
-    
-    @State private var isEditing = false
-    
-    var percentageOfTotal: Double {
-        guard let area = tenant.area, propertyArea > 0 else { return 0 }
-        return (area / propertyArea) * 100
-    }
     
     var body: some View {
         HStack(spacing: 12) {
@@ -196,12 +906,25 @@ struct TenantRowView: View {
                     onEdit()
                 }
             
-            // % от общей
-            Text(String(format: "%.1f%%", percentageOfTotal))
+            // Тип компании
+            Text(tenant.companyType?.rawValue ?? "—")
                 .font(.subheadline)
                 .strikethrough(tenant.isArchived)
                 .opacity(tenant.isArchived ? 0.5 : 1.0)
-                .frame(width: 90, alignment: .trailing)
+                .frame(width: 70, alignment: .trailing)
+                .onTapGesture {
+                    onEdit()
+                }
+            
+            // Депозит
+            Text(tenant.deposit != nil ? tenant.deposit!.formatCurrency() : "—")
+                .font(.subheadline)
+                .strikethrough(tenant.isArchived)
+                .opacity(tenant.isArchived ? 0.5 : 1.0)
+                .frame(width: 100, alignment: .trailing)
+                .onTapGesture {
+                    onEdit()
+                }
             
             // Начало
             Text(tenant.startDate ?? "—")
@@ -246,142 +969,3 @@ struct TenantRowView: View {
         .opacity(tenant.isArchived ? 0.6 : 1.0)
     }
 }
-
-struct TenantEditView: View {
-    @Binding var tenant: Tenant
-    let onSave: () -> Void
-    let onCancel: () -> Void
-    @Environment(\.presentationMode) var presentationMode
-    
-    @State private var editingName: String = ""
-    @State private var editingIncome: String = ""
-    @State private var editingArea: String = ""
-    @State private var editingStartDate: String = ""
-    @State private var editingEndDate: String = ""
-    @State private var editingIndexation: String = ""
-    @State private var editingIsArchived: Bool = false
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("Информация об арендаторе")) {
-                    TextField("Название компании", text: $editingName)
-                    
-                    HStack {
-                        Text("Доход (₽/мес):")
-                        Spacer()
-                        TextField("0", text: $editingIncome)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 150)
-                    }
-                    
-                    HStack {
-                        Text("Площадь (м²):")
-                        Spacer()
-                        TextField("0", text: $editingArea)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 150)
-                    }
-                    
-                    HStack {
-                        Text("Начало (дд.мм.гггг):")
-                        Spacer()
-                        TextField("01.01.2023", text: $editingStartDate)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 150)
-                    }
-                    
-                    HStack {
-                        Text("Конец (дд.мм.гггг):")
-                        Spacer()
-                        TextField("01.01.2024", text: $editingEndDate)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 150)
-                    }
-                    
-                    HStack {
-                        Text("Индексация:")
-                        Spacer()
-                        TextField("5%", text: $editingIndexation)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 150)
-                    }
-                }
-                
-                Section(header: Text("Архив")) {
-                    Toggle("Добавить в архив", isOn: $editingIsArchived)
-                }
-            }
-            .navigationTitle("Редактирование арендатора")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Отмена") {
-                        onCancel()
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Сохранить") {
-                        saveChanges()
-                    }
-                    .disabled(editingName.isEmpty)
-                }
-            }
-            .onAppear {
-                loadCurrentValues()
-            }
-        }
-        .navigationViewStyle(StackNavigationViewStyle())
-    }
-    
-    private func loadCurrentValues() {
-        editingName = tenant.name
-        editingIncome = tenant.income != nil ? String(format: "%.0f", tenant.income!) : ""
-        editingArea = tenant.area != nil ? String(format: "%.0f", tenant.area!) : ""
-        editingStartDate = tenant.startDate ?? ""
-        editingEndDate = tenant.endDate ?? ""
-        editingIndexation = tenant.indexation ?? ""
-        editingIsArchived = tenant.isArchived
-    }
-    
-    private func saveChanges() {
-        // Обновляем tenant через binding
-        tenant.name = editingName.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        // Парсим доход с удалением пробелов
-        let incomeString = editingIncome.replacingOccurrences(of: " ", with: "")
-        if let incomeValue = Double(incomeString), incomeValue > 0 {
-            tenant.income = incomeValue
-        } else {
-            tenant.income = nil
-        }
-        
-        // Парсим площадь с удалением пробелов
-        let areaString = editingArea.replacingOccurrences(of: " ", with: "")
-        if let areaValue = Double(areaString), areaValue > 0 {
-            tenant.area = areaValue
-        } else {
-            tenant.area = nil
-        }
-        
-        // Валидация и форматирование дат
-        let trimmedStartDate = editingStartDate.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedEndDate = editingEndDate.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        tenant.startDate = trimmedStartDate.isEmpty ? nil : trimmedStartDate
-        tenant.endDate = trimmedEndDate.isEmpty ? nil : trimmedEndDate
-        
-        // Индексация
-        let trimmedIndexation = editingIndexation.trimmingCharacters(in: .whitespacesAndNewlines)
-        tenant.indexation = trimmedIndexation.isEmpty ? nil : trimmedIndexation
-        
-        // Архив
-        tenant.isArchived = editingIsArchived
-        
-        // Вызываем onSave, который добавит/обновит арендатора в массиве
-        onSave()
-    }
-}
-
