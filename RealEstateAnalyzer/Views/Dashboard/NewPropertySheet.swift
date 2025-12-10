@@ -219,7 +219,7 @@ struct NewPropertySheet: View {
     
     private func createProperty() {
         let newProperty = Property(
-            id: UUID().uuidString,
+            id: "", // Пустой ID - DataManager сам сгенерирует правильный формат "001", "002" и т.д.
             name: name,
             type: type,
             address: address,

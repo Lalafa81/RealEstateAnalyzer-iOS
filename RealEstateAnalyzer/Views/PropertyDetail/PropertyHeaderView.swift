@@ -127,17 +127,6 @@ struct HeaderView: View {
                         GridItem(.flexible(), alignment: .leading),
                         GridItem(.flexible(), alignment: .leading)
                     ], alignment: .leading, spacing: 8) {
-                        InlineEditableText(
-                            fieldId: "id",
-                            text: property.id,
-                            label: "ID",
-                            activeField: $activeEditingField,
-                            onSave: { newValue in
-                                property.id = newValue
-                                onSave()
-                            }
-                        )
-                        
                         InlineEditablePicker(
                             fieldId: "type",
                             selection: $property.type,

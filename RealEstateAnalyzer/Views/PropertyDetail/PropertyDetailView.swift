@@ -46,6 +46,13 @@ struct PropertyDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
+                // ID объекта - серым текстом на границе окна
+                Text("ID: \(editableProperty.id)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 4)
+                
                 // Заголовок с inline редактированием полей
                 HeaderView(
                     property: $editableProperty,

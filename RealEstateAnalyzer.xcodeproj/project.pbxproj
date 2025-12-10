@@ -28,6 +28,7 @@
 		AA00003D0000000000000001 /* InlineEditableComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003E0000000000000001 /* InlineEditableComponents.swift */; };
 		AA00003F0000000000000001 /* MonthEditPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000400000000000000001 /* MonthEditPopup.swift */; };
 		AA0000410000000000000001 /* NewPropertySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000420000000000000001 /* NewPropertySheet.swift */; };
+		AA0000430000000000000001 /* PropertyImagePlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000440000000000000001 /* PropertyImagePlaceholder.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +54,7 @@
 		AA00003E0000000000000001 /* InlineEditableComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineEditableComponents.swift; sourceTree = "<group>"; };
 		AA0000400000000000000001 /* MonthEditPopup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthEditPopup.swift; sourceTree = "<group>"; };
 		AA0000420000000000000001 /* NewPropertySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPropertySheet.swift; sourceTree = "<group>"; };
+		AA0000440000000000000001 /* PropertyImagePlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyImagePlaceholder.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -136,6 +138,7 @@
 			children = (
 				AA00000C0000000000000001 /* DashboardView.swift */,
 				AA0000420000000000000001 /* NewPropertySheet.swift */,
+				AA0000440000000000000001 /* PropertyImagePlaceholder.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -243,6 +246,7 @@
 				AA0000090000000000000001 /* MetricsCalculator.swift in Sources */,
 				AA00000B0000000000000001 /* DashboardView.swift in Sources */,
 				AA0000410000000000000001 /* NewPropertySheet.swift in Sources */,
+				AA0000430000000000000001 /* PropertyImagePlaceholder.swift in Sources */,
 				AA00000D0000000000000001 /* PropertyDetailView.swift in Sources */,
 				AA00000F0000000000000001 /* Extensions.swift in Sources */,
 				AA0000270000000000000001 /* PropertyHeaderView.swift in Sources */,

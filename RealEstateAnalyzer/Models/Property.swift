@@ -13,6 +13,7 @@ struct PropertyImages: Codable {
     var images: [String: PropertyImageData] // [propertyId: PropertyImageData]
     
     struct PropertyImageData: Codable {
+        var coverImage: String? // Имя файла основного фото объекта (независимо от галереи)
         var gallery: [String] // Массив имен файлов для галереи (например, ["property_002_gallery_0.jpg", ...])
     }
     

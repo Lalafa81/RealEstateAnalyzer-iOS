@@ -28,18 +28,8 @@ class DataManager: ObservableObject {
     
     /// Генерирует следующий доступный ID в формате "001", "002", "003" и т.д.
     func generateNextID() -> String {
-        // Извлекаем все числовые ID из существующих объектов
-        let existingIDs = properties.compactMap { property -> Int? in
-            // Пробуем распарсить ID как число
-            if let numID = Int(property.id) {
-                return numID
-            }
-            // Если ID не число (старый UUID), игнорируем его
-            return nil
-        }
-        let maxID = existingIDs.max() ?? 0
-        let nextID = maxID + 1
-        return String(format: "%03d", nextID)
+        let maxID = properties.compactMap { Int($0.id) }.max() ?? 0
+        return String(format: "%03d", maxID + 1)
     }
     
     // MARK: - Загрузка данных
@@ -63,10 +53,24 @@ class DataManager: ObservableObject {
         if FileManager.default.fileExists(atPath: documentsURL.path) {
             if loadData(from: documentsURL) {
                 loadImages()
+                migrateIconsToSFSymbols()
                 return
             } else {
-                // Если файл поврежден, удаляем его
-                try? FileManager.default.removeItem(at: documentsURL)
+                // Если файл поврежден, НЕ удаляем его сразу - возможно, это временная проблема
+                // Пытаемся загрузить резервную копию
+                let backupURL = documentsURL.appendingPathExtension("backup")
+                if FileManager.default.fileExists(atPath: backupURL.path) {
+                    if loadData(from: backupURL) {
+                        // Восстанавливаем из резервной копии
+                        try? FileManager.default.copyItem(at: backupURL, to: documentsURL)
+                        loadImages()
+                        migrateIconsToSFSymbols()
+                        return
+                    }
+                }
+                // Только если резервной копии нет, удаляем поврежденный файл
+                print("Предупреждение: файл данных поврежден, но резервной копии нет")
+                // НЕ удаляем файл автоматически - пусть пользователь решает
             }
         }
         
@@ -76,6 +80,7 @@ class DataManager: ObservableObject {
                 // Копируем Bundle → Documents и читаем
                 copyFile(from: bundleURL, to: documentsURL)
                 loadImages()
+                migrateIconsToSFSymbols()
                 return
             }
         }
@@ -93,11 +98,10 @@ class DataManager: ObservableObject {
             self.properties = propertyData.objects
             self.settings = propertyData.settings
             
-            migrateIDsToSimpleFormat()
-            migrateIconsToSFSymbols()
-            
-            return !self.properties.isEmpty
+            // Возвращаем true даже если массив пустой - это валидное состояние
+            return true
         } catch {
+            print("Ошибка загрузки данных из \(url.path): \(error)")
             return false
         }
     }
@@ -146,27 +150,6 @@ class DataManager: ObservableObject {
         }
     }
     
-    /// Мигрирует старые UUID в простой формат "001", "002", "003" и т.д.
-    private func migrateIDsToSimpleFormat() {
-        var needsMigration = false
-        for i in 0..<properties.count {
-            // Проверяем, является ли ID UUID (содержит дефисы и длинный)
-            if properties[i].id.contains("-") || properties[i].id.count > 10 {
-                needsMigration = true
-                break
-            }
-        }
-        
-        if needsMigration {
-            for i in 0..<properties.count {
-                if Int(properties[i].id) == nil {
-                    properties[i].id = String(format: "%03d", i + 1)
-                }
-            }
-            saveData()
-        }
-    }
-    
     private func copyFile(from source: URL, to destination: URL) {
         try? FileManager.default.copyItem(at: source, to: destination)
     }
@@ -199,9 +182,21 @@ class DataManager: ObservableObject {
         
         do {
             let data = try encoder.encode(propertyData)
-            try data.write(to: url)
+            // Сначала сохраняем во временный файл, потом переименовываем - это атомарная операция
+            let tempURL = url.appendingPathExtension("tmp")
+            try data.write(to: tempURL)
+            // Если успешно записали, заменяем старый файл
+            if FileManager.default.fileExists(atPath: url.path) {
+                try? FileManager.default.removeItem(at: url)
+            }
+            try FileManager.default.moveItem(at: tempURL, to: url)
         } catch {
-            // Ошибка сохранения данных
+            print("КРИТИЧЕСКАЯ ОШИБКА сохранения данных: \(error)")
+            // Пытаемся сохранить хотя бы во временный файл для восстановления
+            let backupURL = url.appendingPathExtension("backup")
+            if let backupData = try? encoder.encode(propertyData) {
+                try? backupData.write(to: backupURL)
+            }
         }
     }
     
@@ -221,18 +216,19 @@ class DataManager: ObservableObject {
     }
     
     /// Генерирует уникальное имя файла для изображения
-    private func generateImageFileName(propertyId: String) -> String {
+    private func generateImageFileName(propertyId: String, isCover: Bool = false) -> String {
         let uuid = UUID().uuidString
-        return "property_\(propertyId)_gallery_\(uuid).jpg"
+        let prefix = isCover ? "cover" : "gallery"
+        return "property_\(propertyId)_\(prefix)_\(uuid).jpg"
     }
     
     /// Сохраняет UIImage как файл и возвращает имя файла
-    func saveImageFile(_ image: UIImage, propertyId: String) -> String? {
+    func saveImageFile(_ image: UIImage, propertyId: String, isCover: Bool = false) -> String? {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
             return nil
         }
         
-        let fileName = generateImageFileName(propertyId: propertyId)
+        let fileName = generateImageFileName(propertyId: propertyId, isCover: isCover)
         let fileURL = getImagesDirectory().appendingPathComponent(fileName)
         
         do {
@@ -294,17 +290,28 @@ class DataManager: ObservableObject {
         }
     }
     
-    /// Удаляет дубликаты имен файлов из галерей
+    /// Удаляет дубликаты имен файлов из галерей и исключает cover image из галереи
+    /// ВАЖНО: Не удаляет физические файлы - только чистит JSON от лишних ссылок
     private func cleanDuplicateFilenames() {
         var needsSave = false
+        var newImages = propertyImages.images // Работаем с копией словаря
         
         for (propertyId, imageData) in propertyImages.images {
+            let coverImageFileName = imageData.coverImage
+            
             // Используем Set для удаления дубликатов, сохраняя порядок
+            // И исключаем cover image из галереи
             var seen = Set<String>()
             let uniqueGallery = imageData.gallery.filter { fileName in
+                // Исключаем cover image из галереи
+                if fileName == coverImageFileName {
+                    needsSave = true
+                    return false
+                }
+                
+                // Убираем дубликаты из JSON, но НЕ удаляем физический файл
+                // Дубликат - это просто повторяющаяся ссылка на один и тот же файл
                 if seen.contains(fileName) {
-                    // Дубликат найден - удаляем файл и пропускаем запись
-                    deleteImageFile(fileName)
                     needsSave = true
                     return false
                 } else {
@@ -313,16 +320,19 @@ class DataManager: ObservableObject {
                 }
             }
             
-            // Если были удалены дубликаты, обновляем галерею
-            if uniqueGallery.count != imageData.gallery.count {
-                let updatedImageData = PropertyImages.PropertyImageData(gallery: uniqueGallery)
-                propertyImages.images[propertyId] = updatedImageData
+            // Если были удалены дубликаты или cover image, обновляем галерею
+            if uniqueGallery != imageData.gallery {
+                newImages[propertyId] = PropertyImages.PropertyImageData(
+                    coverImage: coverImageFileName,
+                    gallery: uniqueGallery
+                )
                 needsSave = true
             }
         }
         
         // Сохраняем изменения, если были удалены дубликаты
         if needsSave {
+            propertyImages.images = newImages
             saveImages()
         }
     }
@@ -334,20 +344,80 @@ class DataManager: ObservableObject {
         
         do {
             let data = try encoder.encode(propertyImages)
-            try data.write(to: documentsURL)
+            // Атомарное сохранение через временный файл
+            let tempURL = documentsURL.appendingPathExtension("tmp")
+            try data.write(to: tempURL)
+            if FileManager.default.fileExists(atPath: documentsURL.path) {
+                try? FileManager.default.removeItem(at: documentsURL)
+            }
+            try FileManager.default.moveItem(at: tempURL, to: documentsURL)
         } catch {
-            // Ошибка сохранения изображений
+            print("Ошибка сохранения изображений: \(error)")
+            // Пытаемся сохранить резервную копию
+            let backupURL = documentsURL.appendingPathExtension("backup")
+            if let backupData = try? encoder.encode(propertyImages) {
+                try? backupData.write(to: backupURL)
+            }
         }
     }
     
-    /// Получает имена файлов галереи для объекта (без дубликатов)
+    /// Получает основное фото объекта (cover image)
+    func getPropertyCoverImage(propertyId: String) -> UIImage? {
+        guard let imageData = propertyImages.images[propertyId],
+              let coverFileName = imageData.coverImage else {
+            return nil
+        }
+        return loadImageFile(coverFileName)
+    }
+    
+    /// Устанавливает основное фото объекта (cover image)
+    func setPropertyCoverImage(propertyId: String, image: UIImage) -> Bool {
+        guard let fileName = saveImageFile(image, propertyId: propertyId, isCover: true) else {
+            return false
+        }
+        
+        // Получаем текущие данные или создаем новые
+        var imageData = propertyImages.images[propertyId] ?? PropertyImages.PropertyImageData(coverImage: nil, gallery: [])
+        
+        // Удаляем старое cover image, если есть
+        if let oldCoverFileName = imageData.coverImage {
+            deleteImageFile(oldCoverFileName)
+            // Удаляем старое cover image из галереи, если оно там есть
+            imageData.gallery.removeAll { $0 == oldCoverFileName }
+        }
+        
+        // Убеждаемся, что новый cover image не в галерее
+        imageData.gallery.removeAll { $0 == fileName }
+        
+        // Устанавливаем новый cover image
+        imageData.coverImage = fileName
+        propertyImages.images[propertyId] = imageData
+        saveImages()
+        
+        DispatchQueue.main.async {
+            self.objectWillChange.send()
+            NotificationCenter.default.post(name: NSNotification.Name("PropertyImagesUpdated"), object: nil, userInfo: ["propertyId": propertyId])
+        }
+        
+        return true
+    }
+    
+    /// Получает имена файлов галереи для объекта (без дубликатов и без cover image)
     func getPropertyGallery(propertyId: String) -> [String] {
         guard let imageData = propertyImages.images[propertyId] else {
             return []
         }
-        // Убираем дубликаты на всякий случай (должно быть уже очищено в cleanDuplicateFilenames)
+        
+        // Исключаем cover image из галереи
+        let coverImageFileName = imageData.coverImage
+        
+        // Убираем дубликаты и исключаем cover image
         var seen = Set<String>()
         return imageData.gallery.filter { fileName in
+            // Исключаем cover image из галереи
+            if fileName == coverImageFileName {
+                return false
+            }
             if seen.contains(fileName) {
                 return false
             } else {
@@ -365,12 +435,27 @@ class DataManager: ObservableObject {
     
     /// Обновляет галерею для объекта
     func updatePropertyGallery(propertyId: String, gallery: [String]) {
-        let imageData = PropertyImages.PropertyImageData(gallery: gallery)
+        // Сохраняем cover image при обновлении галереи
+        let existingCoverImage = propertyImages.images[propertyId]?.coverImage
+        
+        // Убеждаемся, что cover image не попадает в галерею
+        let filteredGallery = gallery.filter { $0 != existingCoverImage }
+        
+        let imageData = PropertyImages.PropertyImageData(coverImage: existingCoverImage, gallery: filteredGallery)
         propertyImages.images[propertyId] = imageData
         saveImages()
         // Уведомляем об изменении для обновления UI
         DispatchQueue.main.async {
             self.objectWillChange.send()
+            NotificationCenter.default.post(name: NSNotification.Name("PropertyImagesUpdated"), object: nil, userInfo: ["propertyId": propertyId])
+        }
+    }
+    
+    /// Принудительно обновляет UI после изменения изображений
+    func refreshImages() {
+        DispatchQueue.main.async {
+            self.objectWillChange.send()
+            NotificationCenter.default.post(name: NSNotification.Name("PropertyImagesUpdated"), object: nil)
         }
     }
     
@@ -378,7 +463,7 @@ class DataManager: ObservableObject {
     func addPropertyGalleryImage(propertyId: String, image: UIImage) -> Bool {
         let currentGallery = getPropertyGallery(propertyId: propertyId)
         
-        guard let fileName = saveImageFile(image, propertyId: propertyId) else {
+        guard let fileName = saveImageFile(image, propertyId: propertyId, isCover: false) else {
             return false
         }
         
@@ -390,10 +475,17 @@ class DataManager: ObservableObject {
     
     /// Удаляет изображения для объекта (удаляет и файлы, и записи в JSON)
     func deletePropertyImages(propertyId: String) {
-        let galleryFileNames = getPropertyGallery(propertyId: propertyId)
+        guard let imageData = propertyImages.images[propertyId] else {
+            return
+        }
         
-        // Удаляем файлы
-        for fileName in galleryFileNames {
+        // Удаляем cover image
+        if let coverFileName = imageData.coverImage {
+            deleteImageFile(coverFileName)
+        }
+        
+        // Удаляем файлы галереи
+        for fileName in imageData.gallery {
             deleteImageFile(fileName)
         }
         
@@ -434,9 +526,8 @@ class DataManager: ObservableObject {
     // MARK: - CRUD операции
     
     func addProperty(_ property: Property) {
-        // Если у объекта нет ID или ID не в формате "001", "002" и т.д., генерируем новый
         var newProperty = property
-        if newProperty.id.isEmpty || Int(newProperty.id) == nil {
+        if newProperty.id.isEmpty {
             newProperty.id = generateNextID()
         }
         properties.append(newProperty)

@@ -175,15 +175,23 @@ struct StatRow: View {
 struct PropertyRowView: View {
     let property: Property
     let index: Int
-    
+    @EnvironmentObject var dataManager: DataManager
+    @State private var showingImagePicker = false
+    @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
     
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
             // Номер объекта
             Text("\(index)")
                 .font(.headline)
                 .foregroundColor(.secondary)
                 .frame(width: 30)
+            
+            // Миниатюра изображения или плейсхолдер
+            PropertyImagePlaceholder(propertyId: property.id) {
+                // При нажатии открываем ImagePicker
+                showingImagePicker = true
+            }
             
             VStack(alignment: .leading, spacing: 4) {
                 // Название с иконкой
@@ -201,7 +209,9 @@ struct PropertyRowView: View {
                 HStack(spacing: 8) {
                     Text(property.status.rawValue)
                         .font(.caption)
-                        .padding(.horizontal, 6)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                        .padding(.horizontal, 8)
                         .padding(.vertical, 2)
                         .background(Color.blue.opacity(0.2))
                         .cornerRadius(4)
@@ -235,6 +245,19 @@ struct PropertyRowView: View {
             Spacer()
         }
         .padding(.vertical, 4)
+        .sheet(isPresented: $showingImagePicker) {
+            ImagePicker(
+                sourceType: sourceType,
+                onImagePicked: { image in
+                    // Сохраняем как cover image (основное фото объекта), а не в галерею
+                    let success = dataManager.setPropertyCoverImage(propertyId: property.id, image: image)
+                    if success {
+                        // Принудительно обновляем UI после успешного добавления
+                        dataManager.refreshImages()
+                    }
+                }
+            )
+        }
     }
     
     private func calculateQuickMetrics() -> Analytics? {
