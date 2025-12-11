@@ -34,12 +34,26 @@ class DataManager: ObservableObject {
     
     // MARK: - Загрузка данных
     
-    /// Принудительно перезагружает данные из Bundle, удаляя старый файл из Documents
+    /// Принудительно перезагружает данные из Bundle, удаляя старые файлы из Documents
     func forceReloadFromBundle() {
-        let documentsURL = getDocumentsURL().appendingPathComponent(dataFileName)
+        let documentsURL = getDocumentsURL()
         
-        if FileManager.default.fileExists(atPath: documentsURL.path) {
-            try? FileManager.default.removeItem(at: documentsURL)
+        // Удаляем data.json
+        let dataFileURL = documentsURL.appendingPathComponent(dataFileName)
+        if FileManager.default.fileExists(atPath: dataFileURL.path) {
+            try? FileManager.default.removeItem(at: dataFileURL)
+        }
+        
+        // Удаляем images.json
+        let imagesFileURL = documentsURL.appendingPathComponent(imagesFileName)
+        if FileManager.default.fileExists(atPath: imagesFileURL.path) {
+            try? FileManager.default.removeItem(at: imagesFileURL)
+        }
+        
+        // Удаляем папку images/ со всеми файлами
+        let imagesDirURL = documentsURL.appendingPathComponent("images", isDirectory: true)
+        if FileManager.default.fileExists(atPath: imagesDirURL.path) {
+            try? FileManager.default.removeItem(at: imagesDirURL)
         }
         
         // Загружаем из Bundle
@@ -56,19 +70,22 @@ class DataManager: ObservableObject {
                 migrateIconsToSFSymbols()
                 return
             } else {
-                // Если файл поврежден, НЕ удаляем его сразу - возможно, это временная проблема
-                // Пытаемся загрузить резервную копию
+                // Если файл поврежден, пытаемся загрузить резервную копию
                 let backupURL = documentsURL.appendingPathExtension("backup")
                 if FileManager.default.fileExists(atPath: backupURL.path) {
                     if loadData(from: backupURL) {
                         // Восстанавливаем из резервной копии
+                        // Сначала удаляем поврежденный файл, потом копируем backup
+                        if FileManager.default.fileExists(atPath: documentsURL.path) {
+                            try? FileManager.default.removeItem(at: documentsURL)
+                        }
                         try? FileManager.default.copyItem(at: backupURL, to: documentsURL)
                         loadImages()
                         migrateIconsToSFSymbols()
                         return
                     }
                 }
-                // Только если резервной копии нет, удаляем поврежденный файл
+                // Только если резервной копии нет
                 print("Предупреждение: файл данных поврежден, но резервной копии нет")
                 // НЕ удаляем файл автоматически - пусть пользователь решает
             }
@@ -90,6 +107,11 @@ class DataManager: ObservableObject {
         loadImages()
     }
     
+    /// Загружает данные из файла
+    /// 
+    /// Примечание: Файловая операция выполняется на главном потоке.
+    /// При больших файлах (data.json с множеством объектов) могут возникать микрофризы UI.
+    /// TODO: Перенести чтение файла на DispatchQueue.global(), обновление properties - на DispatchQueue.main.async
     private func loadData(from url: URL) -> Bool {
         do {
             let data = try Data(contentsOf: url)
@@ -107,6 +129,12 @@ class DataManager: ObservableObject {
     }
     
     /// Мигрирует старые иконки на правильные SF Symbols
+    /// 
+    /// Примечание: Это ленивая миграция, которая выполняется при загрузке данных.
+    /// Если найдены иконки, требующие обновления, функция вызывает `saveData()`.
+    /// Это означает, что при первом запуске (когда данные только что скопированы из Bundle)
+    /// может произойти немедленная запись в Documents после миграции.
+    /// Это ожидаемое поведение: миграция = мутирующая операция, которая сохраняет изменения.
     private func migrateIconsToSFSymbols() {
         var needsSave = false
         for i in 0..<properties.count {
@@ -165,6 +193,11 @@ class DataManager: ObservableObject {
     
     // MARK: - Сохранение данных
     
+    /// Сохраняет данные в файл
+    /// 
+    /// Примечание: Файловая операция выполняется на главном потоке.
+    /// При больших файлах могут возникать микрофризы UI.
+    /// TODO: Перенести запись файла на DispatchQueue.global()
     func saveData() {
         let url = getDocumentsURL().appendingPathComponent(dataFileName)
         
@@ -223,6 +256,11 @@ class DataManager: ObservableObject {
     }
     
     /// Сохраняет UIImage как файл и возвращает имя файла
+    /// Сохраняет изображение в файл
+    /// 
+    /// Примечание: Файловая операция выполняется на главном потоке.
+    /// При больших изображениях или массовом добавлении могут возникать микрофризы UI.
+    /// TODO: Перенести запись файла на DispatchQueue.global()
     func saveImageFile(_ image: UIImage, propertyId: String, isCover: Bool = false) -> String? {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
             return nil
@@ -240,6 +278,10 @@ class DataManager: ObservableObject {
     }
     
     /// Загружает UIImage из файла по имени
+    /// 
+    /// Примечание: Файловая операция выполняется на главном потоке.
+    /// При больших изображениях могут возникать микрофризы UI.
+    /// TODO: Перенести чтение файла на DispatchQueue.global()
     func loadImageFile(_ fileName: String) -> UIImage? {
         let fileURL = getImagesDirectory().appendingPathComponent(fileName)
         
@@ -275,6 +317,11 @@ class DataManager: ObservableObject {
         propertyImages = PropertyImages()
     }
     
+    /// Загружает метаданные изображений из файла
+    /// 
+    /// Примечание: Файловая операция выполняется на главном потоке.
+    /// При большом количестве изображений могут возникать микрофризы UI.
+    /// TODO: Перенести чтение файла на DispatchQueue.global(), обновление propertyImages - на DispatchQueue.main.async
     private func loadImages(from url: URL) -> Bool {
         do {
             let data = try Data(contentsOf: url)
@@ -294,23 +341,35 @@ class DataManager: ObservableObject {
     /// ВАЖНО: Не удаляет физические файлы - только чистит JSON от лишних ссылок
     private func cleanDuplicateFilenames() {
         var needsSave = false
-        var newImages = propertyImages.images // Работаем с копией словаря
+        var newImages = propertyImages.images
+        let imagesDirectory = getImagesDirectory()
         
         for (propertyId, imageData) in propertyImages.images {
             let coverImageFileName = imageData.coverImage
             
-            // Используем Set для удаления дубликатов, сохраняя порядок
-            // И исключаем cover image из галереи
+            // Убираем дубликаты, пустые строки, несуществующие файлы и исключаем cover image
             var seen = Set<String>()
             let uniqueGallery = imageData.gallery.filter { fileName in
-                // Исключаем cover image из галереи
+                // Исключаем пустые строки
+                if fileName.isEmpty {
+                    needsSave = true
+                    return false
+                }
+                
+                // Исключаем cover image
                 if fileName == coverImageFileName {
                     needsSave = true
                     return false
                 }
                 
-                // Убираем дубликаты из JSON, но НЕ удаляем физический файл
-                // Дубликат - это просто повторяющаяся ссылка на один и тот же файл
+                // Проверяем существование файла
+                let fileURL = imagesDirectory.appendingPathComponent(fileName)
+                if !FileManager.default.fileExists(atPath: fileURL.path) {
+                    needsSave = true
+                    return false
+                }
+                
+                // Убираем дубликаты
                 if seen.contains(fileName) {
                     needsSave = true
                     return false
@@ -320,7 +379,6 @@ class DataManager: ObservableObject {
                 }
             }
             
-            // Если были удалены дубликаты или cover image, обновляем галерею
             if uniqueGallery != imageData.gallery {
                 newImages[propertyId] = PropertyImages.PropertyImageData(
                     coverImage: coverImageFileName,
@@ -330,13 +388,17 @@ class DataManager: ObservableObject {
             }
         }
         
-        // Сохраняем изменения, если были удалены дубликаты
         if needsSave {
             propertyImages.images = newImages
             saveImages()
         }
     }
     
+    /// Сохраняет метаданные изображений в файл
+    /// 
+    /// Примечание: Файловая операция выполняется на главном потоке.
+    /// При большом количестве изображений или массовом удалении могут возникать микрофризы UI.
+    /// TODO: Перенести запись файла на DispatchQueue.global()
     func saveImages() {
         let documentsURL = getDocumentsURL().appendingPathComponent(imagesFileName)
         let encoder = JSONEncoder()
@@ -394,36 +456,61 @@ class DataManager: ObservableObject {
         propertyImages.images[propertyId] = imageData
         saveImages()
         
+        // Уведомляем об изменении через NotificationCenter (используется в PropertyImagePlaceholder)
         DispatchQueue.main.async {
-            self.objectWillChange.send()
             NotificationCenter.default.post(name: NSNotification.Name("PropertyImagesUpdated"), object: nil, userInfo: ["propertyId": propertyId])
         }
         
         return true
     }
     
-    /// Получает имена файлов галереи для объекта (без дубликатов и без cover image)
+    /// Удаляет основное фото объекта (cover image)
+    func deletePropertyCoverImage(propertyId: String) -> Bool {
+        guard var imageData = propertyImages.images[propertyId],
+              let coverFileName = imageData.coverImage else {
+            return false
+        }
+        
+        // Удаляем файл изображения
+        deleteImageFile(coverFileName)
+        
+        // Удаляем cover image из метаданных
+        imageData.coverImage = nil
+        propertyImages.images[propertyId] = imageData
+        saveImages()
+        
+        // Уведомляем об изменении через NotificationCenter (используется в PropertyImagePlaceholder)
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: NSNotification.Name("PropertyImagesUpdated"), object: nil, userInfo: ["propertyId": propertyId])
+        }
+        
+        return true
+    }
+    
+    /// Получает имена файлов галереи для объекта (без cover image)
     func getPropertyGallery(propertyId: String) -> [String] {
         guard let imageData = propertyImages.images[propertyId] else {
             return []
         }
         
-        // Исключаем cover image из галереи
         let coverImageFileName = imageData.coverImage
+        let imagesDirectory = getImagesDirectory()
         
-        // Убираем дубликаты и исключаем cover image
-        var seen = Set<String>()
+        // Фильтруем: исключаем пустые строки, cover image и несуществующие файлы
         return imageData.gallery.filter { fileName in
-            // Исключаем cover image из галереи
+            // Исключаем пустые строки
+            guard !fileName.isEmpty else {
+                return false
+            }
+            
+            // Исключаем cover image
             if fileName == coverImageFileName {
                 return false
             }
-            if seen.contains(fileName) {
-                return false
-            } else {
-                seen.insert(fileName)
-                return true
-            }
+            
+            // Проверяем существование файла
+            let fileURL = imagesDirectory.appendingPathComponent(fileName)
+            return FileManager.default.fileExists(atPath: fileURL.path)
         }
     }
     
@@ -437,24 +524,38 @@ class DataManager: ObservableObject {
     func updatePropertyGallery(propertyId: String, gallery: [String]) {
         // Сохраняем cover image при обновлении галереи
         let existingCoverImage = propertyImages.images[propertyId]?.coverImage
+        let imagesDirectory = getImagesDirectory()
         
-        // Убеждаемся, что cover image не попадает в галерею
-        let filteredGallery = gallery.filter { $0 != existingCoverImage }
+        // Фильтруем: исключаем пустые строки, cover image и несуществующие файлы
+        let filteredGallery = gallery.filter { fileName in
+            // Исключаем пустые строки
+            guard !fileName.isEmpty else {
+                return false
+            }
+            
+            // Исключаем cover image
+            if fileName == existingCoverImage {
+                return false
+            }
+            
+            // Проверяем существование файла
+            let fileURL = imagesDirectory.appendingPathComponent(fileName)
+            return FileManager.default.fileExists(atPath: fileURL.path)
+        }
         
         let imageData = PropertyImages.PropertyImageData(coverImage: existingCoverImage, gallery: filteredGallery)
         propertyImages.images[propertyId] = imageData
         saveImages()
-        // Уведомляем об изменении для обновления UI
+        // Уведомляем об изменении через NotificationCenter (используется в PropertyImagePlaceholder)
         DispatchQueue.main.async {
-            self.objectWillChange.send()
             NotificationCenter.default.post(name: NSNotification.Name("PropertyImagesUpdated"), object: nil, userInfo: ["propertyId": propertyId])
         }
     }
     
     /// Принудительно обновляет UI после изменения изображений
     func refreshImages() {
+        // Уведомляем об изменении через NotificationCenter (используется в PropertyImagePlaceholder)
         DispatchQueue.main.async {
-            self.objectWillChange.send()
             NotificationCenter.default.post(name: NSNotification.Name("PropertyImagesUpdated"), object: nil)
         }
     }
@@ -496,20 +597,19 @@ class DataManager: ObservableObject {
     
     /// Удаляет одно изображение из галереи по имени файла
     func deletePropertyImage(propertyId: String, fileName: String) {
-        var gallery = getPropertyGallery(propertyId: propertyId)
-        
-        guard let index = gallery.firstIndex(of: fileName) else {
+        // Получаем текущие данные
+        guard var imageData = propertyImages.images[propertyId] else {
             return
         }
         
         // Удаляем файл
         deleteImageFile(fileName)
         
-        // Удаляем из массива
-        gallery.remove(at: index)
+        // Удаляем из массива галереи
+        imageData.gallery.removeAll { $0 == fileName }
         
-        // Обновляем JSON
-        updatePropertyGallery(propertyId: propertyId, gallery: gallery)
+        // Обновляем JSON через updatePropertyGallery для очистки дубликатов
+        updatePropertyGallery(propertyId: propertyId, gallery: imageData.gallery)
     }
     
     func saveAssetMap(_ assetMapData: [String: Any]) {
@@ -521,6 +621,19 @@ class DataManager: ObservableObject {
         } catch {
             // Ошибка сохранения карты активов
         }
+    }
+    
+    /// Загружает карту активов из файла
+    func loadAssetMap() -> [String: Any]? {
+        let url = getDocumentsURL().appendingPathComponent(assetMapFileName)
+        
+        guard FileManager.default.fileExists(atPath: url.path),
+              let data = try? Data(contentsOf: url),
+              let jsonObject = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return nil
+        }
+        
+        return jsonObject
     }
     
     // MARK: - CRUD операции

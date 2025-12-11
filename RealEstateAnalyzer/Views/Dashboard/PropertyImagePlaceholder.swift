@@ -23,12 +23,30 @@ struct PropertyImagePlaceholder: View {
     var body: some View {
         Group {
             if let image = coverImage {
-                // Показываем миниатюру, если есть фото
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 48, height: 48)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                // Показываем миниатюру с кнопкой удаления, если есть фото
+                ZStack(alignment: .topTrailing) {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 48, height: 48)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    
+                    // Кнопка удаления (X) в правом верхнем углу
+                    Button(action: {
+                        dataManager.deletePropertyCoverImage(propertyId: propertyId)
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.white)
+                            .background(Color.black.opacity(0.5))
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .frame(width: 20, height: 20)
+                    .contentShape(Rectangle())
+                    .offset(x: 4, y: -4)
+                    .zIndex(1)
+                }
             } else {
                 // Показываем плейсхолдер, если фото нет
                 ZStack {
