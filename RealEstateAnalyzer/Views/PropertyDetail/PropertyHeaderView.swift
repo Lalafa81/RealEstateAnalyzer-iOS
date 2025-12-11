@@ -25,6 +25,50 @@ struct HeaderView: View {
     // Состояние для отслеживания активного поля редактирования
     @State private var activeEditingField: String? = nil
     
+    // Свёрнутое представление хедера
+    var collapsedView: some View {
+        HStack(spacing: 12) {
+            // Иконка типа объекта
+            Image(systemName: property.type.iconName)
+                .foregroundColor(.purple)
+                .font(.title2)
+                .frame(width: 40)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                // Название
+                Text(property.name)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                // Адрес
+                Text(property.address)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+                
+                // Статус и площадь
+                HStack(spacing: 8) {
+                    Text(property.status.rawValue)
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(Color.blue.opacity(0.2))
+                        .cornerRadius(4)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                    
+                    Text("\(String(format: "%.0f", property.area)) м²")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             // Блок с информацией
@@ -43,6 +87,14 @@ struct HeaderView: View {
                                     ))
                                     .font(.headline)
                                     .textFieldStyle(PlainTextFieldStyle())
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 6)
+                                    .background(Color(.systemBackground))
+                                    .cornerRadius(6)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                    )
                                     
                                     Button(action: { activeEditingField = nil }) {
                                         Image(systemName: "xmark.circle.fill")
@@ -64,7 +116,7 @@ struct HeaderView: View {
                                     Button(action: { activeEditingField = "name" }) {
                                         Image(systemName: "pencil.circle.fill")
                                             .font(.caption2)
-                                            .foregroundColor(.blue)
+                                            .foregroundColor(.blue.opacity(0.6))
                                     }
                                     Text(property.name)
                                         .font(.headline)
@@ -82,6 +134,14 @@ struct HeaderView: View {
                                     ))
                                     .font(.subheadline)
                                     .textFieldStyle(PlainTextFieldStyle())
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 6)
+                                    .background(Color(.systemBackground))
+                                    .cornerRadius(6)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                    )
                                     
                                     Button(action: { activeEditingField = nil }) {
                                         Image(systemName: "xmark.circle.fill")
@@ -103,7 +163,7 @@ struct HeaderView: View {
                                     Button(action: { activeEditingField = "address" }) {
                                         Image(systemName: "pencil.circle.fill")
                                             .font(.caption2)
-                                            .foregroundColor(.blue)
+                                            .foregroundColor(.blue.opacity(0.6))
                                     }
                                     Text(property.address)
                                         .font(.subheadline)
@@ -127,12 +187,11 @@ struct HeaderView: View {
                         GridItem(.flexible(), alignment: .leading),
                         GridItem(.flexible(), alignment: .leading)
                     ], alignment: .leading, spacing: 8) {
-                        InlineEditablePicker(
+                        InlineEditablePropertyType(
                             fieldId: "type",
-                            selection: $property.type,
+                            type: $property.type,
+                            customType: $property.customType,
                             label: "Назначение",
-                            options: PropertyType.allCases,
-                            displayValue: { $0.rawValue },
                             activeField: $activeEditingField,
                             onSave: { onSave() }
                         )
@@ -226,9 +285,8 @@ struct HeaderView: View {
                 }
             }
             .padding(.top, 6)
-            .background(Color(.systemGray6))
-            .cornerRadius(10)
         }
+        .padding(8)
     }
     
     // MARK: - Helper функции

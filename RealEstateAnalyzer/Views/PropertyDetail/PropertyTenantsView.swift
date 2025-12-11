@@ -18,10 +18,8 @@ struct TenantsView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Заголовок с кнопкой добавления
+            // Кнопка добавления
             HStack {
-                Text("АРЕНДАТОРЫ")
-                    .font(.headline)
                 Spacer()
                 Button(action: {
                     // Сразу добавляем нового арендатора в массив
@@ -38,38 +36,9 @@ struct TenantsView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 9)
-                    .background(
-                        ZStack {
-                            // Blur-эффект для премиум-вида
-                            Color.blue.opacity(0.15)
-                            // Градиентный эффект
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    Color.blue.opacity(0.2),
-                                    Color.blue.opacity(0.1)
-                                ]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        }
-                    )
-                    .foregroundColor(.blue)
-                    .cornerRadius(12)
-                    .shadow(color: Color.blue.opacity(0.15), radius: 4, x: 0, y: 2)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        Color.blue.opacity(0.4),
-                                        Color.blue.opacity(0.2)
-                                    ]),
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
-                            )
-                    )
+                    .foregroundColor(.white)
+                    .background(Color.blue)
+                    .cornerRadius(10)
                 }
             }
             
@@ -114,8 +83,6 @@ struct TenantsView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
 }
 
@@ -139,6 +106,7 @@ struct TenantCardView: View {
     
     // Состояние для отслеживания активного поля редактирования
     @State private var activeEditingField: String? = nil
+    @State private var showDeleteConfirmation = false
     
     // Парсинг индексации из строки (например, "5%" -> 5.0)
     private func parseIndexation(_ value: String) -> Double {
@@ -158,6 +126,14 @@ struct TenantCardView: View {
                         ))
                         .font(.headline)
                         .textFieldStyle(PlainTextFieldStyle())
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                        .background(Color(.systemBackground))
+                        .cornerRadius(6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                        )
                         
                         Button(action: { activeEditingField = nil }) {
                             Image(systemName: "xmark.circle.fill")
@@ -176,22 +152,34 @@ struct TenantCardView: View {
                     }
                 } else {
                     HStack {
+                        Button(action: { activeEditingField = "name" }) {
+                            Image(systemName: "pencil.circle.fill")
+                                .font(.caption2)
+                                .foregroundColor(.blue.opacity(0.6))
+                        }
                         Text(tenant.name.isEmpty ? "Без названия" : tenant.name)
                             .font(.headline)
                             .strikethrough(tenant.isArchived)
                             .opacity(tenant.isArchived ? 0.6 : 1)
                         Spacer()
-                        Button(action: { activeEditingField = "name" }) {
-                            Image(systemName: "pencil.circle.fill")
-                                .font(.caption2)
-                                .foregroundColor(.blue)
-                        }
-                        Button(action: onDelete) {
+                        Button(action: {
+                            showDeleteConfirmation = true
+                        }) {
                             Image(systemName: "trash")
                                 .foregroundColor(.red)
                         }
                     }
                 }
+            }
+            .alert(isPresented: $showDeleteConfirmation) {
+                Alert(
+                    title: Text("Удалить арендатора?"),
+                    message: Text("Вы уверены, что хотите удалить арендатора \"\(tenant.name.isEmpty ? "Без названия" : tenant.name)\"? Это действие нельзя отменить."),
+                    primaryButton: .destructive(Text("Удалить")) {
+                        onDelete()
+                    },
+                    secondaryButton: .cancel(Text("Отмена"))
+                )
             }
             
             // Мини-таблица 2x3 с inline редактированием
@@ -323,6 +311,14 @@ struct TenantInlineEditableText: View {
                     TextField("", text: $editingText)
                         .font(.subheadline)
                         .textFieldStyle(PlainTextFieldStyle())
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                        .background(Color(.systemBackground))
+                        .cornerRadius(6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                        )
                     
                     Button(action: {
                         editingText = text
@@ -350,7 +346,7 @@ struct TenantInlineEditableText: View {
                     HStack(spacing: 4) {
                         Image(systemName: "pencil.circle.fill")
                             .font(.caption2)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.blue.opacity(0.6))
                         Text(text.isEmpty ? "—" : text)
                             .font(.subheadline)
                             .foregroundColor(text.isEmpty ? .secondary : .primary)
@@ -400,6 +396,14 @@ struct TenantInlineEditableNumber: View {
                         .font(.subheadline)
                         .keyboardType(.decimalPad)
                         .textFieldStyle(PlainTextFieldStyle())
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                        .background(Color(.systemBackground))
+                        .cornerRadius(6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                        )
                     
                     if !suffix.isEmpty {
                         Text(suffix)
@@ -435,7 +439,7 @@ struct TenantInlineEditableNumber: View {
                     HStack(spacing: 4) {
                         Image(systemName: "pencil.circle.fill")
                             .font(.caption2)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.blue.opacity(0.6))
                         Text(displayValue)
                             .font(.subheadline)
                             .foregroundColor(value == 0 ? .secondary : valueColor)
@@ -470,33 +474,16 @@ struct TenantInlineEditableDate: View {
                 .foregroundColor(.secondary)
             
             if isEditing {
-                HStack {
-                    DatePicker("", selection: $editingDate, displayedComponents: .date)
-                        .labelsHidden()
-                        .datePickerStyle(CompactDatePickerStyle())
-                        .scaleEffect(0.85) // РАЗМЕР: уменьшаем размер DatePicker, чтобы шрифт не увеличивался
-                    
-                    Button(action: {
-                        if let date = dateFormatter.date(from: dateString) {
-                            editingDate = date
-                        }
-                        activeField = nil
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.headline)
-                            .foregroundColor(.red)
-                    }
-                    
-                    Button(action: {
-                        let newDateString = dateFormatter.string(from: editingDate)
+                DatePicker("", selection: $editingDate, displayedComponents: .date)
+                    .labelsHidden()
+                    .datePickerStyle(CompactDatePickerStyle())
+                    .scaleEffect(0.85) // РАЗМЕР: уменьшаем размер DatePicker, чтобы шрифт не увеличивался
+                    .onChange(of: editingDate) { newDate in
+                        // Автоматически сохраняем и закрываем календарь при выборе даты
+                        let newDateString = dateFormatter.string(from: newDate)
                         onSave(newDateString)
                         activeField = nil
-                    }) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.headline)
-                            .foregroundColor(.green)
                     }
-                }
             } else {
                 Button(action: {
                     if let date = dateFormatter.date(from: dateString) {
@@ -509,7 +496,7 @@ struct TenantInlineEditableDate: View {
                     HStack(spacing: 4) {
                         Image(systemName: "pencil.circle.fill")
                             .font(.caption2)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.blue.opacity(0.6))
                         Text(dateString.isEmpty ? "—" : dateString)
                             .font(.subheadline)
                             .foregroundColor(dateString.isEmpty ? .secondary : .primary)
@@ -692,7 +679,7 @@ struct TenantInlineEditableCompanyType: View {
                     HStack(spacing: 4) {
                         Image(systemName: "pencil.circle.fill")
                             .font(.caption2)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.blue.opacity(0.6))
                         Text(selection.rawValue)
                             .font(.subheadline)
                             .foregroundColor(.primary)
@@ -853,7 +840,7 @@ struct TenantInlineEditableDeposit: View {
                     HStack(spacing: 4) {
                         Image(systemName: "pencil.circle.fill")
                             .font(.caption2)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.blue.opacity(0.6))
                         Text(displayValue)
                             .font(.subheadline)
                             .foregroundColor(.primary)
@@ -872,6 +859,8 @@ struct TenantRowView: View {
     let propertyArea: Double
     let onDelete: () -> Void
     let onEdit: () -> Void
+    
+    @State private var showDeleteConfirmation = false
     
     var body: some View {
         HStack(spacing: 12) {
@@ -957,7 +946,9 @@ struct TenantRowView: View {
                 }
             
             // Кнопка удаления
-            Button(action: onDelete) {
+            Button(action: {
+                showDeleteConfirmation = true
+            }) {
                 Image(systemName: "trash")
                     .foregroundColor(.red)
             }
@@ -967,5 +958,15 @@ struct TenantRowView: View {
         .padding(.horizontal, 12)
         .background(Color(.systemBackground))
         .opacity(tenant.isArchived ? 0.6 : 1.0)
+        .alert(isPresented: $showDeleteConfirmation) {
+            Alert(
+                title: Text("Удалить арендатора?"),
+                message: Text("Вы уверены, что хотите удалить арендатора \"\(tenant.name.isEmpty ? "Без названия" : tenant.name)\"? Это действие нельзя отменить."),
+                primaryButton: .destructive(Text("Удалить")) {
+                    onDelete()
+                },
+                secondaryButton: .cancel(Text("Отмена"))
+            )
+        }
     }
 }

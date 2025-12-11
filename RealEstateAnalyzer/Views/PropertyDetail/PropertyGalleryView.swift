@@ -49,8 +49,6 @@ struct PropertyGalleryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Галерея")
-                    .font(.headline)
                 Spacer()
                 
                 // Кнопка добавления изображения
@@ -118,8 +116,6 @@ struct PropertyGalleryView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
         .sheet(isPresented: $showingImagePicker) {
             ImagePicker(sourceType: sourceType) { image in
                 addImage(image)

@@ -48,6 +48,14 @@ enum PropertyType: String, CaseIterable, Identifiable, Codable {
             return "square.grid.2x2"
         }
     }
+    
+    /// Возвращает отображаемое значение типа с учетом кастомного значения
+    func displayValue(customType: String?) -> String {
+        if self == .other, let custom = customType, !custom.isEmpty {
+            return custom
+        }
+        return self.rawValue
+    }
 }
 
 enum PropertyStatus: String, CaseIterable, Identifiable, Codable {
@@ -72,6 +80,7 @@ struct Property: Identifiable, Codable {
     var id: String
     var name: String
     var type: PropertyType
+    var customType: String? // Кастомное значение типа, если выбрано "Другое"
     var address: String
     var area: Double
     var purchasePrice: Double
@@ -112,6 +121,7 @@ struct Property: Identifiable, Codable {
 enum CompanyType: String, Codable, CaseIterable, Identifiable {
     case ip = "ИП"
     case ooo = "ООО"
+    case other = "Физ. лицо"
     
     var id: String { rawValue }
 }

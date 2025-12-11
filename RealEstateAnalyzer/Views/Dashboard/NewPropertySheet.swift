@@ -222,6 +222,7 @@ struct NewPropertySheet: View {
             id: "", // Пустой ID - DataManager сам сгенерирует правильный формат "001", "002" и т.д.
             name: name,
             type: type,
+            customType: nil,
             address: address,
             area: Double(area) ?? 0,
             purchasePrice: 0, // Можно настроить позже

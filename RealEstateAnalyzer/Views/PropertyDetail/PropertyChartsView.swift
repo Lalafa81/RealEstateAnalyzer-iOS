@@ -13,12 +13,10 @@ struct ChartsView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Графики")
-                .font(.headline)
-            
             // Мини-график доходов/расходов по месяцам
             MiniChartView(property: property, selectedYear: selectedYear)
         }
+        .padding(8)
     }
 }
 

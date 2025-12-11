@@ -20,11 +20,6 @@ struct AnalyticsView: View {
     var body: some View {
         ZStack {
             VStack(alignment: .leading, spacing: 5) {
-            // Заголовок
-            Text("Аналитика")
-                .font(.title2)
-                .fontWeight(.bold)
-            
             // Настройки аналитики
             HStack {
                 Spacer()
@@ -39,7 +34,7 @@ struct AnalyticsView: View {
                             .frame(width: 30, height: 15)
                     }
                     HStack(spacing: 6) {
-                        Text("Включать техобслуживание")
+                        Text("Включать административные")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                         Toggle("", isOn: $includeMaintenance)

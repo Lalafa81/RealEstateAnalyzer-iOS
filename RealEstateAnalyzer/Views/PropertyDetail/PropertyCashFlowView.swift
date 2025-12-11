@@ -43,13 +43,11 @@ private func calculateCashFlow(for yearData: [String: Property.MonthData]) -> (i
 struct CashFlowView: View {
     @Binding var property: Property
     @Binding var selectedYear: Int
-    let onYearChanged: (() -> Void)?
     let onSave: () -> Void
     
-    init(property: Binding<Property>, selectedYear: Binding<Int>, onYearChanged: (() -> Void)? = nil, onSave: @escaping () -> Void) {
+    init(property: Binding<Property>, selectedYear: Binding<Int>, onSave: @escaping () -> Void) {
         self._property = property
         self._selectedYear = selectedYear
-        self.onYearChanged = onYearChanged
         self.onSave = onSave
     }
     
@@ -80,10 +78,6 @@ struct CashFlowView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("ДВИЖЕНИЕ ДЕНЕЖНЫХ СРЕДСТВ")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
             // Итоговые значения (чистый cashflow)
             HStack(spacing: 6) {
                 // Cashflow за выбранный год
@@ -96,7 +90,7 @@ struct CashFlowView: View {
                     
                     HStack(alignment: .firstTextBaseline, spacing: 2) {
                         Text(totalCashFlow.formatCurrency())
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.system(size: 13, weight: .bold))
                             .foregroundColor(totalCashFlow >= 0 ? .green : .red)
                         Text("₽")
                             .font(.system(size: 9))
@@ -119,11 +113,11 @@ struct CashFlowView: View {
                     
                     HStack(alignment: .firstTextBaseline, spacing: 2) {
                         Text(totalCashFlowAllPeriods.formatCurrency())
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(totalCashFlowAllPeriods >= 0 ? .green : .red)
+                            .font(.system(size: 14, weight: .bold)) //шрифт зеленого блока
+                            .foregroundColor(totalCashFlowAllPeriods >= 0 ? .green : .red) //цвет зеленого большого текста
                         Text("₽")
-                            .font(.system(size: 9))
-                            .foregroundColor(.secondary)
+                            .font(.system(size: 12))    //шрифт маленького текста
+                            .foregroundColor(.secondary) //цвет маленького текста
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -133,14 +127,6 @@ struct CashFlowView: View {
                 .cornerRadius(6)
             }
             
-            // Выбор года
-            YearPickerView(
-                selectedYear: $selectedYear,
-                property: $property,
-                onYearChanged: onYearChanged,
-                onSave: onSave
-            )
-            
             // Таблица по месяцам
             CashFlowTableView(
                 property: $property,
@@ -149,155 +135,6 @@ struct CashFlowView: View {
             )
         }
         .padding(8)
-        .background(Color(.systemGray6))
-        .cornerRadius(10)
-    }
-}
-
-struct YearPickerView: View {
-    @Binding var selectedYear: Int
-    @Binding var property: Property
-    let onYearChanged: (() -> Void)?
-    let onSave: () -> Void
-    
-    init(selectedYear: Binding<Int>, property: Binding<Property>, onYearChanged: (() -> Void)? = nil, onSave: @escaping () -> Void) {
-        self._selectedYear = selectedYear
-        self._property = property
-        self.onYearChanged = onYearChanged
-        self.onSave = onSave
-    }
-    
-    var availableYears: [Int] {
-        let years = property.months.keys.compactMap { Int($0) }.sorted()
-        // Если нет данных, добавляем текущий год
-        if years.isEmpty {
-            return [Calendar.current.component(.year, from: Date())]
-        }
-        // Добавляем текущий год, если его нет
-        let currentYear = Calendar.current.component(.year, from: Date())
-        var allYears = Set(years)
-        allYears.insert(currentYear)
-        return Array(allYears).sorted()
-    }
-    
-    var minYear: Int {
-        availableYears.first ?? Calendar.current.component(.year, from: Date())
-    }
-    
-    var maxYear: Int {
-        availableYears.last ?? Calendar.current.component(.year, from: Date())
-    }
-    
-    private func addYear(_ year: Int) {
-        if property.months[String(year)] == nil {
-            property.months[String(year)] = [:]
-            onSave()
-        }
-        selectedYear = year
-        onYearChanged?()
-    }
-    
-    private func deleteYear(_ year: Int) {
-        let wasSelected = selectedYear == year
-        property.months.removeValue(forKey: String(year))
-        
-        // Если удалили выбранный год, выбираем другой
-        if wasSelected {
-            // Получаем обновленный список годов после удаления
-            let remainingYears = property.months.keys.compactMap { Int($0) }.sorted()
-            if let newYear = remainingYears.first {
-                selectedYear = newYear
-            } else {
-                // Если это был последний год, добавляем текущий
-                let currentYear = Calendar.current.component(.year, from: Date())
-                addYear(currentYear)
-                return // addYear уже вызывает onSave
-            }
-        }
-        onSave()
-    }
-    
-    var body: some View {
-        HStack(spacing: 8) {
-            // Стрелка влево
-            Button(action: {
-                if let currentIndex = availableYears.firstIndex(of: selectedYear),
-                   currentIndex > 0 {
-                    selectedYear = availableYears[currentIndex - 1]
-                    onYearChanged?()
-                }
-            }) {
-                Image(systemName: "chevron.left")
-                    .font(.subheadline)
-                    .foregroundColor(.primary)
-                    .padding(8)
-                    .background(Color(.systemGray5))
-                    .cornerRadius(6)
-            }
-            .disabled(availableYears.firstIndex(of: selectedYear) == 0)
-            
-            // Года с прокруткой
-            ScrollViewReader { proxy in
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        // Кнопка добавления года слева
-                        AddYearButton(year: minYear - 1, onAdd: { addYear(minYear - 1) })
-                        
-                        // Существующие года
-                        ForEach(availableYears, id: \.self) { year in
-                            YearButton(
-                                year: year,
-                                isSelected: year == selectedYear,
-                                onSelect: {
-                                    selectedYear = year
-                                    onYearChanged?()
-                                    withAnimation {
-                                        proxy.scrollTo(year, anchor: .center)
-                                    }
-                                },
-                                onDelete: { deleteYear(year) }
-                            )
-                            .id(year)
-                        }
-                        
-                        // Кнопка добавления года справа
-                        AddYearButton(year: maxYear + 1, onAdd: { addYear(maxYear + 1) })
-                    }
-                    .padding(.horizontal, 4)
-                }
-                .onAppear {
-                    // Прокручиваем к выбранному году при появлении
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        withAnimation {
-                            proxy.scrollTo(selectedYear, anchor: .center)
-                        }
-                    }
-                }
-                .onChange(of: selectedYear) { newYear in
-                    // Прокручиваем к выбранному году при изменении
-                    withAnimation {
-                        proxy.scrollTo(newYear, anchor: .center)
-                    }
-                }
-            }
-            
-            // Стрелка вправо
-            Button(action: {
-                if let currentIndex = availableYears.firstIndex(of: selectedYear),
-                   currentIndex < availableYears.count - 1 {
-                    selectedYear = availableYears[currentIndex + 1]
-                    onYearChanged?()
-                }
-            }) {
-                Image(systemName: "chevron.right")
-                    .font(.subheadline)
-                    .foregroundColor(.primary)
-                    .padding(8)
-                    .background(Color(.systemGray5))
-                    .cornerRadius(6)
-            }
-            .disabled(availableYears.firstIndex(of: selectedYear) == availableYears.count - 1)
-        }
     }
 }
 
@@ -543,55 +380,3 @@ struct CashFlowTableView: View {
         )
     }
 }
-
-// MARK: - Компоненты YearPickerView
-
-private struct AddYearButton: View {
-    let year: Int
-    let onAdd: () -> Void
-    
-    var body: some View {
-        Button(action: onAdd) {
-            VStack(spacing: 2) {
-                Text("+")
-                    .font(.caption)
-                Text(String(year))
-                    .font(.subheadline)
-            }
-            .foregroundColor(.primary)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 6)
-            .background(Color(.systemGray5))
-            .cornerRadius(8)
-        }
-    }
-}
-
-private struct YearButton: View {
-    let year: Int
-    let isSelected: Bool
-    let onSelect: () -> Void
-    let onDelete: () -> Void
-    
-    var body: some View {
-        HStack(spacing: 4) {
-            Button(action: onSelect) {
-                Text(String(year))
-                    .font(.subheadline)
-                    .fontWeight(isSelected ? .bold : .regular)
-                    .foregroundColor(isSelected ? .white : .primary)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(isSelected ? Color.blue : Color(.systemGray5))
-                    .cornerRadius(8)
-            }
-            
-            Button(action: onDelete) {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.caption)
-                    .foregroundColor(.red)
-            }
-        }
-    }
-}
-

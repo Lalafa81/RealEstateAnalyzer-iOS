@@ -16,6 +16,13 @@ struct PropertyDetailView: View {
     @State private var onlySelectedYear = false
     @State private var includeMaintenance = true
     @State private var includeOperating = true
+    @State private var isAnalyticsExpanded = false
+    @State private var isTenantsExpanded = false
+    @State private var isCashFlowExpanded = false
+    @State private var isChartsExpanded = false
+    @State private var isHeaderExpanded = false
+    @State private var isGalleryExpanded = false
+    @State private var showDeletePropertyConfirmation = false
     
     init(property: Property) {
         self.property = property
@@ -53,56 +60,196 @@ struct PropertyDetailView: View {
                     .padding(.horizontal, 12)
                     .padding(.top, 4)
                 
-                // Заголовок с inline редактированием полей
-                HeaderView(
-                    property: $editableProperty,
-                    onSave: saveChanges
-                )
+                // Хедер объекта (сворачиваемая секция)
+                CollapsibleSection(
+                    title: "Объект",
+                    icon: editableProperty.type.iconName,
+                    isExpanded: $isHeaderExpanded,
+                    collapsedContent: {
+                        AnyView(
+                            HStack(spacing: 4) {
+                                Text(editableProperty.status.rawValue)
+                                    .font(.caption)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color.blue.opacity(0.2))
+                                    .cornerRadius(4)
+                                Text("\(String(format: "%.0f", editableProperty.area)) м²")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        )
+                    }
+                ) {
+                    HeaderView(
+                        property: $editableProperty,
+                        onSave: saveChanges
+                    )
+                }
                 
-                // Движение денежных средств
-                CashFlowView(
-                    property: $editableProperty,
-                    selectedYear: $selectedYear,
-                    onYearChanged: {
-                        // При изменении года аналитика автоматически пересчитается
-                        // толькоSelectedYear управляется отдельным toggle
-                    },
-                    onSave: saveChanges
-                )
+                // Арендаторы (раскрывающаяся вкладка)
+                VStack(alignment: .leading, spacing: 0) {
+                    DisclosureGroup(isExpanded: $isTenantsExpanded) {
+                        TenantsView(
+                            tenants: $editableProperty.tenants,
+                            propertyArea: editableProperty.area,
+                            onSave: saveChanges
+                        )
+                    } label: {
+                        HStack {
+                            Image(systemName: "person.2")
+                                .font(.title3)
+                                .foregroundColor(.black)
+                            Text("Арендаторы")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .foregroundColor(.black)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                    }
+                }
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
                 
-                // Арендаторы
-                TenantsView(
-                    tenants: $editableProperty.tenants,
-                    propertyArea: editableProperty.area,
-                    onSave: saveChanges
-                )
+                // Выбор года (глобальный селектор)
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack {
+                        Image(systemName: "calendar")
+                            .font(.title3)
+                            .foregroundColor(.black)
+                        Text("Выбор года")
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundColor(.black)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    
+                    YearSelectorView(
+                        selectedYear: $selectedYear,
+                        property: $editableProperty,
+                        onSave: saveChanges
+                    )
+                }
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
                 
-                // Аналитика
-                AnalyticsView(
-                    analytics: analytics,
-                    onlySelectedYear: $onlySelectedYear,
-                    includeMaintenance: $includeMaintenance,
-                    includeOperating: $includeOperating
-                )
+                // Движение денежных средств (раскрывающаяся вкладка)
+                VStack(alignment: .leading, spacing: 0) {
+                    DisclosureGroup(isExpanded: $isCashFlowExpanded) {
+                        CashFlowView(
+                            property: $editableProperty,
+                            selectedYear: $selectedYear,
+                            onSave: saveChanges
+                        )
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.left.arrow.right")
+                                .font(.title3)
+                                .foregroundColor(.black)
+                            Text("Движение денежных средств")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .foregroundColor(.black)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                    }
+                }
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
                 
-                // Графики
-                ChartsView(property: editableProperty, selectedYear: selectedYear)
+                // Графики (раскрывающаяся вкладка)
+                VStack(alignment: .leading, spacing: 0) {
+                    DisclosureGroup(isExpanded: $isChartsExpanded) {
+                        ChartsView(property: editableProperty, selectedYear: selectedYear)
+                    } label: {
+                        HStack {
+                            Image(systemName: "chart.bar")
+                                .font(.title3)
+                                .foregroundColor(.black)
+                            Text("Графики")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .foregroundColor(.black)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                    }
+                }
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
                 
-                // Галерея изображений (в самом низу)
-                PropertyGalleryView(
-                    property: $editableProperty,
-                    onSave: saveChanges
-                )
+                // Аналитика (раскрывающаяся вкладка)
+                VStack(alignment: .leading, spacing: 0) {
+                    DisclosureGroup(isExpanded: $isAnalyticsExpanded) {
+                        AnalyticsView(
+                            analytics: analytics,
+                            onlySelectedYear: $onlySelectedYear,
+                            includeMaintenance: $includeMaintenance,
+                            includeOperating: $includeOperating
+                        )
+                    } label: {
+                        HStack {
+                            Image(systemName: "chart.pie")
+                                .font(.title3)
+                                .foregroundColor(.black)
+                            Text("Аналитика")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .foregroundColor(.black)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                    }
+                }
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                
+                // Галерея изображений (сворачиваемая секция)
+                CollapsibleSection(
+                    title: "Галерея",
+                    icon: "photo.on.rectangle",
+                    isExpanded: $isGalleryExpanded,
+                    collapsedContent: {
+                        AnyView(
+                            Text(dataManager.getPropertyGallery(propertyId: editableProperty.id).isEmpty ? "Нет изображений" : "\(dataManager.getPropertyGallery(propertyId: editableProperty.id).count) фото")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        )
+                    }
+                ) {
+                    PropertyGalleryView(
+                        property: $editableProperty,
+                        onSave: saveChanges
+                    )
+                }
             }
             .padding(.horizontal, 12)
             .padding(.top, 4)
         }
         .navigationBarTitleDisplayMode(.inline)
+        .alert(isPresented: $showDeletePropertyConfirmation) {
+            Alert(
+                title: Text("Удалить объект?"),
+                message: Text("Вы уверены, что хотите удалить объект \"\(editableProperty.name)\"? Все данные, включая финансовую информацию, арендаторов и фотографии, будут удалены без возможности восстановления."),
+                primaryButton: .destructive(Text("Удалить")) {
+                    deleteProperty()
+                },
+                secondaryButton: .cancel()
+            )
+        }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
                     Button(action: {
-                        deleteProperty()
+                        showDeletePropertyConfirmation = true
                     }) {
                         Label("Удалить объект", systemImage: "trash")
                             .foregroundColor(.red)

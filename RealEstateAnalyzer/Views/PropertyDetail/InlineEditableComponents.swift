@@ -33,6 +33,14 @@ struct InlineEditableText: View {
                     TextField("", text: $editingText)
                         .font(.subheadline)
                         .textFieldStyle(PlainTextFieldStyle())
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                        .background(Color(.systemBackground))
+                        .cornerRadius(6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                        )
                     
                     Button(action: {
                         editingText = text
@@ -60,7 +68,7 @@ struct InlineEditableText: View {
                     HStack(spacing: 4) {
                         Image(systemName: "pencil.circle.fill")
                             .font(.caption2)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.blue.opacity(0.6))
                         Text(text.isEmpty ? "Не указано" : text)
                             .font(.subheadline)
                             .foregroundColor(text.isEmpty ? .secondary : .primary)
@@ -108,6 +116,14 @@ struct InlineEditableNumber: View {
                         .font(.subheadline)
                         .keyboardType(.decimalPad)
                         .textFieldStyle(PlainTextFieldStyle())
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                        .background(Color(.systemBackground))
+                        .cornerRadius(6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                        )
                     
                     if !suffix.isEmpty {
                         Text(suffix)
@@ -143,7 +159,7 @@ struct InlineEditableNumber: View {
                     HStack(spacing: 4) {
                         Image(systemName: "pencil.circle.fill")
                             .font(.caption2)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.blue.opacity(0.6))
                         Text(displayValue)
                             .font(.subheadline)
                             .foregroundColor(.primary)
@@ -180,6 +196,14 @@ struct InlineEditableNumberOptional: View {
                         .font(.subheadline)
                         .keyboardType(.decimalPad)
                         .textFieldStyle(PlainTextFieldStyle())
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                        .background(Color(.systemBackground))
+                        .cornerRadius(6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                        )
                     
                     Button(action: {
                         editingText = ""
@@ -244,33 +268,16 @@ struct InlineEditableDate: View {
                 .foregroundColor(.secondary)
             
             if isEditing {
-                HStack {
-                    DatePicker("", selection: $editingDate, displayedComponents: .date)
-                        .labelsHidden()
-                        .datePickerStyle(CompactDatePickerStyle())
-                        .scaleEffect(0.85) // РАЗМЕР: уменьшаем размер DatePicker, чтобы шрифт не увеличивался
-                    
-                    Button(action: {
-                        if let date = dateFormatter.date(from: dateString) {
-                            editingDate = date
-                        }
-                        activeField = nil
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.headline) // РАЗМЕР кнопки "Отмена" (красный крестик)
-                            .foregroundColor(.red)
-                    }
-                    
-                    Button(action: {
-                        let newDateString = dateFormatter.string(from: editingDate)
+                DatePicker("", selection: $editingDate, displayedComponents: .date)
+                    .labelsHidden()
+                    .datePickerStyle(CompactDatePickerStyle())
+                    .scaleEffect(0.85) // РАЗМЕР: уменьшаем размер DatePicker, чтобы шрифт не увеличивался
+                    .onChange(of: editingDate) { newDate in
+                        // Автоматически сохраняем и закрываем календарь при выборе даты
+                        let newDateString = dateFormatter.string(from: newDate)
                         onSave(newDateString)
                         activeField = nil
-                    }) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.headline) // РАЗМЕР кнопки "Принять" (зеленая галочка)
-                            .foregroundColor(.green)
                     }
-                }
             } else {
                 Button(action: {
                     if let date = dateFormatter.date(from: dateString) {
@@ -281,7 +288,7 @@ struct InlineEditableDate: View {
                     HStack(spacing: 4) {
                         Image(systemName: "pencil.circle.fill")
                             .font(.caption2)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.blue.opacity(0.6))
                         Text(dateString.isEmpty ? "Не указано" : dateString)
                             .font(.subheadline)
                             .foregroundColor(dateString.isEmpty ? .secondary : .primary)
@@ -383,7 +390,7 @@ struct InlineEditablePicker<T: Hashable & Identifiable>: View {
                     HStack(spacing: 4) {
                         Image(systemName: "pencil.circle.fill")
                             .font(.caption2)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.blue.opacity(0.6))
                         Text(displayValue(selection))
                             .font(.subheadline)
                             .foregroundColor(.primary)
@@ -397,3 +404,138 @@ struct InlineEditablePicker<T: Hashable & Identifiable>: View {
     }
 }
 
+
+
+// MARK: - Inline редактирование типа объекта с кастомным вводом
+
+struct InlineEditablePropertyType: View {
+    let fieldId: String
+    @Binding var type: PropertyType
+    @Binding var customType: String?
+    let label: String
+    @Binding var activeField: String?
+    let onSave: () -> Void
+    
+    @State private var tempType: PropertyType
+    @State private var tempCustomType: String
+    
+    init(fieldId: String, type: Binding<PropertyType>, customType: Binding<String?>, label: String, activeField: Binding<String?>, onSave: @escaping () -> Void) {
+        self.fieldId = fieldId
+        self._type = type
+        self._customType = customType
+        self.label = label
+        self._activeField = activeField
+        self.onSave = onSave
+        _tempType = State(initialValue: type.wrappedValue)
+        _tempCustomType = State(initialValue: customType.wrappedValue ?? "")
+    }
+    
+    private var isEditing: Bool {
+        activeField == fieldId
+    }
+    
+    private var displayValue: String {
+        let currentType = type
+        let currentCustomType = customType
+        return currentType.displayValue(customType: currentCustomType)
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            
+            if isEditing {
+                VStack(alignment: .leading, spacing: 6) {
+                    // Выбор типа из списка
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(PropertyType.allCases) { option in
+                            Button(action: {
+                                tempType = option
+                                if option != .other {
+                                    tempCustomType = ""
+                                }
+                            }) {
+                                HStack {
+                                    Text(option.rawValue)
+                                        .font(.caption2)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .lineLimit(nil)
+                                    Spacer()
+                                    if tempType.id == option.id {
+                                        Image(systemName: "checkmark")
+                                            .font(.caption2)
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(tempType.id == option.id ? Color.blue.opacity(0.1) : Color.clear)
+                                .foregroundColor(.primary)
+                                .cornerRadius(6)
+                            }
+                        }
+                    }
+                    
+                    // Поле для ввода вручную, если выбрано "Другое"
+                    if tempType == .other {
+                        TextField("Введите назначение", text: $tempCustomType)
+                            .font(.caption2)
+                            .textFieldStyle(PlainTextFieldStyle())
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 6)
+                            .background(Color(.systemBackground))
+                            .cornerRadius(6)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                            )
+                    }
+                    
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            tempType = type
+                            tempCustomType = customType ?? ""
+                            activeField = nil
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title3)
+                                .foregroundColor(.red)
+                        }
+                        
+                        Button(action: {
+                            type = tempType
+                            customType = (tempType == .other && !tempCustomType.isEmpty) ? tempCustomType : nil
+                            onSave()
+                            activeField = nil
+                        }) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.title3)
+                                .foregroundColor(.green)
+                        }
+                    }
+                }
+            } else {
+                Button(action: {
+                    tempType = type
+                    tempCustomType = customType ?? ""
+                    activeField = fieldId
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.caption2)
+                            .foregroundColor(.blue.opacity(0.6))
+                        Text(displayValue)
+                            .font(.subheadline)
+                            .foregroundColor(.primary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(nil)
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+}

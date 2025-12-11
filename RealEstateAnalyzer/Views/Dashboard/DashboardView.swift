@@ -180,12 +180,13 @@ struct PropertyRowView: View {
     @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             // Номер объекта
             Text("\(index)")
-                .font(.headline)
+                .font(.subheadline)
                 .foregroundColor(.secondary)
-                .frame(width: 30)
+                .frame(width: 22)
+                .padding(.leading, -8)
             
             // Миниатюра изображения или плейсхолдер
             PropertyImagePlaceholder(propertyId: property.id) {

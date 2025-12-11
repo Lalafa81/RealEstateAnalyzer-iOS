@@ -27,7 +27,7 @@ struct PropertyImagePlaceholder: View {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 48, height: 48)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             } else {
                 // Показываем плейсхолдер, если фото нет
@@ -35,7 +35,7 @@ struct PropertyImagePlaceholder: View {
                     // Белый фон
                     RoundedRectangle(cornerRadius: 8)
                         .fill(Color.white)
-                        .frame(width: 40, height: 40)
+                        .frame(width: 48, height: 48)
                     
                     // Пунктирная обводка
                     RoundedRectangle(cornerRadius: 8)
@@ -43,11 +43,11 @@ struct PropertyImagePlaceholder: View {
                             Color.blue.opacity(0.3),
                             style: StrokeStyle(lineWidth: 1, dash: [4])
                         )
-                        .frame(width: 40, height: 40)
+                        .frame(width: 48, height: 48)
                     
                     // Иконка plus по центру
                     Image(systemName: "plus")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.system(size: 18, weight: .medium))
                         .foregroundColor(Color.blue.opacity(0.7))
                 }
             }
