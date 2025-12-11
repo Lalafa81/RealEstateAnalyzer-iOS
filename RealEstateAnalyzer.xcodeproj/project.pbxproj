@@ -31,6 +31,8 @@
 		AA0000430000000000000001 /* PropertyImagePlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000440000000000000001 /* PropertyImagePlaceholder.swift */; };
 		AA0000450000000000000001 /* CollapsibleSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000460000000000000001 /* CollapsibleSection.swift */; };
 		AA0000470000000000000001 /* YearSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000480000000000000001 /* YearSelectorView.swift */; };
+		AA0000490000000000000001 /* DeleteYearSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00004A0000000000000001 /* DeleteYearSheetView.swift */; };
+		AA00004B0000000000000001 /* DeletePropertySheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00004C0000000000000001 /* DeletePropertySheetView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +61,8 @@
 		AA0000440000000000000001 /* PropertyImagePlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyImagePlaceholder.swift; sourceTree = "<group>"; };
 		AA0000460000000000000001 /* CollapsibleSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollapsibleSection.swift; sourceTree = "<group>"; };
 		AA0000480000000000000001 /* YearSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YearSelectorView.swift; sourceTree = "<group>"; };
+		AA00004A0000000000000001 /* DeleteYearSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteYearSheetView.swift; sourceTree = "<group>"; };
+		AA00004C0000000000000001 /* DeletePropertySheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeletePropertySheetView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -163,6 +167,8 @@
 				AA0000400000000000000001 /* MonthEditPopup.swift */,
 				AA0000460000000000000001 /* CollapsibleSection.swift */,
 				AA0000480000000000000001 /* YearSelectorView.swift */,
+				AA00004A0000000000000001 /* DeleteYearSheetView.swift */,
+				AA00004C0000000000000001 /* DeletePropertySheetView.swift */,
 			);
 			path = PropertyDetail;
 			sourceTree = "<group>";
@@ -267,6 +273,8 @@
 				AA00003F0000000000000001 /* MonthEditPopup.swift in Sources */,
 				AA0000450000000000000001 /* CollapsibleSection.swift in Sources */,
 				AA0000470000000000000001 /* YearSelectorView.swift in Sources */,
+				AA0000490000000000000001 /* DeleteYearSheetView.swift in Sources */,
+				AA00004B0000000000000001 /* DeletePropertySheetView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

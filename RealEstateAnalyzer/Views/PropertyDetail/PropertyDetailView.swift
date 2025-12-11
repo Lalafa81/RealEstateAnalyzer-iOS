@@ -154,6 +154,8 @@ struct PropertyDetailView: View {
                                 .font(.title3)
                                 .fontWeight(.bold)
                                 .foregroundColor(.black)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                             Spacer()
                         }
                         .padding(.horizontal, 12)
@@ -235,14 +237,13 @@ struct PropertyDetailView: View {
             .padding(.top, 4)
         }
         .navigationBarTitleDisplayMode(.inline)
-        .alert(isPresented: $showDeletePropertyConfirmation) {
-            Alert(
-                title: Text("Удалить объект?"),
-                message: Text("Вы уверены, что хотите удалить объект \"\(editableProperty.name)\"? Все данные, включая финансовую информацию, арендаторов и фотографии, будут удалены без возможности восстановления."),
-                primaryButton: .destructive(Text("Удалить")) {
+        .sheet(isPresented: $showDeletePropertyConfirmation) {
+            DeletePropertySheetView(
+                propertyName: editableProperty.name,
+                isPresented: $showDeletePropertyConfirmation,
+                onDelete: {
                     deleteProperty()
-                },
-                secondaryButton: .cancel()
+                }
             )
         }
         .toolbar {

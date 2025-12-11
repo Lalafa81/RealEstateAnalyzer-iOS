@@ -15,7 +15,6 @@ struct NewPropertySheet: View {
     let onCreate: (Property) -> Void
     
     @State private var name = ""
-    @State private var type: PropertyType = .residential
     @State private var address = ""
     @State private var area = ""
     @State private var purchaseDate = Date()
@@ -92,12 +91,6 @@ struct NewPropertySheet: View {
                             .padding(.bottom, 8)) {
                             
                             VStack(spacing: 0) {
-                                // Назначение
-                                sheetPickerField("Назначение", selection: $type)
-                                
-                                Divider()
-                                    .padding(.leading, 20)
-                                
                                 // Площадь
                                 sheetField("Площадь (м²)", text: $area, placeholder: "0", keyboardType: .decimalPad)
                                 
@@ -170,34 +163,6 @@ struct NewPropertySheet: View {
         }
     }
     
-    // Поле для Picker
-    private func sheetPickerField(_ label: String, selection: Binding<PropertyType>) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Text(label)
-                    .font(.body)
-                    .foregroundColor(.primary)
-                    .frame(width: 120, alignment: .leading)
-                
-                Picker("", selection: selection) {
-                    ForEach(PropertyType.allCases) { propertyType in
-                        Text(propertyType.rawValue).tag(propertyType)
-                    }
-                }
-                .pickerStyle(.menu)
-                .frame(maxWidth: .infinity, alignment: .trailing)
-            }
-            .padding(.vertical, 12)
-            .padding(.horizontal, 20)
-            
-            // Линия снизу
-            Rectangle()
-                .frame(height: 0.5)
-                .foregroundColor(Color(.separator))
-                .padding(.leading, 20)
-        }
-    }
-    
     // Поле для DatePicker
     private func sheetDateField(_ label: String, date: Binding<Date>) -> some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -221,7 +186,7 @@ struct NewPropertySheet: View {
         let newProperty = Property(
             id: "", // Пустой ID - DataManager сам сгенерирует правильный формат "001", "002" и т.д.
             name: name,
-            type: type,
+            type: .residential, // Дефолтное значение, можно изменить в деталях
             customType: nil,
             address: address,
             area: Double(area) ?? 0,

@@ -145,7 +145,7 @@ struct CashFlowTableView: View {
     
     @State private var editingMonth: String? = nil
     @State private var editingIncome: String = ""
-    @State private var editingExpenseOther: String = ""
+    @State private var editingExpenseOperational: String = ""
     @State private var showingDetailEditor = false
     
     // Состояния для popup (Double значения)
@@ -177,13 +177,22 @@ struct CashFlowTableView: View {
         let yearKey = String(selectedYear)
         if let yearData = property.months[yearKey],
            let monthData = yearData[monthNum] {
-            // Для простого редактирования: доход → базовый доход, расход → прочий расход
-            editingIncome = String(format: "%.0f", monthData.income ?? 0)
-            editingExpenseOther = String(format: "%.0f", monthData.expensesOther ?? 0)
+            // Для простого редактирования: доход → базовый доход, расход → эксплуатационные расходы
+            // Показываем пустое поле, если значение 0 или nil
+            if let income = monthData.income, income > 0 {
+                editingIncome = String(format: "%.0f", income)
+            } else {
+                editingIncome = ""
+            }
+            if let expense = monthData.expensesOperational, expense > 0 {
+                editingExpenseOperational = String(format: "%.0f", expense)
+            } else {
+                editingExpenseOperational = ""
+            }
         } else {
-            // Если данных нет, показываем 0
-            editingIncome = "0"
-            editingExpenseOther = "0"
+            // Если данных нет, показываем пустые поля
+            editingIncome = ""
+            editingExpenseOperational = ""
         }
     }
     
@@ -194,9 +203,9 @@ struct CashFlowTableView: View {
         var yearData = monthsCopy[yearKey] ?? [:]
         var monthData = yearData[monthNum] ?? Property.MonthData()
         
-        // Простое редактирование: только базовый доход и прочий расход
+        // Простое редактирование: только базовый доход и эксплуатационные расходы
         monthData.income = (Double(editingIncome) ?? 0) > 0 ? Double(editingIncome) ?? nil : nil
-        monthData.expensesOther = (Double(editingExpenseOther) ?? 0) > 0 ? Double(editingExpenseOther) ?? nil : nil
+        monthData.expensesOperational = (Double(editingExpenseOperational) ?? 0) > 0 ? Double(editingExpenseOperational) ?? nil : nil
         
         yearData[monthNum] = monthData
         monthsCopy[yearKey] = yearData
@@ -259,8 +268,8 @@ struct CashFlowTableView: View {
                             .frame(width: 90) // ШИРИНА поля "Доход"
                             .font(.subheadline) // РАЗМЕР ШРИФТА в поле редактирования
                         
-                        // Расход → прочий расход (expensesOther) - можно редактировать напрямую
-                        TextField("Расход", text: $editingExpenseOther)
+                        // Расход → эксплуатационные расходы (expensesOperational) - можно редактировать напрямую
+                        TextField("Расход", text: $editingExpenseOperational)
                             .keyboardType(.decimalPad)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .multilineTextAlignment(.trailing)
