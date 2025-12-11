@@ -107,7 +107,7 @@ struct YearSelectorView: View {
                             
                             // Существующие года
                             ForEach(availableYears, id: \.self) { year in
-                                HStack(spacing: 4) {
+                                ZStack(alignment: .topTrailing) {
                                     // Кнопка выбора года
                                     Button(action: {
                                         selectedYear = year
@@ -116,31 +116,34 @@ struct YearSelectorView: View {
                                         }
                                     }) {
                                         Text(String(year))
-                                            .font(.subheadline)
+                                            .font(.body)
                                             .fontWeight(year == selectedYear ? .semibold : .regular)
                                             .foregroundColor(year == selectedYear ? .white : .primary)
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 6)
+                                            .padding(.horizontal, 14)
+                                            .padding(.vertical, 8)
                                             .background(year == selectedYear ? Color.blue : Color(.systemGray5))
                                             .cornerRadius(8)
                                     }
                                     .buttonStyle(PlainButtonStyle())
                                     
                                     // Кнопка удаления года (X) — показывает Sheet
+                                    // Используем Button с явным contentShape и zIndex для надежного срабатывания
                                     Button(action: {
                                         yearToDelete = year
                                         showDeleteYearSheet = true
                                     }) {
                                         Image(systemName: "xmark.circle.fill")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.red)
-                                            .padding(2)
-                                            .background(Color.white.opacity(0.9))
+                                            .font(.system(size: 15))
+                                            .foregroundColor(.white)
+                                           
                                             .clipShape(Circle())
                                     }
                                     .buttonStyle(PlainButtonStyle())
-                                    .frame(width: 20, height: 20)
+                                    .frame(width: 30, height: 30)
                                     .contentShape(Rectangle())
+                                    .offset(x: 6, y: -6)
+                                    .zIndex(10)
+                                    .allowsHitTesting(true)
                                 }
                                 .id(year)
                             }

@@ -28,21 +28,21 @@ struct PropertyImagePlaceholder: View {
                     Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
-                        .frame(width: 48, height: 48)
+                        .frame(width: 54, height: 54)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                     
                     // Кнопка удаления (X) в правом верхнем углу
                     Button(action: {
-                        dataManager.deletePropertyCoverImage(propertyId: propertyId)
+                        _ = dataManager.deletePropertyCoverImage(propertyId: propertyId)
                     }) {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 16))
+                            .font(.system(size: 14))
                             .foregroundColor(.white)
                             .background(Color.black.opacity(0.5))
                             .clipShape(Circle())
                     }
                     .buttonStyle(PlainButtonStyle())
-                    .frame(width: 20, height: 20)
+                    .frame(width: 30, height: 30)
                     .contentShape(Rectangle())
                     .offset(x: 4, y: -4)
                     .zIndex(1)
@@ -53,7 +53,7 @@ struct PropertyImagePlaceholder: View {
                     // Белый фон
                     RoundedRectangle(cornerRadius: 8)
                         .fill(Color.white)
-                        .frame(width: 48, height: 48)
+                        .frame(width: 54, height: 54)
                     
                     // Пунктирная обводка
                     RoundedRectangle(cornerRadius: 8)
@@ -61,7 +61,7 @@ struct PropertyImagePlaceholder: View {
                             Color.blue.opacity(0.3),
                             style: StrokeStyle(lineWidth: 1, dash: [4])
                         )
-                        .frame(width: 48, height: 48)
+                        .frame(width: 54, height: 54)
                     
                     // Иконка plus по центру
                     Image(systemName: "plus")
