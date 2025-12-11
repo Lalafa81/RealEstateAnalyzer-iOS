@@ -37,7 +37,7 @@ struct CollapsibleSection<Content: View>: View {
                     if let icon = icon {
                         Image(systemName: icon)
                             .font(.title3)
-                            .foregroundColor(.black)
+                            .foregroundColor(.purple)
                     }
                     Text(title)
                         .font(.title3)

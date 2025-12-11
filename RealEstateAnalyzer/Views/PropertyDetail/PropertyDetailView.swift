@@ -45,6 +45,11 @@ struct PropertyDetailView: View {
         )
     }
     
+    // Галерея объекта (кэшируем для избежания повторных вызовов)
+    var propertyGallery: [String] {
+        dataManager.getPropertyGallery(propertyId: editableProperty.id)
+    }
+    
     private func saveChanges() {
         // Сохраняем изменения в DataManager
         dataManager.updateProperty(editableProperty)
@@ -65,21 +70,7 @@ struct PropertyDetailView: View {
                     title: "Объект",
                     icon: editableProperty.type.iconName,
                     isExpanded: $isHeaderExpanded,
-                    collapsedContent: {
-                        AnyView(
-                            HStack(spacing: 4) {
-                                Text(editableProperty.status.rawValue)
-                                    .font(.caption)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color.blue.opacity(0.2))
-                                    .cornerRadius(4)
-                                Text("\(String(format: "%.0f", editableProperty.area)) м²")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        )
-                    }
+                    collapsedContent: nil
                 ) {
                     HeaderView(
                         property: $editableProperty,
@@ -99,7 +90,7 @@ struct PropertyDetailView: View {
                         HStack {
                             Image(systemName: "person.2")
                                 .font(.title3)
-                                .foregroundColor(.black)
+                                .foregroundColor(.purple)
                             Text("Арендаторы")
                                 .font(.title3)
                                 .fontWeight(.bold)
@@ -118,7 +109,7 @@ struct PropertyDetailView: View {
                     HStack {
                         Image(systemName: "calendar")
                             .font(.title3)
-                            .foregroundColor(.black)
+                            .foregroundColor(.purple)
                         Text("Выбор года")
                             .font(.title3)
                             .fontWeight(.bold)
@@ -149,7 +140,7 @@ struct PropertyDetailView: View {
                         HStack {
                             Image(systemName: "arrow.left.arrow.right")
                                 .font(.title3)
-                                .foregroundColor(.black)
+                                .foregroundColor(.purple)
                             Text("Движение денежных средств")
                                 .font(.title3)
                                 .fontWeight(.bold)
@@ -173,7 +164,7 @@ struct PropertyDetailView: View {
                         HStack {
                             Image(systemName: "chart.bar")
                                 .font(.title3)
-                                .foregroundColor(.black)
+                                .foregroundColor(.purple)
                             Text("Графики")
                                 .font(.title3)
                                 .fontWeight(.bold)
@@ -200,7 +191,7 @@ struct PropertyDetailView: View {
                         HStack {
                             Image(systemName: "chart.pie")
                                 .font(.title3)
-                                .foregroundColor(.black)
+                                .foregroundColor(.purple)
                             Text("Аналитика")
                                 .font(.title3)
                                 .fontWeight(.bold)
@@ -221,7 +212,7 @@ struct PropertyDetailView: View {
                     isExpanded: $isGalleryExpanded,
                     collapsedContent: {
                         AnyView(
-                            Text(dataManager.getPropertyGallery(propertyId: editableProperty.id).isEmpty ? "Нет изображений" : "\(dataManager.getPropertyGallery(propertyId: editableProperty.id).count) фото")
+                            Text(propertyGallery.isEmpty ? "Нет изображений" : "\(propertyGallery.count) фото")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         )

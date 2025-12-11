@@ -33,6 +33,8 @@
 		AA0000470000000000000001 /* YearSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000480000000000000001 /* YearSelectorView.swift */; };
 		AA0000490000000000000001 /* DeleteYearSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00004A0000000000000001 /* DeleteYearSheetView.swift */; };
 		AA00004B0000000000000001 /* DeletePropertySheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00004C0000000000000001 /* DeletePropertySheetView.swift */; };
+		AA00004F0000000000000001 /* DeleteTenantSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000500000000000000001 /* DeleteTenantSheetView.swift */; };
+		AA00004D0000000000000001 /* FullScreenChartPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00004E0000000000000001 /* FullScreenChartPlaceholder.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -63,6 +65,8 @@
 		AA0000480000000000000001 /* YearSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YearSelectorView.swift; sourceTree = "<group>"; };
 		AA00004A0000000000000001 /* DeleteYearSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteYearSheetView.swift; sourceTree = "<group>"; };
 		AA00004C0000000000000001 /* DeletePropertySheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeletePropertySheetView.swift; sourceTree = "<group>"; };
+		AA0000500000000000000001 /* DeleteTenantSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteTenantSheetView.swift; sourceTree = "<group>"; };
+		AA00004E0000000000000001 /* FullScreenChartPlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullScreenChartPlaceholder.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -169,6 +173,8 @@
 				AA0000480000000000000001 /* YearSelectorView.swift */,
 				AA00004A0000000000000001 /* DeleteYearSheetView.swift */,
 				AA00004C0000000000000001 /* DeletePropertySheetView.swift */,
+				AA0000500000000000000001 /* DeleteTenantSheetView.swift */,
+				AA00004E0000000000000001 /* FullScreenChartPlaceholder.swift */,
 			);
 			path = PropertyDetail;
 			sourceTree = "<group>";
@@ -275,6 +281,8 @@
 				AA0000470000000000000001 /* YearSelectorView.swift in Sources */,
 				AA0000490000000000000001 /* DeleteYearSheetView.swift in Sources */,
 				AA00004B0000000000000001 /* DeletePropertySheetView.swift in Sources */,
+				AA00004F0000000000000001 /* DeleteTenantSheetView.swift in Sources */,
+				AA00004D0000000000000001 /* FullScreenChartPlaceholder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

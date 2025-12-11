@@ -28,12 +28,6 @@ struct HeaderView: View {
     // Свёрнутое представление хедера
     var collapsedView: some View {
         HStack(spacing: 12) {
-            // Иконка типа объекта
-            Image(systemName: property.type.iconName)
-                .foregroundColor(.purple)
-                .font(.title2)
-                .frame(width: 40)
-            
             VStack(alignment: .leading, spacing: 4) {
                 // Название
                 Text(property.name)
@@ -75,17 +69,21 @@ struct HeaderView: View {
             VStack(alignment: .leading, spacing: 0) {
                 // Режим просмотра с inline редактированием
                 VStack(alignment: .leading, spacing: 6) {
-                    // Первая строка: Название и адрес с иконкой типа в правом верхнем углу
-                    ZStack(alignment: .topTrailing) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            // Название
+                    // Первая строка: Название и адрес параллельно
+                    HStack(alignment: .top, spacing: 12) {
+                        // Название
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Название")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                            
                             if activeEditingField == "name" {
                                 HStack {
                                     TextField("", text: Binding(
                                         get: { property.name },
                                         set: { property.name = $0 }
                                     ))
-                                    .font(.headline)
+                                    .font(.subheadline)
                                     .textFieldStyle(PlainTextFieldStyle())
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 6)
@@ -112,20 +110,27 @@ struct HeaderView: View {
                                     }
                                 }
                             } else {
-                                HStack(spacing: 4) {
-                                    Button(action: { activeEditingField = "name" }) {
+                                Button(action: { activeEditingField = "name" }) {
+                                    HStack(spacing: 4) {
                                         Image(systemName: "pencil.circle.fill")
                                             .font(.caption2)
                                             .foregroundColor(.blue.opacity(0.6))
+                                        Text(property.name.isEmpty ? "Не указано" : property.name)
+                                            .font(.subheadline)
+                                            .foregroundColor(property.name.isEmpty ? .secondary : .primary)
+                                        Spacer()
                                     }
-                                    Text(property.name)
-                                        .font(.headline)
-                                        .foregroundColor(.primary)
-                                    Spacer()
                                 }
                             }
+                        }
+                        .frame(maxWidth: .infinity)
+                        
+                        // Адрес
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Адрес")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
                             
-                            // Адрес
                             if activeEditingField == "address" {
                                 HStack {
                                     TextField("", text: Binding(
@@ -159,25 +164,20 @@ struct HeaderView: View {
                                     }
                                 }
                             } else {
-                                HStack(spacing: 4) {
-                                    Button(action: { activeEditingField = "address" }) {
+                                Button(action: { activeEditingField = "address" }) {
+                                    HStack(spacing: 4) {
                                         Image(systemName: "pencil.circle.fill")
                                             .font(.caption2)
                                             .foregroundColor(.blue.opacity(0.6))
+                                        Text(property.address.isEmpty ? "Не указано" : property.address)
+                                            .font(.subheadline)
+                                            .foregroundColor(property.address.isEmpty ? .secondary : .primary)
+                                        Spacer()
                                     }
-                                    Text(property.address)
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                    Spacer()
                                 }
                             }
                         }
-                        
-                        // Иконка типа объекта в правом верхнем углу
-                        Image(systemName: property.type.iconName)
-                            .foregroundColor(.purple)
-                            .font(.title)
-                            .frame(width: 50)
+                        .frame(maxWidth: .infinity)
                     }
                     .padding(.horizontal, 12)
                     .padding(.top, 8)
@@ -218,6 +218,19 @@ struct HeaderView: View {
                             onSave: { onSave() }
                         )
                         
+                        InlineEditablePicker(
+                            fieldId: "condition",
+                            selection: Binding(
+                                get: { property.condition ?? .excellent },
+                                set: { property.condition = $0 }
+                            ),
+                            label: "Состояние",
+                            options: PropertyCondition.allCases,
+                            displayValue: { $0.rawValue },
+                            activeField: $activeEditingField,
+                            onSave: { onSave() }
+                        )
+                        
                         InlineEditableNumber(
                             fieldId: "purchasePrice",
                             value: property.purchasePrice,
@@ -240,19 +253,6 @@ struct HeaderView: View {
                                 property.purchaseDate = newDateString
                                 onSave()
                             }
-                        )
-                        
-                        InlineEditablePicker(
-                            fieldId: "condition",
-                            selection: Binding(
-                                get: { property.condition ?? .excellent },
-                                set: { property.condition = $0 }
-                            ),
-                            label: "Состояние",
-                            options: PropertyCondition.allCases,
-                            displayValue: { $0.rawValue },
-                            activeField: $activeEditingField,
-                            onSave: { onSave() }
                         )
                         
                         // Optional поля с условным рендерингом

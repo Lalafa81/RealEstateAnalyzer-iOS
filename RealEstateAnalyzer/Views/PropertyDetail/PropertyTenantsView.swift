@@ -171,14 +171,11 @@ struct TenantCardView: View {
                     }
                 }
             }
-            .alert(isPresented: $showDeleteConfirmation) {
-                Alert(
-                    title: Text("Удалить арендатора?"),
-                    message: Text("Вы уверены, что хотите удалить арендатора \"\(tenant.name.isEmpty ? "Без названия" : tenant.name)\"? Это действие нельзя отменить."),
-                    primaryButton: .destructive(Text("Удалить")) {
-                        onDelete()
-                    },
-                    secondaryButton: .cancel(Text("Отмена"))
+            .sheet(isPresented: $showDeleteConfirmation) {
+                DeleteTenantSheetView(
+                    tenantName: tenant.name.isEmpty ? "Без названия" : tenant.name,
+                    isPresented: $showDeleteConfirmation,
+                    onDelete: onDelete
                 )
             }
             
@@ -628,7 +625,7 @@ struct TenantInlineEditableCompanyType: View {
                             Button(action: {
                                 tempSelection = option
                             }) {
-                                HStack {
+                                HStack(alignment: .center) {
                                     Text(option.rawValue)
                                         .font(.caption2)
                                         .fixedSize(horizontal: false, vertical: true)
@@ -638,8 +635,14 @@ struct TenantInlineEditableCompanyType: View {
                                         Image(systemName: "checkmark")
                                             .font(.caption2)
                                             .foregroundColor(.blue)
+                                            .frame(width: 16, height: 16)
+                                    } else {
+                                        // Пустое место для выравнивания
+                                        Color.clear
+                                            .frame(width: 16, height: 16)
                                     }
                                 }
+                                .frame(minHeight: 24)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                                 .background(tempSelection.id == option.id ? Color.blue.opacity(0.1) : Color.clear)
@@ -766,7 +769,7 @@ struct TenantInlineEditableDeposit: View {
                                     calculateDeposit()
                                 }
                             }) {
-                                HStack {
+                                HStack(alignment: .center) {
                                     Text(option.rawValue)
                                         .font(.caption2)
                                         .fixedSize(horizontal: false, vertical: true)
@@ -776,8 +779,14 @@ struct TenantInlineEditableDeposit: View {
                                         Image(systemName: "checkmark")
                                             .font(.caption2)
                                             .foregroundColor(.blue)
+                                            .frame(width: 16, height: 16)
+                                    } else {
+                                        // Пустое место для выравнивания
+                                        Color.clear
+                                            .frame(width: 16, height: 16)
                                     }
                                 }
+                                .frame(minHeight: 24)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                                 .background(tempDepositType?.id == option.id ? Color.blue.opacity(0.1) : Color.clear)
@@ -958,14 +967,11 @@ struct TenantRowView: View {
         .padding(.horizontal, 12)
         .background(Color(.systemBackground))
         .opacity(tenant.isArchived ? 0.6 : 1.0)
-        .alert(isPresented: $showDeleteConfirmation) {
-            Alert(
-                title: Text("Удалить арендатора?"),
-                message: Text("Вы уверены, что хотите удалить арендатора \"\(tenant.name.isEmpty ? "Без названия" : tenant.name)\"? Это действие нельзя отменить."),
-                primaryButton: .destructive(Text("Удалить")) {
-                    onDelete()
-                },
-                secondaryButton: .cancel(Text("Отмена"))
+        .sheet(isPresented: $showDeleteConfirmation) {
+            DeleteTenantSheetView(
+                tenantName: tenant.name.isEmpty ? "Без названия" : tenant.name,
+                isPresented: $showDeleteConfirmation,
+                onDelete: onDelete
             )
         }
     }

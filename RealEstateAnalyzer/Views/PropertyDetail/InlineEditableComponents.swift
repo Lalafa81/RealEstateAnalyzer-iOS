@@ -339,7 +339,7 @@ struct InlineEditablePicker<T: Hashable & Identifiable>: View {
                             Button(action: {
                                 tempSelection = option
                             }) {
-                                HStack {
+                                HStack(alignment: .center) {
                                     Text(displayValue(option))
                                         .font(.caption2)
                                         .fixedSize(horizontal: false, vertical: true)
@@ -349,8 +349,14 @@ struct InlineEditablePicker<T: Hashable & Identifiable>: View {
                                         Image(systemName: "checkmark")
                                             .font(.caption2)
                                             .foregroundColor(.blue)
+                                            .frame(width: 16, height: 16)
+                                    } else {
+                                        // Пустое место для выравнивания
+                                        Color.clear
+                                            .frame(width: 16, height: 16)
                                     }
                                 }
+                                .frame(minHeight: 24)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                                 .background(tempSelection.id == option.id ? Color.blue.opacity(0.1) : Color.clear)
@@ -457,7 +463,7 @@ struct InlineEditablePropertyType: View {
                                     tempCustomType = ""
                                 }
                             }) {
-                                HStack {
+                                HStack(alignment: .center) {
                                     Text(option.rawValue)
                                         .font(.caption2)
                                         .fixedSize(horizontal: false, vertical: true)
@@ -467,8 +473,14 @@ struct InlineEditablePropertyType: View {
                                         Image(systemName: "checkmark")
                                             .font(.caption2)
                                             .foregroundColor(.blue)
+                                            .frame(width: 16, height: 16)
+                                    } else {
+                                        // Пустое место для выравнивания
+                                        Color.clear
+                                            .frame(width: 16, height: 16)
                                     }
                                 }
+                                .frame(minHeight: 24)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                                 .background(tempType.id == option.id ? Color.blue.opacity(0.1) : Color.clear)

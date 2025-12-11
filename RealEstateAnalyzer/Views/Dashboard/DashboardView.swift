@@ -34,6 +34,7 @@ struct DashboardView: View {
                     NavigationLink(destination: PropertyDetailView(property: property)) {
                         PropertyRowView(property: property, index: index + 1)
                     }
+                    .listRowInsets(EdgeInsets())
                 }
             }
         }
@@ -180,47 +181,56 @@ struct PropertyRowView: View {
     @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
     
     var body: some View {
-        HStack(spacing: 10) {
-            // Номер объекта
-            Text("\(index)")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .frame(width: 22)
-                .padding(.leading, -8)
-            
-            // Миниатюра изображения или плейсхолдер
-            PropertyImagePlaceholder(propertyId: property.id) {
-                // При нажатии открываем ImagePicker
-                showingImagePicker = true
-            }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                // Название с иконкой
-                HStack(spacing: 6) {
-                    Image(systemName: property.type.iconName)
-                        .foregroundColor(.purple)
-                        .font(.subheadline)
+        VStack(spacing: 8) {
+            // Название с иконкой по левому краю сверху
+            HStack(spacing: 6) {
+                Image(systemName: property.type.iconName)
+                    .foregroundColor(.purple)
+                    .font(.subheadline)
+                    .frame(width: 16)
                 Text(property.name)
                     .font(.headline)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.leading, 20)
+            
+            // Основной контент
+            HStack(alignment: .top, spacing: 12) {
+                // Номер объекта
+                Text("\(index)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                
+                // Миниатюра изображения или плейсхолдер - фиксированная ширина
+                PropertyImagePlaceholder(propertyId: property.id) {
+                    // При нажатии открываем ImagePicker
+                    showingImagePicker = true
+                }
+                .frame(width: 60, height: 60)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(property.address)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    // Компактный pill-style статус
+                    Text(property.status.rawValue)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(statusTextColor(for: property.status))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(statusBackgroundColor(for: property.status))
+                        .cornerRadius(8)
                 }
                 
-                Text(property.address)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                HStack(spacing: 8) {
-                    Text(property.status.rawValue)
-                        .font(.caption)
-                        .lineLimit(1)
-                        .fixedSize(horizontal: true, vertical: false)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(Color.blue.opacity(0.2))
-                        .cornerRadius(4)
-                    
+                Spacer()
+                
+                // Доход, ROI и площадь справа в три строки
+                VStack(alignment: .trailing, spacing: 2) {
                     if let analytics = calculateQuickMetrics() {
                         // Доход: желтый если 0, иначе синий
                         let incomeColor: Color = analytics.monthlyIncome == 0 ? .yellow : .blue
-                        Text("Д: \(analytics.monthlyIncome.formatCurrency())")
+                        Text("Д: \(analytics.monthlyIncome.formatShortCurrency())")
                             .font(.caption)
                             .foregroundColor(incomeColor)
                         
@@ -240,12 +250,16 @@ struct PropertyRowView: View {
                             .font(.caption)
                             .foregroundColor(roiColor)
                     }
+                    
+                    // Площадь
+                    Text("П: \(String(format: "%.0f", property.area)) м²")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
             }
-            
-            Spacer()
         }
-        .padding(.vertical, 4)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
         .sheet(isPresented: $showingImagePicker) {
             ImagePicker(
                 sourceType: sourceType,
@@ -264,6 +278,34 @@ struct PropertyRowView: View {
     private func calculateQuickMetrics() -> Analytics? {
         let financialData = MetricsCalculator.extractMonthlyFinancials(property: property, year: nil)
         return MetricsCalculator.computeAllMetrics(financialData: financialData, property: property)
+    }
+    
+    // Цвет текста для статуса
+    private func statusTextColor(for status: PropertyStatus) -> Color {
+        switch status {
+        case .rented:
+            return Color.green
+        case .vacant:
+            return Color.secondary
+        case .underRepair:
+            return Color.orange
+        case .sold:
+            return Color.secondary
+        }
+    }
+    
+    // Цвет фона для статуса
+    private func statusBackgroundColor(for status: PropertyStatus) -> Color {
+        switch status {
+        case .rented:
+            return Color.green.opacity(0.15)
+        case .vacant:
+            return Color(.systemGray5)
+        case .underRepair:
+            return Color.orange.opacity(0.15)
+        case .sold:
+            return Color(.systemGray5)
+        }
     }
 }
 

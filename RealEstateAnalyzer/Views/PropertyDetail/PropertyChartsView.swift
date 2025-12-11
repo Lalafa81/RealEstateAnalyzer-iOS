@@ -11,29 +11,63 @@ struct ChartsView: View {
     let property: Property
     let selectedYear: Int
     
+    @State private var showFullChart = false
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
+            // Заголовок с кнопкой развернуть
+            HStack {
+                Text("Доходы и расходы за \(String(selectedYear))")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                Button(action: {
+                    showFullChart = true
+                }) {
+                    HStack(spacing: 4) {
+                        Text("Развернуть")
+                            .font(.caption)
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                            .font(.caption)
+                    }
+                    .foregroundColor(.secondary)
+                    .opacity(0.7)
+                }
+            }
+            .padding(.horizontal, 4)
+            
             // Мини-график доходов/расходов по месяцам
-            MiniChartView(property: property, selectedYear: selectedYear)
+            MiniChartView(property: property, selectedYear: selectedYear, showFullChart: $showFullChart)
         }
-        .padding(8)
+        .padding(6)
+        .sheet(isPresented: $showFullChart) {
+            FullScreenChartPlaceholder()
+        }
     }
 }
 
 struct MiniChartView: View {
     let property: Property
     let selectedYear: Int
+    @Binding var showFullChart: Bool
+    
+    @State private var selectedMonth: Int? = nil
+    
+    // Полные названия месяцев для строки информации
+    let fullMonthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
     
     // Получаем данные по месяцам для выбранного года
-    var monthlyData: [(month: String, income: Double, expense: Double)] {
+    var monthlyData: [(month: String, monthIndex: Int, income: Double, expense: Double)] {
         let monthNames = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]
         let monthKeys = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
         
         guard let yearData = property.months[String(selectedYear)] else {
-            return monthNames.enumerated().map { (monthNames[$0.offset], 0.0, 0.0) }
+            return monthNames.enumerated().map { (monthNames[$0.offset], $0.offset, 0.0, 0.0) }
         }
         
-        var result: [(month: String, income: Double, expense: Double)] = []
+        var result: [(month: String, monthIndex: Int, income: Double, expense: Double)] = []
         
         for (index, monthKey) in monthKeys.enumerated() {
             if let monthData = yearData[monthKey] {
@@ -45,9 +79,9 @@ struct MiniChartView: View {
                     (monthData.expensesOperational ?? 0) +
                     (monthData.expensesOther ?? 0)
                 
-                result.append((month: monthNames[index], income: income, expense: expense))
+                result.append((month: monthNames[index], monthIndex: index, income: income, expense: expense))
             } else {
-                result.append((month: monthNames[index], income: 0.0, expense: 0.0))
+                result.append((month: monthNames[index], monthIndex: index, income: 0.0, expense: 0.0))
             }
         }
         
@@ -61,33 +95,31 @@ struct MiniChartView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Доходы и расходы за \(String(selectedYear))")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-            
+        VStack(alignment: .leading, spacing: 2) {
             GeometryReader { geometry in
                 HStack(alignment: .bottom, spacing: 4) {
                     ForEach(0..<12, id: \.self) { index in
                         let data = monthlyData[index]
+                        let isSelected = selectedMonth == index
+                        
                         VStack(spacing: 0) {
                             // Доходы (зеленый) - сверху
                             if data.income > 0 {
                                 Rectangle()
-                                    .fill(Color.green)
-                                    .frame(height: maxValue > 0 ? CGFloat(data.income / maxValue) * geometry.size.height * 0.6 : 0)
+                                    .fill(isSelected ? Color.green.opacity(0.8) : Color.green)
+                                    .frame(height: maxValue > 0 ? CGFloat(data.income / maxValue) * geometry.size.height * 0.75 : 0)
                             }
                             
                             // Расходы (красный) - снизу
                             if data.expense > 0 {
                                 Rectangle()
-                                    .fill(Color.red)
-                                    .frame(height: maxValue > 0 ? CGFloat(data.expense / maxValue) * geometry.size.height * 0.6 : 0)
+                                    .fill(isSelected ? Color.red.opacity(0.8) : Color.red)
+                                    .frame(height: maxValue > 0 ? CGFloat(data.expense / maxValue) * geometry.size.height * 0.75 : 0)
                             }
                             
                             // Подпись месяца
                             Text(data.month)
-                                .font(.system(size: 8))
+                                .font(.system(size: 9))
                                 .foregroundColor(.secondary)
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.7)
@@ -95,13 +127,32 @@ struct MiniChartView: View {
                                 .padding(.top, 1)
                         }
                         .frame(maxWidth: .infinity)
+                        .scaleEffect(isSelected ? 1.05 : 1.0)
+                        .animation(.spring(response: 0.25, dampingFraction: 0.8), value: isSelected)
+                        .onTapGesture {
+                            if selectedMonth == index {
+                                selectedMonth = nil
+                            } else {
+                                selectedMonth = index
+                            }
+                        }
                     }
                 }
             }
-            .frame(height: 180)
+            .frame(height: 198)
+            
+            // Строка информации о выбранном месяце
+            if let selectedIndex = selectedMonth, selectedIndex < monthlyData.count {
+                let data = monthlyData[selectedIndex]
+                let netCashFlow = data.income - data.expense
+                Text("\(fullMonthNames[selectedIndex]) \(String(selectedYear)) — Доход: \(data.income.formatCurrency()) · Расходы: \(data.expense.formatCurrency()) · Чистый: \(netCashFlow.formatCurrency())")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 2)
+            }
             
             // Легенда
-            HStack(spacing: 16) {
+            HStack(spacing: 14) {
                 HStack(spacing: 4) {
                     Rectangle()
                         .fill(Color.green)
@@ -122,7 +173,7 @@ struct MiniChartView: View {
         }
         .padding()
         .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cornerRadius(10)
     }
 }
 

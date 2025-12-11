@@ -35,6 +35,30 @@ extension Double {
         formatter.maximumFractionDigits = 0
         return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
     }
+    
+    /// Форматирует число в сокращенном формате с символом рубля (200 000 -> "200 тыс ₽")
+    func formatShortCurrency() -> String {
+        let absValue = abs(self)
+        let sign = self < 0 ? "-" : ""
+        
+        if absValue >= 1_000_000 {
+            let millions = absValue / 1_000_000
+            if millions.truncatingRemainder(dividingBy: 1) == 0 {
+                return "\(sign)\(Int(millions)) млн ₽"
+            } else {
+                return "\(sign)\(String(format: "%.1f", millions)) млн ₽"
+            }
+        } else if absValue >= 1_000 {
+            let thousands = absValue / 1_000
+            if thousands.truncatingRemainder(dividingBy: 1) == 0 {
+                return "\(sign)\(Int(thousands)) тыс ₽"
+            } else {
+                return "\(sign)\(String(format: "%.1f", thousands)) тыс ₽"
+            }
+        } else {
+            return "\(sign)\(Int(absValue)) ₽"
+        }
+    }
 }
 
 extension Optional where Wrapped == String {
