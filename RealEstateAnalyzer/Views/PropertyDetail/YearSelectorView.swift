@@ -12,6 +12,8 @@ struct YearSelectorView: View {
     @Binding var property: Property
     let onSave: () -> Void
     
+    @State private var yearToDelete: Int? = nil
+    @State private var showDeleteYearSheet = false
     
     var availableYears: [Int] {
         // Получаем года из property.months
@@ -124,9 +126,10 @@ struct YearSelectorView: View {
                                     }
                                     .buttonStyle(PlainButtonStyle())
                                     
-                                    // Кнопка удаления года (X) — простое удаление
+                                    // Кнопка удаления года (X) — показывает Sheet
                                     Button(action: {
-                                        deleteYear(year)
+                                        yearToDelete = year
+                                        showDeleteYearSheet = true
                                     }) {
                                         Image(systemName: "xmark.circle.fill")
                                             .font(.system(size: 12))
@@ -194,6 +197,19 @@ struct YearSelectorView: View {
             let years = availableYears
             if !years.contains(selectedYear) {
                 selectedYear = years.first ?? Calendar.current.component(.year, from: Date())
+            }
+        }
+        .sheet(isPresented: $showDeleteYearSheet) {
+            if let year = yearToDelete {
+                DeleteYearSheetView(
+                    year: year,
+                    isPresented: $showDeleteYearSheet,
+                    onDelete: {
+                        deleteYear(year)
+                        yearToDelete = nil
+                        showDeleteYearSheet = false
+                    }
+                )
             }
         }
     }

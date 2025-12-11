@@ -200,8 +200,8 @@ struct PropertyRowView: View {
                     Image(systemName: property.type.iconName)
                         .foregroundColor(.purple)
                         .font(.subheadline)
-                    Text(property.name)
-                        .font(.headline)
+                Text(property.name)
+                    .font(.headline)
                 }
                 
                 Text(property.address)
