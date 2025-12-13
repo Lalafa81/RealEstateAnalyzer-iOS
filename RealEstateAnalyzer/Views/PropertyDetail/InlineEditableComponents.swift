@@ -9,76 +9,6 @@ import SwiftUI
 
 // MARK: - Inline Editable Components
 
-struct InlineEditableText: View {
-    let fieldId: String
-    let text: String
-    let label: String
-    @Binding var activeField: String?
-    let onSave: (String) -> Void
-    
-    @State private var editingText: String = ""
-    
-    private var isEditing: Bool {
-        activeField == fieldId
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(label)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-            
-            if isEditing {
-                HStack {
-                    TextField("", text: $editingText)
-                        .font(.subheadline)
-                        .textFieldStyle(PlainTextFieldStyle())
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 6)
-                        .background(Color(.systemBackground))
-                        .cornerRadius(6)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 6)
-                                .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                        )
-                    
-                    Button(action: {
-                        editingText = text
-                        activeField = nil
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.headline) // РАЗМЕР кнопки "Отмена" (красный крестик)
-                            .foregroundColor(.red)
-                    }
-                    
-                    Button(action: {
-                        onSave(editingText)
-                        activeField = nil
-                    }) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.headline) // РАЗМЕР кнопки "Принять" (зеленая галочка)
-                            .foregroundColor(.green)
-                    }
-                }
-            } else {
-                Button(action: {
-                    editingText = text
-                    activeField = fieldId
-                }) {
-                    HStack(spacing: 4) {
-                        Text(text.isEmpty ? "not_specified".localized : text)
-                            .font(.subheadline)
-                            .foregroundColor(text.isEmpty ? .secondary : .primary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .lineLimit(nil)
-                        Spacer()
-                    }
-                }
-            }
-        }
-    }
-}
-
 struct InlineEditableNumber: View {
     let fieldId: String
     let value: Double
@@ -480,10 +410,7 @@ struct InlineEditablePropertyType: View {
                         VStack(alignment: .leading, spacing: 4) {
                             TextField("Введите назначение", text: Binding(
                                 get: { tempCustomType },
-                                set: { 
-                                    // Ограничиваем до 30 символов для кастомного типа
-                                    tempCustomType = String($0.prefix(30))
-                                }
+                                set: { tempCustomType = String($0.prefix(30)) }
                             ))
                             .font(.caption2)
                             .textFieldStyle(PlainTextFieldStyle())

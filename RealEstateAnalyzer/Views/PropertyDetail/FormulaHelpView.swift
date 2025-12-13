@@ -67,7 +67,7 @@ struct FormulaHelpView: View {
                         .padding(.top, 20)
                     
                     // Заголовок
-                    Text("Формула расчета")
+                    Text("formula_help_title".localized)
                         .font(.title3)
                         .fontWeight(.semibold)
                     

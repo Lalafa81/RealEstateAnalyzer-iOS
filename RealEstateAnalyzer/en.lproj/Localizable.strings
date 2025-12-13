@@ -133,6 +133,7 @@
 "stat_exit_value" = "Exit Value";
 "stat_average_price_per_m2" = "Average Price per m²";
 "unit_square_meters" = "m²";
+"unit_square_feet" = "ft²";
 "unit_years" = "years";
 
 // MARK: - Cash Flow
@@ -176,6 +177,115 @@
 "analytics_only_selected_year" = "Only Selected Year";
 "analytics_include_maintenance" = "Include Administrative";
 "analytics_include_operating" = "Include Operating";
+
+// MARK: - Analytics Sections
+"analytics_section_basic" = "I. BASIC PROPERTY METRICS";
+"analytics_section_profitability" = "II. PROFITABILITY AND INVESTMENT ATTRACTIVENESS";
+"analytics_section_reliability" = "III. RELIABILITY AND RISK";
+"analytics_section_temporal" = "IV. TEMPORAL AND STRUCTURAL METRICS";
+
+// MARK: - Analytics Metrics Labels
+"analytics_metric_monthly_income" = "Monthly Income";
+"analytics_metric_monthly_expenses" = "Monthly Expenses";
+"analytics_metric_profit_per_m2" = "Profit per m²";
+"analytics_metric_efficiency" = "Efficiency Coefficient";
+"analytics_metric_roi" = "ROI";
+"analytics_metric_cap_rate" = "Cap Rate";
+"analytics_metric_grm" = "GRM";
+"analytics_metric_payback" = "Payback Period";
+"analytics_metric_irr" = "IRR";
+"analytics_metric_equity_multiple" = "Equity Multiple";
+"analytics_metric_tenant_risk" = "Tenant Risk";
+"analytics_metric_busy_percent" = "Occupancy";
+"analytics_metric_volatility" = "Income Volatility";
+"analytics_metric_concentration" = "Concentration";
+"analytics_metric_break_even" = "Break-Even Occupancy";
+"analytics_metric_own_years" = "Holding Period";
+"analytics_metric_max_income" = "Max Income";
+"analytics_metric_max_expense" = "Max Expense";
+"analytics_metric_income_expense_ratio" = "Income / Expense";
+
+// MARK: - Analytics Notes
+"analytics_note_monthly_income" = "Shows average monthly income.";
+"analytics_note_monthly_expenses" = "Shows average monthly expenses.";
+"analytics_note_profit_per_m2" = "Evaluates profit per square meter.";
+"analytics_note_efficiency" = "Reflects area utilization efficiency.";
+"analytics_note_roi" = "Calculates annual return on investment.";
+"analytics_note_cap_rate" = "Determines property yield excluding loan and taxes.";
+"analytics_note_grm" = "Indicator shows how many years it will take to recoup the property at current income (excluding expenses).";
+"analytics_note_payback" = "Evaluates how many years it will take to recoup the investment.";
+"analytics_note_irr" = "Demonstrates real investment return considering time value.";
+"analytics_note_equity_multiple" = "Reflects how many times the capital will increase over the holding period.";
+"analytics_note_tenant_risk" = "Evaluates risk level based on maximum tenant contract duration.";
+"analytics_note_busy_percent" = "Determines percentage of months with income from total holding period.";
+"analytics_note_volatility" = "Reflects income stability.";
+"analytics_note_concentration" = "Evaluates the share of the largest tenant in total income.";
+"analytics_note_break_even" = "Allows to evaluate minimum occupancy percentage for break-even.";
+"analytics_note_own_years" = "Reflects how many years have passed since property purchase.";
+"analytics_note_max_income" = "Shows month and year with maximum income for the entire period.";
+"analytics_note_max_expense" = "Shows month and year with maximum expenses for the entire period.";
+"analytics_note_income_expense_ratio" = "Calculates ratio of income to expenses.";
+
+// MARK: - Analytics Formulas
+"analytics_formula_monthly_income" = "Monthly Income = Annual Income / Number of Months";
+"analytics_formula_monthly_expenses" = "Monthly Expenses = Annual Expenses / Number of Months";
+"analytics_formula_profit_per_m2" = "Profit per m² = (Average Income - Average Expense) / Area";
+"analytics_formula_efficiency" = "Efficiency Coefficient = Average Income / Area";
+"analytics_formula_roi" = "ROI = ((Average Income - Average Expense) × 12 / Purchase Price) × 100%";
+"analytics_formula_cap_rate" = "Cap Rate = (NOI / Purchase Price) × 100%\n\nNOI = Annual Income - Annual Expenses - Taxes - Insurance";
+"analytics_formula_grm" = "GRM = Purchase Price / Annual Income";
+"analytics_formula_payback" = "Payback Period = Purchase Price / Annual Net Cash Flow\n\nAnnual Cash Flow = (Average Income - Average Expense) × 12";
+"analytics_formula_irr" = "IRR is the discount rate at which NPV = 0\n\nNPV = -Investment + Σ(Annual Cash Flow / (1 + IRR)^year) + Sale Price / (1 + IRR)^holding_period";
+"analytics_formula_equity_multiple" = "Equity Multiple = (Annual Cash Flow × Holding Period + Sale Price) / Purchase Price";
+"analytics_formula_tenant_risk" = "Risk is evaluated by maximum contract duration:\n• < 1 year → high risk\n• 1-3 years → medium risk\n• > 3 years → low risk";
+"analytics_formula_busy_percent" = "Occupancy = (Months with Income > 0 / Total Number of Months) × 100%";
+"analytics_formula_volatility" = "Volatility = Standard Deviation of Income / Average Income\n\n• < 0.1 → low volatility\n• 0.1-0.5 → moderate\n• > 0.5 → high";
+"analytics_formula_concentration" = "Concentration = (Maximum Tenant Income / Sum of All Tenant Incomes) × 100%";
+"analytics_formula_break_even" = "Break-Even Occupancy = (Annual Expenses / Annual Income) × 100%";
+"analytics_formula_own_years" = "Holding Period = (Current Date - Purchase Date) / 365";
+"analytics_formula_max_income" = "Maximum Income = max(incomes for all months)\n\nDetermines month and year with highest income value.";
+"analytics_formula_max_expense" = "Maximum Expense = max(expenses for all months)\n\nDetermines month and year with highest expense value.";
+"analytics_formula_income_expense_ratio" = "Income / Expense = Annual Income / Annual Expenses\n\nValue > 1 means profitability, < 1 means loss.";
+
+// MARK: - Formula Help
+"formula_help_title" = "Calculation Formula";
+
+// MARK: - Currency
+"field_currency" = "Currency";
+"currency_rub" = "Russian Ruble";
+"currency_usd" = "US Dollar";
+"currency_eur" = "Euro";
+"currency_gbp" = "British Pound";
+"currency_jpy" = "Japanese Yen";
+"currency_cny" = "Chinese Yuan";
+"currency_chf" = "Swiss Franc";
+"currency_aud" = "Australian Dollar";
+"currency_cad" = "Canadian Dollar";
+
+// MARK: - Settings
+"settings_currency_section" = "Currency";
+"settings_default_currency" = "Default Currency";
+"settings_current_currency" = "Current Currency";
+"settings_currency_description" = "Currency used for displaying amounts in statistics and new properties. Changes are applied immediately.";
+"settings_units_section" = "Units";
+"settings_area_unit" = "Area Unit";
+"settings_current_area_unit" = "Current Unit";
+"settings_area_unit_description" = "Area measurement unit for display in the app. Changes are applied immediately.";
+"settings_locale_section" = "Language";
+"settings_language" = "Interface Language";
+"settings_language_russian" = "Русский";
+"settings_language_english" = "English";
+"settings_current_language" = "Current Language";
+"settings_locale_description" = "Application interface language. Changes are applied immediately.";
+"settings_data_section" = "Data";
+"settings_export_data" = "Export Data";
+"settings_export_data_description" = "Share data file for backup";
+"settings_reload_data" = "Reload Data";
+"settings_reload_data_description" = "Restore data from original file (will delete all changes)";
+"settings_data_size" = "Data Size";
+"settings_about_section" = "About";
+"settings_version" = "Version";
+"settings_build_number" = "Build";
 
 // MARK: - Common
 "not_specified" = "Not Specified";

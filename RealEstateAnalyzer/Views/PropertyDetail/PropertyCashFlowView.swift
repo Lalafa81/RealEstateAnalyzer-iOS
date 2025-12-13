@@ -11,9 +11,13 @@ import SwiftUI
 
 private let monthNumbers = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
 
-// Локализованные названия месяцев
-private var monthNames: [String] {
-    return DateFormatter.localizedMonthNames()
+// Константы для размеров таблицы
+private struct TableLayout {
+    static let monthColumnWidth: CGFloat = 100
+    static let valueColumnWidth: CGFloat = 90
+    static let buttonWidth: CGFloat = 28
+    static let horizontalPadding: CGFloat = 8
+    static let verticalPadding: CGFloat = 6
 }
 
 // MARK: - Helper функции для расчетов
@@ -92,7 +96,7 @@ struct CashFlowView: View {
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
                     
-                    Text(totalCashFlow.formatCurrencyWithSymbol())
+                    Text(totalCashFlow.formatCurrencyWithSymbol(currencyCode: property.getCurrencyCode()))
                         .font(.system(size: 13, weight: .bold))
                         .foregroundColor(totalCashFlow >= 0 ? .green : .red)
                 }
@@ -110,9 +114,9 @@ struct CashFlowView: View {
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
                     
-                    Text(totalCashFlowAllPeriods.formatCurrencyWithSymbol())
-                        .font(.system(size: 14, weight: .bold)) //шрифт зеленого блока
-                        .foregroundColor(totalCashFlowAllPeriods >= 0 ? .green : .red) //цвет зеленого большого текста
+                    Text(totalCashFlowAllPeriods.formatCurrencyWithSymbol(currencyCode: property.getCurrencyCode()))
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(totalCashFlowAllPeriods >= 0 ? .green : .red)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 6)
@@ -191,6 +195,25 @@ struct CashFlowTableView: View {
         }
     }
     
+    /// Загружает данные месяца для popup редактора
+    private func loadPopupData(monthNum: String) {
+        let yearKey = String(selectedYear)
+        if let yearData = property.months[yearKey],
+           let monthData = yearData[monthNum] {
+            popupIncomeBase = monthData.income ?? 0
+            popupIncomeVariable = monthData.incomeVariable ?? 0
+            popupAdmin = monthData.expensesMaintenance ?? 0
+            popupOperating = monthData.expensesOperational ?? 0
+            popupOther = monthData.expensesOther ?? 0
+        } else {
+            popupIncomeBase = 0
+            popupIncomeVariable = 0
+            popupAdmin = 0
+            popupOperating = 0
+            popupOther = 0
+        }
+    }
+    
     /// Сохранение данных месяца (простое редактирование)
     private func saveMonthData(monthNum: String) {
         let yearKey = String(selectedYear)
@@ -198,9 +221,28 @@ struct CashFlowTableView: View {
         var yearData = monthsCopy[yearKey] ?? [:]
         var monthData = yearData[monthNum] ?? Property.MonthData()
         
-        // Простое редактирование: только базовый доход и эксплуатационные расходы
         monthData.income = (Double(editingIncome) ?? 0) > 0 ? Double(editingIncome) ?? nil : nil
         monthData.expensesOperational = (Double(editingExpenseOperational) ?? 0) > 0 ? Double(editingExpenseOperational) ?? nil : nil
+        
+        yearData[monthNum] = monthData
+        monthsCopy[yearKey] = yearData
+        property.months = monthsCopy
+        editingMonth = nil
+        onSave()
+    }
+    
+    /// Сохранение данных месяца из popup редактора
+    private func savePopupData(monthNum: String) {
+        let yearKey = String(selectedYear)
+        var monthsCopy = property.months
+        var yearData = monthsCopy[yearKey] ?? [:]
+        var monthData = yearData[monthNum] ?? Property.MonthData()
+        
+        monthData.income = popupIncomeBase > 0 ? popupIncomeBase : nil
+        monthData.incomeVariable = popupIncomeVariable > 0 ? popupIncomeVariable : nil
+        monthData.expensesMaintenance = popupAdmin > 0 ? popupAdmin : nil
+        monthData.expensesOperational = popupOperating > 0 ? popupOperating : nil
+        monthData.expensesOther = popupOther > 0 ? popupOther : nil
         
         yearData[monthNum] = monthData
         monthsCopy[yearKey] = yearData
@@ -214,32 +256,31 @@ struct CashFlowTableView: View {
             // Заголовок таблицы
             HStack(spacing: 0) {
                 Text("cash_flow_month".localized)
-                    .font(.subheadline) // РАЗМЕР ШРИФТА заголовка
+                    .font(.subheadline)
                     .fontWeight(.semibold)
-                    .frame(width: 100, alignment: .leading) // ШИРИНА колонки "Месяц"
-                    .padding(.leading, 8) // ОТСТУП слева
+                    .frame(width: TableLayout.monthColumnWidth, alignment: .leading)
+                    .padding(.leading, TableLayout.horizontalPadding)
                 
                 Spacer()
                 
                 Text("cash_flow_income".localized)
-                    .font(.subheadline) // РАЗМЕР ШРИФТА заголовка
+                    .font(.subheadline)
                     .fontWeight(.semibold)
-                    .frame(width: 90, alignment: .trailing) // ШИРИНА колонки "Доход"
+                    .frame(width: TableLayout.valueColumnWidth, alignment: .trailing)
                 
                 Text("cash_flow_expense".localized)
-                    .font(.subheadline) // РАЗМЕР ШРИФТА заголовка
+                    .font(.subheadline)
                     .fontWeight(.semibold)
-                    .frame(width: 90, alignment: .trailing) // ШИРИНА колонки "Расход"
-                
-                // Невидимые placeholder'ы для кнопок, чтобы сохранить ширину
-                Color.clear
-                    .frame(width: 28) // ШИРИНА кнопки (галочка)
+                    .frame(width: TableLayout.valueColumnWidth, alignment: .trailing)
                 
                 Color.clear
-                    .frame(width: 28) // ШИРИНА кнопки (три точки)
-                    .padding(.trailing, 8) // ОТСТУП справа
+                    .frame(width: TableLayout.buttonWidth)
+                
+                Color.clear
+                    .frame(width: TableLayout.buttonWidth)
+                    .padding(.trailing, TableLayout.horizontalPadding)
             }
-            .padding(.vertical, 6) // ВЕРТИКАЛЬНЫЙ ОТСТУП заголовка
+            .padding(.vertical, TableLayout.verticalPadding)
             .background(Color(.systemGray5))
             
             Divider()
@@ -248,28 +289,25 @@ struct CashFlowTableView: View {
             ForEach(Array(monthlyData.enumerated()), id: \.offset) { index, data in
                 HStack(spacing: 0) {
                     Text(data.month)
-                        .font(.subheadline) // РАЗМЕР ШРИФТА месяца
-                        .frame(width: 100, alignment: .leading) // ШИРИНА колонки "Месяц"
-                        .padding(.leading, 8) // ОТСТУП слева
+                        .font(.subheadline)
+                        .frame(width: TableLayout.monthColumnWidth, alignment: .leading)
+                        .padding(.leading, TableLayout.horizontalPadding)
                     
                     Spacer()
                     
                     if editingMonth == data.monthNum {
-                        // Режим редактирования - упрощенный (прямое редактирование)
-                        // Доход → базовый доход (income)
                         TextField("cash_flow_income".localized, text: $editingIncome)
                             .keyboardType(.decimalPad)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .frame(width: 90) // ШИРИНА поля "Доход"
-                            .font(.subheadline) // РАЗМЕР ШРИФТА в поле редактирования
+                            .frame(width: TableLayout.valueColumnWidth)
+                            .font(.subheadline)
                         
-                        // Расход → эксплуатационные расходы (expensesOperational) - можно редактировать напрямую
                         TextField("cash_flow_expense".localized, text: $editingExpenseOperational)
                             .keyboardType(.decimalPad)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .multilineTextAlignment(.trailing)
-                            .frame(width: 90) // ШИРИНА поля "Расход"
-                            .font(.subheadline) // РАЗМЕР ШРИФТА в поле редактирования
+                            .frame(width: TableLayout.valueColumnWidth)
+                            .font(.subheadline)
                             .foregroundColor(.red)
                         
                         Button(action: {
@@ -277,65 +315,48 @@ struct CashFlowTableView: View {
                         }) {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
-                                .font(.caption) // РАЗМЕР иконки кнопки
+                                .font(.caption)
                         }
-                        .frame(width: 28) // ШИРИНА кнопки (галочка)
+                        .frame(width: TableLayout.buttonWidth)
                         
                         Button(action: {
-                            // Загружаем данные для popup
-                            let yearKey = String(selectedYear)
-                            if let yearData = property.months[yearKey],
-                               let monthData = yearData[data.monthNum] {
-                                popupIncomeBase = monthData.income ?? 0
-                                popupIncomeVariable = monthData.incomeVariable ?? 0
-                                popupAdmin = monthData.expensesMaintenance ?? 0
-                                popupOperating = monthData.expensesOperational ?? 0
-                                popupOther = monthData.expensesOther ?? 0
-                            } else {
-                                popupIncomeBase = 0
-                                popupIncomeVariable = 0
-                                popupAdmin = 0
-                                popupOperating = 0
-                                popupOther = 0
-                            }
+                            loadPopupData(monthNum: data.monthNum)
                             showingDetailEditor = true
                         }) {
                             Image(systemName: "ellipsis.circle.fill")
                                 .foregroundColor(.blue)
-                                .font(.caption) // РАЗМЕР иконки кнопки
+                                .font(.caption)
                         }
-                        .frame(width: 28) // ШИРИНА кнопки (три точки)
-                        .padding(.trailing, 8) // ОТСТУП справа
+                        .frame(width: TableLayout.buttonWidth)
+                        .padding(.trailing, TableLayout.horizontalPadding)
                     } else {
-                        // Режим просмотра - резервируем место для кнопок, чтобы ширина не менялась
                         Text(data.income.formatCurrency())
-                            .font(.subheadline) // РАЗМЕР ШРИФТА значения дохода
+                            .font(.subheadline)
                             .foregroundColor(.green)
-                            .frame(width: 90, alignment: .trailing) // ШИРИНА колонки "Доход"
+                            .frame(width: TableLayout.valueColumnWidth, alignment: .trailing)
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 startEditing(monthNum: data.monthNum, income: data.income, expense: data.expense)
                             }
                         
                         Text(data.expense.formatCurrency())
-                            .font(.subheadline) // РАЗМЕР ШРИФТА значения расхода
+                            .font(.subheadline)
                             .foregroundColor(.red)
-                            .frame(width: 90, alignment: .trailing) // ШИРИНА колонки "Расход"
+                            .frame(width: TableLayout.valueColumnWidth, alignment: .trailing)
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 startEditing(monthNum: data.monthNum, income: data.income, expense: data.expense)
                             }
                         
-                        // Невидимые placeholder'ы для кнопок, чтобы сохранить ширину
                         Color.clear
-                            .frame(width: 28) // ШИРИНА placeholder кнопки (галочка)
+                            .frame(width: TableLayout.buttonWidth)
                         
                         Color.clear
-                            .frame(width: 28) // ШИРИНА placeholder кнопки (три точки)
-                            .padding(.trailing, 8) // ОТСТУП справа
+                            .frame(width: TableLayout.buttonWidth)
+                            .padding(.trailing, TableLayout.horizontalPadding)
                     }
                 }
-                .padding(.vertical, 4) // ВЕРТИКАЛЬНЫЙ ОТСТУП строки
+                .padding(.vertical, 4)
                 
                 if index < monthlyData.count - 1 {
                     Divider()
@@ -360,23 +381,7 @@ struct CashFlowTableView: View {
                         other: $popupOther,
                         monthTitle: monthlyData.first(where: { $0.monthNum == monthNum })?.month ?? "",
                         onSave: {
-                            // Сохраняем данные из popup
-                            let yearKey = String(selectedYear)
-                            var monthsCopy = property.months
-                            var yearData = monthsCopy[yearKey] ?? [:]
-                            var monthData = yearData[monthNum] ?? Property.MonthData()
-                            
-                            monthData.income = popupIncomeBase > 0 ? popupIncomeBase : nil
-                            monthData.incomeVariable = popupIncomeVariable > 0 ? popupIncomeVariable : nil
-                            monthData.expensesMaintenance = popupAdmin > 0 ? popupAdmin : nil
-                            monthData.expensesOperational = popupOperating > 0 ? popupOperating : nil
-                            monthData.expensesOther = popupOther > 0 ? popupOther : nil
-                            
-                            yearData[monthNum] = monthData
-                            monthsCopy[yearKey] = yearData
-                            property.months = monthsCopy
-                            editingMonth = nil
-                            onSave()
+                            savePopupData(monthNum: monthNum)
                         }
                     )
                 }

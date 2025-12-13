@@ -187,7 +187,7 @@ class DataManager: ObservableObject {
     /// Создает пустые данные (fallback, если нет файла ни в Documents, ни в Bundle)
     func loadSampleData() {
         self.properties = []
-        self.settings = PropertyData.Settings(locale: "ru", summaryCurrency: "RUB")
+        self.settings = PropertyData.Settings(locale: "ru", summaryCurrency: "RUB", areaUnit: "m2")
         saveData()
     }
     

@@ -142,7 +142,7 @@ struct MiniChartView: View {
             if let selectedIndex = selectedMonth, selectedIndex < monthlyData.count {
                 let data = monthlyData[selectedIndex]
                 let netCashFlow = data.income - data.expense
-                Text("\(String(format: "cash_flow_income_label".localized)): \(data.income.formatCurrencyWithSymbol()) · \(String(format: "cash_flow_expenses_label".localized)): \(data.expense.formatCurrencyWithSymbol()) · \(String(format: "cash_flow_net_label".localized)): \(netCashFlow.formatCurrencyWithSymbol())")
+                Text("\(String(format: "cash_flow_income_label".localized)): \(data.income.formatCurrencyWithSymbol(currencyCode: property.getCurrencyCode())) · \(String(format: "cash_flow_expenses_label".localized)): \(data.expense.formatCurrencyWithSymbol(currencyCode: property.getCurrencyCode())) · \(String(format: "cash_flow_net_label".localized)): \(netCashFlow.formatCurrencyWithSymbol(currencyCode: property.getCurrencyCode()))")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.top, 2)

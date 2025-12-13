@@ -133,6 +133,7 @@
 "stat_exit_value" = "Стоимость выхода";
 "stat_average_price_per_m2" = "Средняя цена за м²";
 "unit_square_meters" = "м²";
+"unit_square_feet" = "ft²";
 "unit_years" = "лет";
 
 // MARK: - Cash Flow
@@ -176,6 +177,115 @@
 "analytics_only_selected_year" = "Только выбранный год";
 "analytics_include_maintenance" = "Включать административные";
 "analytics_include_operating" = "Включать эксплуатационные";
+
+// MARK: - Analytics Sections
+"analytics_section_basic" = "I. БАЗОВЫЕ ПОКАЗАТЕЛИ ОБЪЕКТА";
+"analytics_section_profitability" = "II. ДОХОДНОСТЬ И ИНВЕСТИЦИОННАЯ ПРИВЛЕКАТЕЛЬНОСТЬ";
+"analytics_section_reliability" = "III. НАДЁЖНОСТЬ И РИСК";
+"analytics_section_temporal" = "IV. ВРЕМЕННЫЕ И СТРУКТУРНЫЕ ПОКАЗАТЕЛИ";
+
+// MARK: - Analytics Metrics Labels
+"analytics_metric_monthly_income" = "Ежемесячный доход";
+"analytics_metric_monthly_expenses" = "Ежемесячные расходы";
+"analytics_metric_profit_per_m2" = "Рентабельность м²";
+"analytics_metric_efficiency" = "Коэф. эффективности";
+"analytics_metric_roi" = "ROI";
+"analytics_metric_cap_rate" = "Cap Rate";
+"analytics_metric_grm" = "GRM";
+"analytics_metric_payback" = "Окупаемость";
+"analytics_metric_irr" = "IRR";
+"analytics_metric_equity_multiple" = "Equity Multiple";
+"analytics_metric_tenant_risk" = "Риск арендатора";
+"analytics_metric_busy_percent" = "Загруженность";
+"analytics_metric_volatility" = "Волатильность дохода";
+"analytics_metric_concentration" = "Концентрация";
+"analytics_metric_break_even" = "Break-Even Occupancy";
+"analytics_metric_own_years" = "Срок владения";
+"analytics_metric_max_income" = "Макс. доход";
+"analytics_metric_max_expense" = "Макс. расход";
+"analytics_metric_income_expense_ratio" = "Доход / Расход";
+
+// MARK: - Analytics Notes
+"analytics_note_monthly_income" = "Показывает средний доход за месяц.";
+"analytics_note_monthly_expenses" = "Показывает средние расходы за месяц.";
+"analytics_note_profit_per_m2" = "Оценивает прибыль с одного квадратного метра.";
+"analytics_note_efficiency" = "Отражает эффективность использования площади.";
+"analytics_note_roi" = "Расчитывает доходность вложений за год.";
+"analytics_note_cap_rate" = "Определяет доходность объекта без учёта кредита и налогов.";
+"analytics_note_grm" = "Индикатор позволяет оценить, за сколько лет окупится объект при текущем доходе (без учета расходов).";
+"analytics_note_payback" = "Оценивает, через сколько лет окупится инвестиция.";
+"analytics_note_irr" = "Демонстрирует реальную доходность инвестиции с учетом времени.";
+"analytics_note_equity_multiple" = "Отражает, во сколько раз увеличится капитал за период владения.";
+"analytics_note_tenant_risk" = "Оценивает уровень риска на основе максимального срока контракта арендаторов.";
+"analytics_note_busy_percent" = "Определяет процент месяцев с доходом от общего периода владения.";
+"analytics_note_volatility" = "Отражает стабильность дохода.";
+"analytics_note_concentration" = "Оценивает долю самого крупного арендатора в общем доходе.";
+"analytics_note_break_even" = "Позволяет оценить минимальный процент загрузки для безубыточности.";
+"analytics_note_own_years" = "Отражает, сколько лет прошло с момента покупки объекта.";
+"analytics_note_max_income" = "Показывает месяц и год с максимальным доходом за весь период.";
+"analytics_note_max_expense" = "Показывает месяц и год с максимальными расходами за весь период.";
+"analytics_note_income_expense_ratio" = "Расчитывает соотношение доходов к расходам.";
+
+// MARK: - Analytics Formulas
+"analytics_formula_monthly_income" = "Ежемесячный доход = Годовой доход / Количество месяцев";
+"analytics_formula_monthly_expenses" = "Ежемесячные расходы = Годовой расход / Количество месяцев";
+"analytics_formula_profit_per_m2" = "Рентабельность м² = (Средний доход - Средний расход) / Площадь";
+"analytics_formula_efficiency" = "Коэффициент эффективности = Средний доход / Площадь";
+"analytics_formula_roi" = "ROI = ((Средний доход - Средний расход) × 12 / Цена покупки) × 100%";
+"analytics_formula_cap_rate" = "Cap Rate = (NOI / Цена покупки) × 100%\n\nNOI = Годовой доход - Годовой расход - Налоги - Страхование";
+"analytics_formula_grm" = "GRM = Цена покупки / Годовой доход";
+"analytics_formula_payback" = "Окупаемость = Цена покупки / Годовой чистый cash flow\n\nГодовой cash flow = (Средний доход - Средний расход) × 12";
+"analytics_formula_irr" = "IRR — ставка дисконтирования, при которой NPV = 0\n\nNPV = -Инвестиция + Σ(Годовой cash flow / (1 + IRR)^год) + Цена продажи / (1 + IRR)^срок_владения";
+"analytics_formula_equity_multiple" = "Equity Multiple = (Годовой cash flow × Срок владения + Цена продажи) / Цена покупки";
+"analytics_formula_tenant_risk" = "Риск оценивается по максимальному сроку контракта:\n• < 1 года → высокий риск\n• 1-3 года → средний риск\n• > 3 лет → низкий риск";
+"analytics_formula_busy_percent" = "Загруженность = (Месяцы с доходом > 0 / Общее количество месяцев) × 100%";
+"analytics_formula_volatility" = "Волатильность = Стандартное отклонение доходов / Среднее значение доходов\n\n• < 0.1 → низкая волатильность\n• 0.1-0.5 → умеренная\n• > 0.5 → высокая";
+"analytics_formula_concentration" = "Концентрация = (Максимальный доход арендатора / Сумма всех доходов арендаторов) × 100%";
+"analytics_formula_break_even" = "Break-Even Occupancy = (Годовой расход / Годовой доход) × 100%";
+"analytics_formula_own_years" = "Срок владения = (Текущая дата - Дата покупки) / 365";
+"analytics_formula_max_income" = "Максимальный доход = max(доходы по всем месяцам)\n\nОпределяется месяц и год с наибольшим значением дохода.";
+"analytics_formula_max_expense" = "Максимальный расход = max(расходы по всем месяцам)\n\nОпределяется месяц и год с наибольшим значением расходов.";
+"analytics_formula_income_expense_ratio" = "Доход / Расход = Годовой доход / Годовой расход\n\nЗначение > 1 означает прибыльность, < 1 — убыточность.";
+
+// MARK: - Formula Help
+"formula_help_title" = "Формула расчета";
+
+// MARK: - Currency
+"field_currency" = "Валюта";
+"currency_rub" = "Российский рубль";
+"currency_usd" = "Доллар США";
+"currency_eur" = "Евро";
+"currency_gbp" = "Фунт стерлингов";
+"currency_jpy" = "Японская иена";
+"currency_cny" = "Китайский юань";
+"currency_chf" = "Швейцарский франк";
+"currency_aud" = "Австралийский доллар";
+"currency_cad" = "Канадский доллар";
+
+// MARK: - Settings
+"settings_currency_section" = "Валюта";
+"settings_default_currency" = "Валюта по умолчанию";
+"settings_current_currency" = "Текущая валюта";
+"settings_currency_description" = "Валюта, используемая для отображения сумм в статистике и новых объектах. Изменения применяются сразу.";
+"settings_units_section" = "Единицы измерения";
+"settings_area_unit" = "Единица площади";
+"settings_current_area_unit" = "Текущая единица";
+"settings_area_unit_description" = "Единица измерения площади для отображения в приложении. Изменения применяются сразу.";
+"settings_locale_section" = "Язык";
+"settings_language" = "Язык интерфейса";
+"settings_language_russian" = "Русский";
+"settings_language_english" = "English";
+"settings_current_language" = "Текущий язык";
+"settings_locale_description" = "Язык интерфейса приложения. Изменения применяются сразу.";
+"settings_data_section" = "Данные";
+"settings_export_data" = "Экспорт данных";
+"settings_export_data_description" = "Поделиться файлом данных для резервного копирования";
+"settings_reload_data" = "Перезагрузить данные";
+"settings_reload_data_description" = "Восстановить данные из исходного файла (удалит все изменения)";
+"settings_data_size" = "Размер данных";
+"settings_about_section" = "О приложении";
+"settings_version" = "Версия";
+"settings_build_number" = "Сборка";
 
 // MARK: - Common
 "not_specified" = "Не указано";

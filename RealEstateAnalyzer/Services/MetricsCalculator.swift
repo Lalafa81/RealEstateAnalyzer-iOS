@@ -223,7 +223,7 @@ class MetricsCalculator {
         let busyPercent = totalMonths > 0 ? round((Double(busyMonths) / Double(totalMonths) * 100) * 10) / 10 : 0
         
         // Месяцы с максимумами (ищем напрямую в property.months, чтобы получить год)
-        let monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
+        let monthNames = DateFormatter.localizedMonthNames()
         let monthKeys = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
         
         var maxIncomeValue: Double = 0

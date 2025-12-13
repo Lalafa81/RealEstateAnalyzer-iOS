@@ -16,6 +16,7 @@ struct DashboardView: View {
             // Общая статистика
             Section(header: Text("statistics_title".localized)) {
                 StatisticsView(properties: dataManager.properties)
+                    .environmentObject(dataManager)
             }
             
             // Календарь на ближайшие дни
@@ -60,6 +61,7 @@ struct DashboardView: View {
 
 struct StatisticsView: View {
     let properties: [Property]
+    @EnvironmentObject var dataManager: DataManager
     
     var totalObjects: Int { properties.count }
     var totalPortfolioValue: Double {
@@ -68,59 +70,46 @@ struct StatisticsView: View {
     var totalArea: Double {
         properties.reduce(0) { $0 + $1.area }
     }
-    var totalIncome: Double {
-        properties.reduce(0) { sum, property in
-            let financialData = MetricsCalculator.extractMonthlyFinancials(property: property, year: nil)
-            return sum + financialData.totalIncome()
-        }
-    }
-    var totalExpenses: Double {
-        properties.reduce(0) { sum, property in
-            let financialData = MetricsCalculator.extractMonthlyFinancials(property: property, year: nil)
-            return sum + financialData.totalExpenses()
-        }
-    }
-    var totalProfit: Double { totalIncome - totalExpenses }
-    
-    // Средние показатели
-    var averageROI: Double {
-        let rois = properties.compactMap { property -> Double? in
+    // Кэшируем вычисленные аналитики для каждого свойства, чтобы не вычислять несколько раз
+    private var propertyAnalytics: [(financialData: FinancialData, analytics: Analytics)] {
+        properties.map { property in
             let financialData = MetricsCalculator.extractMonthlyFinancials(property: property, year: nil)
             let analytics = MetricsCalculator.computeAllMetrics(financialData: financialData, property: property)
-            return analytics.roi
+            return (financialData, analytics)
         }
-        guard !rois.isEmpty else { return 0 }
-        return rois.reduce(0, +) / Double(rois.count)
+    }
+    
+    var totalIncome: Double {
+        propertyAnalytics.reduce(0) { $0 + $1.financialData.totalIncome() }
+    }
+    
+    var totalExpenses: Double {
+        propertyAnalytics.reduce(0) { $0 + $1.financialData.totalExpenses() }
+    }
+    
+    var totalProfit: Double { totalIncome - totalExpenses }
+    
+    // Общая функция для вычисления средних значений метрик
+    private func averageMetric(_ keyPath: KeyPath<Analytics, Double>) -> Double {
+        let values = propertyAnalytics.map { $0.analytics[keyPath: keyPath] }
+        guard !values.isEmpty else { return 0 }
+        return values.reduce(0, +) / Double(values.count)
+    }
+    
+    var averageROI: Double {
+        averageMetric(\.roi)
     }
     
     var averageCapRate: Double {
-        let capRates = properties.compactMap { property -> Double? in
-            let financialData = MetricsCalculator.extractMonthlyFinancials(property: property, year: nil)
-            let analytics = MetricsCalculator.computeAllMetrics(financialData: financialData, property: property)
-            return analytics.capRate
-        }
-        guard !capRates.isEmpty else { return 0 }
-        return capRates.reduce(0, +) / Double(capRates.count)
+        averageMetric(\.capRate)
     }
     
     var averageOccupancy: Double {
-        let occupancies = properties.compactMap { property -> Double? in
-            let financialData = MetricsCalculator.extractMonthlyFinancials(property: property, year: nil)
-            let analytics = MetricsCalculator.computeAllMetrics(financialData: financialData, property: property)
-            return analytics.busyPercent
-        }
-        guard !occupancies.isEmpty else { return 0 }
-        return occupancies.reduce(0, +) / Double(occupancies.count)
+        averageMetric(\.busyPercent)
     }
     
     var averageHoldingPeriod: Double {
-        let periods = properties.compactMap { property -> Double? in
-            let financialData = MetricsCalculator.extractMonthlyFinancials(property: property, year: nil)
-            let analytics = MetricsCalculator.computeAllMetrics(financialData: financialData, property: property)
-            return analytics.ownYears
-        }
-        guard !periods.isEmpty else { return 0 }
-        return periods.reduce(0, +) / Double(periods.count)
+        averageMetric(\.ownYears)
     }
     
     var totalExitValue: Double {
@@ -132,23 +121,28 @@ struct StatisticsView: View {
         return totalPortfolioValue / totalArea
     }
     
+    // Получаем валюту из настроек для статистики
+    private var defaultCurrency: String {
+        dataManager.settings?.summaryCurrency ?? "RUB"
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Group {
                 StatRow(label: "stat_properties_count".localized, value: "\(totalObjects)")
-                StatRow(label: "stat_portfolio_value".localized, value: totalPortfolioValue.formatCurrencyWithSymbol())
-                StatRow(label: "stat_total_area".localized, value: String(format: "%.0f %@", totalArea, "unit_square_meters".localized))
-                StatRow(label: "stat_total_income".localized, value: totalIncome.formatCurrencyWithSymbol())
-                StatRow(label: "stat_total_expenses".localized, value: totalExpenses.formatCurrencyWithSymbol())
-                StatRow(label: "stat_net_profit".localized, value: totalProfit.formatCurrencyWithSymbol())
+                StatRow(label: "stat_portfolio_value".localized, value: totalPortfolioValue.formatCurrencyWithSymbol(currencyCode: defaultCurrency))
+                StatRow(label: "stat_total_area".localized, value: String(format: "%.0f %@", totalArea.formatArea(), Double.getAreaUnitName()))
+                StatRow(label: "stat_total_income".localized, value: totalIncome.formatCurrencyWithSymbol(currencyCode: defaultCurrency))
+                StatRow(label: "stat_total_expenses".localized, value: totalExpenses.formatCurrencyWithSymbol(currencyCode: defaultCurrency))
+                StatRow(label: "stat_net_profit".localized, value: totalProfit.formatCurrencyWithSymbol(currencyCode: defaultCurrency))
                 StatRow(label: "stat_average_roi".localized, value: String(format: "%.2f%%", averageROI))
                 StatRow(label: "stat_average_cap_rate".localized, value: String(format: "%.2f%%", averageCapRate))
                 StatRow(label: "stat_average_occupancy".localized, value: String(format: "%.1f%%", averageOccupancy))
                 StatRow(label: "stat_average_holding_period".localized, value: String(format: "%.1f %@", averageHoldingPeriod, "unit_years".localized))
             }
             Group {
-                StatRow(label: "stat_exit_value".localized, value: totalExitValue > 0 ? totalExitValue.formatCurrencyWithSymbol() : "empty".localized)
-                StatRow(label: "stat_average_price_per_m2".localized, value: averagePricePerM2.formatCurrencyWithSymbol() + " / " + "unit_square_meters".localized)
+                StatRow(label: "stat_exit_value".localized, value: totalExitValue > 0 ? totalExitValue.formatCurrencyWithSymbol(currencyCode: defaultCurrency) : "empty".localized)
+                StatRow(label: "stat_average_price_per_m2".localized, value: averagePricePerM2.formatCurrencyWithSymbol(currencyCode: defaultCurrency) + " / " + Double.getAreaUnitName())
             }
         }
         .padding(.vertical, 4)
@@ -234,10 +228,10 @@ struct PropertyRowView: View {
                         // Доход: желтый если 0, иначе синий
                         let incomeColor: Color = analytics.monthlyIncome == 0 ? .yellow : .blue
                         HStack(spacing: 4) {
-                            Image(systemName: "arrow.up.circle.fill")
+                            Image(systemName: "dollarsign.circle.fill")
                                 .font(.caption)
                                 .foregroundColor(incomeColor)
-                            Text(analytics.monthlyIncome.formatShortCurrencyLocalized())
+                            Text(analytics.monthlyIncome.formatShortCurrencyWithPrefix(currencyCode: property.getCurrencyCode()))
                                 .font(.subheadline)
                                 .foregroundColor(incomeColor)
                         }
@@ -264,7 +258,7 @@ struct PropertyRowView: View {
                         Image(systemName: "square.grid.2x2.fill")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        Text("\(String(format: "%.0f", property.area)) " + "unit_square_meters".localized)
+                        Text("\(property.area.formatArea()) \(Double.getAreaUnitName())")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -293,32 +287,31 @@ struct PropertyRowView: View {
         return MetricsCalculator.computeAllMetrics(financialData: financialData, property: property)
     }
     
-    // Цвет текста для статуса
-    private func statusTextColor(for status: PropertyStatus) -> Color {
-        switch status {
-        case .rented:
-            return Color.green
-        case .vacant:
-            return Color.secondary
-        case .underRepair:
-            return Color.orange
-        case .sold:
-            return Color.secondary
+    // Цвета для статуса (объединены в одну структуру для избежания дублирования switch)
+    private struct StatusColors {
+        let text: Color
+        let background: Color
+        
+        static func forStatus(_ status: PropertyStatus) -> StatusColors {
+            switch status {
+            case .rented:
+                return StatusColors(text: .green, background: .green.opacity(0.15))
+            case .vacant:
+                return StatusColors(text: .secondary, background: Color(.systemGray5))
+            case .underRepair:
+                return StatusColors(text: .orange, background: .orange.opacity(0.15))
+            case .sold:
+                return StatusColors(text: .secondary, background: Color(.systemGray5))
+            }
         }
     }
     
-    // Цвет фона для статуса
+    private func statusTextColor(for status: PropertyStatus) -> Color {
+        StatusColors.forStatus(status).text
+    }
+    
     private func statusBackgroundColor(for status: PropertyStatus) -> Color {
-        switch status {
-        case .rented:
-            return Color.green.opacity(0.15)
-        case .vacant:
-            return Color(.systemGray5)
-        case .underRepair:
-            return Color.orange.opacity(0.15)
-        case .sold:
-            return Color(.systemGray5)
-        }
+        StatusColors.forStatus(status).background
     }
 }
 

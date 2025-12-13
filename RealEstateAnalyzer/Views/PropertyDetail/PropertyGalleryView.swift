@@ -12,22 +12,19 @@ struct PropertyGalleryView: View {
     @Binding var property: Property
     @EnvironmentObject var dataManager: DataManager
     let onSave: () -> Void
-    @State private var selectedImageIndex: Int = 0
     @State private var showingImagePicker = false
     @State private var showingFullScreen = false
     @State private var fullScreenImageIndex = 0
     @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
-    @State private var refreshID = UUID() // Для принудительного обновления view
+    @State private var refreshID = UUID()
     
-    // Структура для хранения изображения с его индексом и именем файла
     struct ImageWithInfo: Identifiable {
-        let id: String      // Уникальный ID для SwiftUI (fileName_index)
-        let fileName: String // Реальное имя файла для DataManager
+        let id: String
+        let fileName: String
         let image: UIImage
         let index: Int
     }
     
-    // Извлекаем все изображения с информацией о файлах
     var imagesWithInfo: [ImageWithInfo] {
         let galleryFileNames = dataManager.getPropertyGallery(propertyId: property.id)
         
@@ -35,7 +32,6 @@ struct PropertyGalleryView: View {
             guard let image = dataManager.loadImageFile(fileName) else {
                 return nil
             }
-            // id делаем уникальным даже при дублях имён
             let uniqueId = "\(fileName)_\(index)"
             return ImageWithInfo(id: uniqueId, fileName: fileName, image: image, index: index)
         }
@@ -51,7 +47,6 @@ struct PropertyGalleryView: View {
             HStack {
                 Spacer()
                 
-                // Кнопка добавления изображения
                 Menu {
                     Button(action: {
                         sourceType = .photoLibrary
@@ -76,7 +71,6 @@ struct PropertyGalleryView: View {
             }
             
             if images.isEmpty {
-                // Пустая галерея
                 VStack(spacing: 12) {
                     Image(systemName: "photo.on.rectangle.angled")
                         .font(.system(size: 50))
@@ -92,7 +86,6 @@ struct PropertyGalleryView: View {
                 .background(Color(.systemGray5))
                 .cornerRadius(12)
             } else {
-                // Сетка изображений
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         ForEach(imagesWithInfo, id: \.id) { item in
@@ -112,7 +105,7 @@ struct PropertyGalleryView: View {
                     }
                     .padding(.horizontal, 4)
                 }
-                .id(refreshID) // Принудительное обновление при изменении refreshID
+                .id(refreshID)
             }
         }
         .padding()
@@ -124,45 +117,31 @@ struct PropertyGalleryView: View {
         .sheet(isPresented: $showingFullScreen) {
             FullScreenImageView(
                 images: images,
-                currentIndex: $fullScreenImageIndex,
-                onDelete: { _ in } // Пустой обработчик, так как удаление убрано
+                currentIndex: $fullScreenImageIndex
             )
-            .id(refreshID) // Принудительное обновление fullScreen view
+            .id(refreshID)
         }
     }
     
-    // Добавляет новое изображение
     private func addImage(_ image: UIImage) {
-        // Закрываем picker сразу, чтобы избежать повторных вызовов
         showingImagePicker = false
-        
-        // Все изображения добавляются в галерею
         _ = dataManager.addPropertyGalleryImage(propertyId: property.id, image: image)
-        
-        // Обновляем view
         refreshID = UUID()
         onSave()
     }
     
-    // Удаляет изображение по имени файла
     private func deleteImage(fileName: String) {
-        // Удаляем из DataManager
         dataManager.deletePropertyImage(propertyId: property.id, fileName: fileName)
-        
-        // Принудительно обновляем view
         refreshID = UUID()
         
-        // Обновляем fullScreenImageIndex если нужно
         if fullScreenImageIndex >= imagesWithInfo.count {
             fullScreenImageIndex = max(0, imagesWithInfo.count - 1)
         }
         
-        // Сохраняем изменения
         onSave()
     }
 }
 
-// Компонент для отображения одного изображения в галерее
 struct GalleryImageView: View {
     let image: UIImage
     let index: Int
@@ -172,7 +151,6 @@ struct GalleryImageView: View {
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            // Изображение
             Image(uiImage: image)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
@@ -180,7 +158,6 @@ struct GalleryImageView: View {
                 .clipped()
                 .cornerRadius(12)
             
-            // Кнопка удаления
             Button(action: {
                 showingDeleteAlert = true
             }) {
@@ -209,11 +186,9 @@ struct GalleryImageView: View {
     }
 }
 
-// Полноэкранный просмотр изображений
 struct FullScreenImageView: View {
     let images: [UIImage]
     @Binding var currentIndex: Int
-    let onDelete: (Int) -> Void
     @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
@@ -251,7 +226,6 @@ struct FullScreenImageView: View {
     }
 }
 
-// UIImagePickerController wrapper для SwiftUI
 struct ImagePicker: UIViewControllerRepresentable {
     let sourceType: UIImagePickerController.SourceType
     let onImagePicked: (UIImage) -> Void
@@ -279,7 +253,6 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            // Предотвращаем повторные вызовы
             guard !hasCalledCallback else {
                 picker.dismiss(animated: true)
                 return

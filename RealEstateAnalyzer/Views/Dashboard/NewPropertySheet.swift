@@ -183,6 +183,9 @@ struct NewPropertySheet: View {
     }
     
     private func createProperty() {
+        // Используем валюту из настроек по умолчанию
+        let defaultCurrency = DataManager.shared.settings?.summaryCurrency ?? "RUB"
+        
         let newProperty = Property(
             id: "", // Пустой ID - DataManager сам сгенерирует правильный формат "001", "002" и т.д.
             name: name,
@@ -202,7 +205,8 @@ struct NewPropertySheet: View {
             condition: nil,
             icon: nil,
             image: nil,
-            gallery: nil
+            gallery: nil,
+            currency: defaultCurrency
         )
         onCreate(newProperty)
         isPresented = false

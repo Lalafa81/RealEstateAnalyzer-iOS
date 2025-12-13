@@ -25,6 +25,7 @@ struct RealEstateAnalyzerApp: App {
 struct ContentView: View {
     @EnvironmentObject var dataManager: DataManager
     @State private var selectedTab = 0
+    @State private var languageChangeID = UUID()
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -68,10 +69,23 @@ struct ContentView: View {
             }
             .tag(3)
         }
+        .id(languageChangeID) // Обновляем весь UI при изменении языка
         .onAppear {
             // Настройка цвета вкладок на серый
             UITabBar.appearance().unselectedItemTintColor = .gray
             UITabBar.appearance().backgroundColor = .white
+        }
+        .onChange(of: dataManager.settings?.locale) { _ in
+            // Обновляем UI при изменении языка в настройках
+            languageChangeID = UUID()
+        }
+        .onChange(of: dataManager.settings?.summaryCurrency) { _ in
+            // Обновляем UI при изменении валюты в настройках
+            languageChangeID = UUID()
+        }
+        .onChange(of: dataManager.settings?.areaUnit) { _ in
+            // Обновляем UI при изменении единиц измерения площади
+            languageChangeID = UUID()
         }
     }
 }

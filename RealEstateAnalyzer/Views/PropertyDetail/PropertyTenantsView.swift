@@ -230,7 +230,7 @@ struct TenantCardView: View {
                     fieldId: "area",
                     value: tenant.area ?? 0,
                     label: "tenant_area".localized,
-                    suffix: " \("unit_square_meters".localized)",
+                    suffix: " \(Double.getAreaUnitName())",
                     activeField: $activeEditingField,
                     onSave: { newValue in
                         tenant.area = newValue > 0 ? newValue : nil
@@ -906,7 +906,7 @@ struct TenantRowView: View {
                 }
             
             // Площадь
-            Text(tenant.area != nil ? String(format: "%.0f %@", tenant.area!, "unit_square_meters".localized) : "—")
+            Text(tenant.area != nil ? "\(tenant.area!.formatArea()) \(Double.getAreaUnitName())" : "—")
                 .font(.subheadline)
                 .opacity(tenant.isArchived ? 0.3 : 1.0)
                 .frame(width: 90, alignment: .trailing)

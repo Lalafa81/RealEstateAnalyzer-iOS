@@ -200,6 +200,138 @@ enum PropertyCondition: String, CaseIterable, Identifiable, Codable {
     }
 }
 
+// MARK: - Area Unit
+
+enum AreaUnit: String, CaseIterable, Identifiable, Codable, Hashable {
+    case squareMeters = "m2"
+    case squareFeet = "ft2"
+    
+    var id: String { rawValue }
+    
+    var localizedName: String {
+        switch self {
+        case .squareMeters:
+            return "unit_square_meters".localized
+        case .squareFeet:
+            return "unit_square_feet".localized
+        }
+    }
+    
+    var symbol: String {
+        switch self {
+        case .squareMeters:
+            return "м²"
+        case .squareFeet:
+            return "ft²"
+        }
+    }
+    
+    /// Конвертирует площадь из квадратных метров в выбранные единицы
+    func convertFromMeters(_ meters: Double) -> Double {
+        switch self {
+        case .squareMeters:
+            return meters
+        case .squareFeet:
+            return meters * 10.764 // 1 м² = 10.764 ft²
+        }
+    }
+    
+    /// Конвертирует площадь из выбранных единиц в квадратные метры
+    func convertToMeters(_ value: Double) -> Double {
+        switch self {
+        case .squareMeters:
+            return value
+        case .squareFeet:
+            return value / 10.764
+        }
+    }
+}
+
+// MARK: - Currency
+
+enum Currency: String, CaseIterable, Identifiable, Codable, Hashable {
+    case rub = "RUB"
+    case usd = "USD"
+    case eur = "EUR"
+    case gbp = "GBP"
+    case jpy = "JPY"
+    case cny = "CNY"
+    case chf = "CHF"
+    case aud = "AUD"
+    case cad = "CAD"
+    
+    var id: String { rawValue }
+    
+    /// Локализованное отображаемое значение
+    var localizedName: String {
+        let key = "currency_\(rawValue.lowercased())"
+        return key.localized
+    }
+    
+    /// Символ валюты
+    var symbol: String {
+        // Используем специальные локали для получения правильных символов валют
+        let locale: Locale
+        switch self {
+        case .rub:
+            locale = Locale(identifier: "ru_RU")
+        case .usd:
+            locale = Locale(identifier: "en_US")
+        case .eur:
+            locale = Locale(identifier: "de_DE")
+        case .gbp:
+            locale = Locale(identifier: "en_GB")
+        case .jpy:
+            locale = Locale(identifier: "ja_JP")
+        case .cny:
+            locale = Locale(identifier: "zh_CN")
+        case .chf:
+            locale = Locale(identifier: "de_CH")
+        case .aud:
+            locale = Locale(identifier: "en_AU")
+        case .cad:
+            locale = Locale(identifier: "en_CA")
+        }
+        
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = rawValue
+        formatter.locale = locale
+        let symbol = formatter.currencySymbol ?? rawValue
+        
+        // Если получили код валюты вместо символа, используем известные символы
+        if symbol == rawValue {
+            switch self {
+            case .rub:
+                return "₽"
+            case .usd:
+                return "$"
+            case .eur:
+                return "€"
+            case .gbp:
+                return "£"
+            case .jpy:
+                return "¥"
+            case .cny:
+                return "¥"
+            case .chf:
+                return "CHF"
+            case .aud:
+                return "A$"
+            case .cad:
+                return "C$"
+            }
+        }
+        
+        return symbol
+    }
+    
+    /// Полное название валюты с символом (например, "₽ Российский рубль", "$ Доллар США")
+    var displayName: String {
+        return "\(symbol) \(localizedName)"
+    }
+}
+
 struct Property: Identifiable, Codable {
     var id: String
     var name: String
@@ -222,6 +354,7 @@ struct Property: Identifiable, Codable {
     var gallery: [String]? // Массив base64-кодированных изображений для галереи
     var notes: String? // Заметки об объекте (максимум 200 символов)
     var floors: Int? // Этажность: от 1 до 1 = "1 этаж", от 1 до 2 = "двухэтажное", -1 = "подвал"
+    var currency: String? // Валюта объекта (код валюты, например "RUB", "USD", "EUR")
     
     struct MonthData: Codable {
         // Доходы
@@ -440,6 +573,7 @@ struct PropertyData: Codable {
         var locale: String?
         var currency: String?
         var summaryCurrency: String?
+        var areaUnit: String? // "m2" или "ft2"
     }
     
     // Игнорируем неизвестные ключи при декодировании

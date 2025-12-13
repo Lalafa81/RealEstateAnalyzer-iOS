@@ -55,42 +55,42 @@ struct AnalyticsView: View {
             }
             
             // I. БАЗОВЫЕ ПОКАЗАТЕЛИ ОБЪЕКТА
-            SectionView(title: "I. БАЗОВЫЕ ПОКАЗАТЕЛИ ОБЪЕКТА") {
+            SectionView(title: "analytics_section_basic".localized) {
                 MetricRow(
-                    label: "Ежемесячный доход",
+                    label: "analytics_metric_monthly_income".localized,
                     value: analytics.monthlyIncome.formatCurrency(),
-                    note: "Показывает средний доход за месяц.",
-                    formula: "Ежемесячный доход = Годовой доход / Количество месяцев",
+                    note: "analytics_note_monthly_income".localized,
+                    formula: "analytics_formula_monthly_income".localized,
                     onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
                     }
                 )
                 MetricRow(
-                    label: "Ежемесячные расходы",
+                    label: "analytics_metric_monthly_expenses".localized,
                     value: analytics.monthlyExpenses.formatCurrency(),
-                    note: "Показывает средние расходы за месяц.",
-                    formula: "Ежемесячные расходы = Годовой расход / Количество месяцев",
+                    note: "analytics_note_monthly_expenses".localized,
+                    formula: "analytics_formula_monthly_expenses".localized,
                     onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
                     }
                 )
                 MetricRow(
-                    label: "Рентабельность м²",
+                    label: "analytics_metric_profit_per_m2".localized,
                     value: String(format: "%.2f ₽", analytics.profitPerM2),
-                    note: "Оценивает прибыль с одного квадратного метра.",
-                    formula: "Рентабельность м² = (Средний доход - Средний расход) / Площадь",
+                    note: "analytics_note_profit_per_m2".localized,
+                    formula: "analytics_formula_profit_per_m2".localized,
                     onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
                     }
                 )
                 MetricRow(
-                    label: "Коэф. эффективности",
+                    label: "analytics_metric_efficiency".localized,
                     value: String(format: "%.2f (%@)", analytics.efficiency, analytics.efficiencyLevel),
-                    note: "Отражает эффективность использования площади.",
-                    formula: "Коэффициент эффективности = Средний доход / Площадь",
+                    note: "analytics_note_efficiency".localized,
+                    formula: "analytics_formula_efficiency".localized,
                     onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
@@ -99,22 +99,22 @@ struct AnalyticsView: View {
             }
             
             // II. ДОХОДНОСТЬ И ИНВЕСТИЦИОННАЯ ПРИВЛЕКАТЕЛЬНОСТЬ
-            SectionView(title: "II. ДОХОДНОСТЬ И ИНВЕСТИЦИОННАЯ ПРИВЛЕКАТЕЛЬНОСТЬ") {
+            SectionView(title: "analytics_section_profitability".localized) {
                 MetricRow(
-                    label: "ROI",
+                    label: "analytics_metric_roi".localized,
                     value: String(format: "%.2f%%", analytics.roi),
-                    note: "Расчитывает доходность вложений за год.",
-                    formula: "ROI = ((Средний доход - Средний расход) × 12 / Цена покупки) × 100%",
+                    note: "analytics_note_roi".localized,
+                    formula: "analytics_formula_roi".localized,
                     onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
                     }
                 )
                 MetricRow(
-                    label: "Cap Rate",
+                    label: "analytics_metric_cap_rate".localized,
                     value: String(format: "%.2f%%", analytics.capRate),
-                    note: "Определяет доходность объекта без учёта кредита и налогов.",
-                    formula: "Cap Rate = (NOI / Цена покупки) × 100%\n\nNOI = Годовой доход - Годовой расход - Налоги - Страхование",
+                    note: "analytics_note_cap_rate".localized,
+                    formula: "analytics_formula_cap_rate".localized,
                     onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
@@ -122,10 +122,10 @@ struct AnalyticsView: View {
                 )
                 if let grm = analytics.grm {
                     MetricRow(
-                        label: "GRM",
+                        label: "analytics_metric_grm".localized,
                         value: String(format: "%.2f", grm),
-                        note: "Индикатор позволяет оценить, за сколько лет окупится объект при текущем доходе (без учета расходов).",
-                        formula: "GRM = Цена покупки / Годовой доход",
+                        note: "analytics_note_grm".localized,
+                        formula: "analytics_formula_grm".localized,
                         onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
@@ -134,10 +134,10 @@ struct AnalyticsView: View {
                 }
                 if let payback = analytics.payback {
                     MetricRow(
-                        label: "Окупаемость",
-                        value: String(format: "%.2f лет", payback),
-                        note: "Оценивает, через сколько лет окупится инвестиция.",
-                        formula: "Окупаемость = Цена покупки / Годовой чистый cash flow\n\nГодовой cash flow = (Средний доход - Средний расход) × 12",
+                        label: "analytics_metric_payback".localized,
+                        value: String(format: "%.2f %@", payback, "unit_years".localized),
+                        note: "analytics_note_payback".localized,
+                        formula: "analytics_formula_payback".localized,
                         onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
@@ -146,10 +146,10 @@ struct AnalyticsView: View {
                 }
                 if let irr = analytics.irr {
                     MetricRow(
-                        label: "IRR",
+                        label: "analytics_metric_irr".localized,
                         value: String(format: "%.2f%%", irr),
-                        note: "Демонстрирует реальную доходность инвестиции с учетом времени.",
-                        formula: "IRR — ставка дисконтирования, при которой NPV = 0\n\nNPV = -Инвестиция + Σ(Годовой cash flow / (1 + IRR)^год) + Цена продажи / (1 + IRR)^срок_владения",
+                        note: "analytics_note_irr".localized,
+                        formula: "analytics_formula_irr".localized,
                         onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
@@ -158,10 +158,10 @@ struct AnalyticsView: View {
                 }
                 if let equityMultiple = analytics.equityMultiple {
                     MetricRow(
-                        label: "Equity Multiple",
+                        label: "analytics_metric_equity_multiple".localized,
                         value: String(format: "%.2f", equityMultiple),
-                        note: "Отражает, во сколько раз увеличится капитал за период владения.",
-                        formula: "Equity Multiple = (Годовой cash flow × Срок владения + Цена продажи) / Цена покупки",
+                        note: "analytics_note_equity_multiple".localized,
+                        formula: "analytics_formula_equity_multiple".localized,
                         onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
@@ -171,42 +171,42 @@ struct AnalyticsView: View {
             }
             
             // III. НАДЁЖНОСТЬ И РИСК
-            SectionView(title: "III. НАДЁЖНОСТЬ И РИСК") {
+            SectionView(title: "analytics_section_reliability".localized) {
                 MetricRow(
-                    label: "Риск арендатора",
+                    label: "analytics_metric_tenant_risk".localized,
                     value: analytics.tenantRisk,
-                    note: "Оценивает уровень риска на основе максимального срока контракта арендаторов.",
-                    formula: "Риск оценивается по максимальному сроку контракта:\n• < 1 года → высокий риск\n• 1-3 года → средний риск\n• > 3 лет → низкий риск",
+                    note: "analytics_note_tenant_risk".localized,
+                    formula: "analytics_formula_tenant_risk".localized,
                     onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
                     }
                 )
                 MetricRow(
-                    label: "Загруженность",
+                    label: "analytics_metric_busy_percent".localized,
                     value: String(format: "%.1f%%", analytics.busyPercent),
-                    note: "Определяет процент месяцев с доходом от общего периода владения.",
-                    formula: "Загруженность = (Месяцы с доходом > 0 / Общее количество месяцев) × 100%",
+                    note: "analytics_note_busy_percent".localized,
+                    formula: "analytics_formula_busy_percent".localized,
                     onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
                     }
                 )
                 MetricRow(
-                    label: "Волатильность дохода",
+                    label: "analytics_metric_volatility".localized,
                     value: String(format: "%.2f (%@)", analytics.volatility, analytics.volatilityLevel),
-                    note: "Отражает стабильность дохода.",
-                    formula: "Волатильность = Стандартное отклонение доходов / Среднее значение доходов\n\n• < 0.1 → низкая волатильность\n• 0.1-0.5 → умеренная\n• > 0.5 → высокая",
+                    note: "analytics_note_volatility".localized,
+                    formula: "analytics_formula_volatility".localized,
                     onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
                     }
                 )
                 MetricRow(
-                    label: "Концентрация",
+                    label: "analytics_metric_concentration".localized,
                     value: String(format: "%.1f%%", analytics.tenantConcentration),
-                    note: "Оценивает долю самого крупного арендатора в общем доходе.",
-                    formula: "Концентрация = (Максимальный доход арендатора / Сумма всех доходов арендаторов) × 100%",
+                    note: "analytics_note_concentration".localized,
+                    formula: "analytics_formula_concentration".localized,
                     onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
@@ -214,10 +214,10 @@ struct AnalyticsView: View {
                 )
                 if let breakEven = analytics.breakEvenOccupancy {
                     MetricRow(
-                        label: "Break-Even Occupancy",
+                        label: "analytics_metric_break_even".localized,
                         value: String(format: "%.1f%%", breakEven),
-                        note: "Позволяет оценить минимальный процент загрузки для безубыточности.",
-                        formula: "Break-Even Occupancy = (Годовой расход / Годовой доход) × 100%",
+                        note: "analytics_note_break_even".localized,
+                        formula: "analytics_formula_break_even".localized,
                         onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
@@ -227,12 +227,12 @@ struct AnalyticsView: View {
             }
             
             // IV. ВРЕМЕННЫЕ И СТРУКТУРНЫЕ ПОКАЗАТЕЛИ
-            SectionView(title: "IV. ВРЕМЕННЫЕ И СТРУКТУРНЫЕ ПОКАЗАТЕЛИ") {
+            SectionView(title: "analytics_section_temporal".localized) {
                 MetricRow(
-                    label: "Срок владения",
-                    value: String(format: "%.1f лет", analytics.ownYears),
-                    note: "Отражает, сколько лет прошло с момента покупки объекта.",
-                    formula: "Срок владения = (Текущая дата - Дата покупки) / 365",
+                    label: "analytics_metric_own_years".localized,
+                    value: String(format: "%.1f %@", analytics.ownYears, "unit_years".localized),
+                    note: "analytics_note_own_years".localized,
+                    formula: "analytics_formula_own_years".localized,
                     onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
@@ -240,10 +240,10 @@ struct AnalyticsView: View {
                 )
                 if let maxIncomeMonth = analytics.maxIncomeMonth {
                     MetricRow(
-                        label: "Макс. доход",
+                        label: "analytics_metric_max_income".localized,
                         value: maxIncomeMonth,
-                        note: "Показывает месяц и год с максимальным доходом за весь период.",
-                        formula: "Максимальный доход = max(доходы по всем месяцам)\n\nОпределяется месяц и год с наибольшим значением дохода.",
+                        note: "analytics_note_max_income".localized,
+                        formula: "analytics_formula_max_income".localized,
                         onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
@@ -252,10 +252,10 @@ struct AnalyticsView: View {
                 }
                 if let maxExpenseMonth = analytics.maxExpenseMonth {
                     MetricRow(
-                        label: "Макс. расход",
+                        label: "analytics_metric_max_expense".localized,
                         value: maxExpenseMonth,
-                        note: "Показывает месяц и год с максимальными расходами за весь период.",
-                        formula: "Максимальный расход = max(расходы по всем месяцам)\n\nОпределяется месяц и год с наибольшим значением расходов.",
+                        note: "analytics_note_max_expense".localized,
+                        formula: "analytics_formula_max_expense".localized,
                         onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
@@ -263,10 +263,10 @@ struct AnalyticsView: View {
                     )
                 }
                 MetricRow(
-                    label: "Доход / Расход",
+                    label: "analytics_metric_income_expense_ratio".localized,
                     value: String(format: "%.2f", analytics.incomeExpenseRatio),
-                    note: "Расчитывает соотношение доходов к расходам.",
-                    formula: "Доход / Расход = Годовой доход / Годовой расход\n\nЗначение > 1 означает прибыльность, < 1 — убыточность.",
+                    note: "analytics_note_income_expense_ratio".localized,
+                    formula: "analytics_formula_income_expense_ratio".localized,
                     onShowFormula: { formula, position in
                         showingFormula = formula
                         buttonPosition = position
