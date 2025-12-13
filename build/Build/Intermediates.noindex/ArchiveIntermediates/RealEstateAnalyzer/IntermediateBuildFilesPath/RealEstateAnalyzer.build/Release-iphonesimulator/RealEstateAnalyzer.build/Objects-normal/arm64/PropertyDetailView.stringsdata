@@ -1,0 +1,16 @@
+{
+  "source": "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Views/PropertyDetail/PropertyDetailView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "ID: %@"
+      },
+      {
+        "comment": "",
+        "key": "Удалить объект"
+      }
+    ]
+  },
+  "version": 1
+}

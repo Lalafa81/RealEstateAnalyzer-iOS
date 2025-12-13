@@ -1,0 +1,40 @@
+{
+  "source": "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Views/PropertyDetail/PropertyCashFlowView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "ДВИЖЕНИЕ ДЕНЕЖНЫХ СРЕДСТВ"
+      },
+      {
+        "comment": "",
+        "key": "Чистый cashflow за %@ год"
+      },
+      {
+        "comment": "",
+        "key": "₽"
+      },
+      {
+        "comment": "",
+        "key": "Чистый cashflow за весь период"
+      },
+      {
+        "comment": "",
+        "key": "Месяц"
+      },
+      {
+        "comment": "",
+        "key": "Доход"
+      },
+      {
+        "comment": "",
+        "key": "Расход"
+      },
+      {
+        "comment": "",
+        "key": "+"
+      }
+    ]
+  },
+  "version": 1
+}

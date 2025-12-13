@@ -1,0 +1,60 @@
+{
+  "source": "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Views/PropertyDetail/PropertyTenantsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Нет арендаторов"
+      },
+      {
+        "comment": "",
+        "key": "АРЕНДАТОРЫ"
+      },
+      {
+        "comment": "",
+        "key": "Добавить"
+      },
+      {
+        "comment": "",
+        "key": ""
+      },
+      {
+        "comment": "",
+        "key": "Компания"
+      },
+      {
+        "comment": "",
+        "key": "Доход"
+      },
+      {
+        "comment": "",
+        "key": "Площадь"
+      },
+      {
+        "comment": "",
+        "key": "Депозит"
+      },
+      {
+        "comment": "",
+        "key": "Начало"
+      },
+      {
+        "comment": "",
+        "key": "Конец"
+      },
+      {
+        "comment": "",
+        "key": "Индексация"
+      },
+      {
+        "comment": "",
+        "key": "Депозит: %@"
+      },
+      {
+        "comment": "",
+        "key": "Сумма депозита"
+      }
+    ]
+  },
+  "version": 1
+}

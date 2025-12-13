@@ -22,15 +22,15 @@ struct TenantsView: View {
             HStack {
                 Spacer()
                 Button(action: {
-                    // Сразу добавляем нового арендатора в массив
-                    let newTenant = Tenant(name: "", income: nil, startDate: nil, endDate: nil, area: nil, indexation: nil, companyType: nil, deposit: nil, depositType: nil)
+                    // Сразу добавляем нового арендатора в массив (активный по умолчанию)
+                    let newTenant = Tenant(name: "", income: nil, startDate: nil, endDate: nil, area: nil, indexation: nil, companyType: nil, deposit: nil, depositType: nil, isArchived: false)
                     tenants.append(newTenant)
                     onSave()
                 }) {
                     HStack(spacing: 6) {
                         Image(systemName: "person.badge.plus")
                             .font(.system(size: 13, weight: .semibold))
-                        Text("Добавить")
+                        Text("tenant_add".localized)
                             .font(.subheadline)
                             .fontWeight(.semibold)
                     }
@@ -42,9 +42,9 @@ struct TenantsView: View {
                 }
             }
             
-            // Таблица или карточки арендаторов
+            // Таблица или карточки арендаторов (все, архивные бледные)
             if tenants.isEmpty {
-                Text("Нет арендаторов")
+                Text("tenant_no_tenants".localized)
                     .foregroundColor(.secondary)
                     .padding()
             } else {
@@ -116,8 +116,10 @@ struct TenantCardView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            // Заголовок с названием и кнопкой удаления
-            HStack {
+            // Заголовок с названием, переключателем статуса и кнопкой удаления
+            HStack(alignment: .center) {
+                // Название слева
+                VStack(alignment: .leading, spacing: 0) {
                 if activeEditingField == "name" {
                     HStack {
                         TextField("", text: Binding(
@@ -151,24 +153,49 @@ struct TenantCardView: View {
                         }
                     }
                 } else {
-                    HStack {
                         Button(action: { activeEditingField = "name" }) {
-                            Image(systemName: "pencil.circle.fill")
-                                .font(.caption2)
-                                .foregroundColor(.blue.opacity(0.6))
-                        }
-                        Text(tenant.name.isEmpty ? "Без названия" : tenant.name)
+                            Text(tenant.name.isEmpty ? "tenant_name".localized : tenant.name)
                             .font(.headline)
-                            .strikethrough(tenant.isArchived)
                             .opacity(tenant.isArchived ? 0.6 : 1)
+                        }
+                    }
+                }
+                
                         Spacer()
+                
+                // Меню с опциями справа
+                Menu {
+                    Button(action: {
+                        tenant.isArchived.toggle()
+                        if tenant.isArchived {
+                            // При перемещении в архив сохраняем дату
+                            let formatter = DateFormatter()
+                            formatter.dateFormat = "dd.MM.yyyy"
+                            formatter.locale = Locale(identifier: "ru_RU")
+                            tenant.moveToArchiveDate = formatter.string(from: Date())
+                        } else {
+                            // При возврате из архива очищаем дату
+                            tenant.moveToArchiveDate = nil
+                        }
+                        onSave?()
+                    }) {
+                        Label(
+                            tenant.isArchived ? "tenant_unarchive_action".localized : "tenant_archive_action".localized,
+                            systemImage: tenant.isArchived ? "tray.and.arrow.up" : "archivebox"
+                        )
+                    }
+                    
+                    Divider()
+                    
                         Button(action: {
                             showDeleteConfirmation = true
                         }) {
-                            Image(systemName: "trash")
+                        Label("delete".localized, systemImage: "trash")
                                 .foregroundColor(.red)
                         }
-                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundColor(.secondary)
                 }
             }
             .sheet(isPresented: $showDeleteConfirmation) {
@@ -181,15 +208,15 @@ struct TenantCardView: View {
             
             // Мини-таблица 2x3 с inline редактированием
             LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 16),
-                GridItem(.flexible(), spacing: 16)
-            ], spacing: 4) {
+                GridItem(.flexible(), alignment: .leading),
+                GridItem(.flexible(), alignment: .leading)
+            ], alignment: .leading, spacing: 8, pinnedViews: []) {
                 // Доход
                 TenantInlineEditableNumber(
                     fieldId: "income",
                     value: tenant.income ?? 0,
-                    label: "Доход",
-                    valueColor: .green,
+                    label: "tenant_income".localized,
+                    valueColor: .black,
                     formatter: { $0.formatCurrency() },
                     activeField: $activeEditingField,
                     onSave: { newValue in
@@ -202,8 +229,8 @@ struct TenantCardView: View {
                 TenantInlineEditableNumber(
                     fieldId: "area",
                     value: tenant.area ?? 0,
-                    label: "Площадь",
-                    suffix: " м²",
+                    label: "tenant_area".localized,
+                    suffix: " \("unit_square_meters".localized)",
                     activeField: $activeEditingField,
                     onSave: { newValue in
                         tenant.area = newValue > 0 ? newValue : nil
@@ -215,7 +242,7 @@ struct TenantCardView: View {
                 TenantInlineEditableDate(
                     fieldId: "startDate",
                     dateString: tenant.startDate ?? "",
-                    label: "Начало",
+                    label: "tenant_start_date".localized,
                     dateFormatter: dateFormatter,
                     activeField: $activeEditingField,
                     onSave: { newValue in
@@ -228,7 +255,7 @@ struct TenantCardView: View {
                 TenantInlineEditableDate(
                     fieldId: "endDate",
                     dateString: tenant.endDate ?? "",
-                    label: "Конец",
+                    label: "tenant_end_date".localized,
                     dateFormatter: dateFormatter,
                     activeField: $activeEditingField,
                     onSave: { newValue in
@@ -244,7 +271,7 @@ struct TenantCardView: View {
                         get: { tenant.companyType ?? .ip },
                         set: { tenant.companyType = $0 }
                     ),
-                    label: "Компания",
+                    label: "tenant_company".localized,
                     activeField: $activeEditingField,
                     onSave: { onSave?() }
                 )
@@ -253,7 +280,7 @@ struct TenantCardView: View {
                 TenantInlineEditableNumber(
                     fieldId: "indexation",
                     value: parseIndexation(tenant.indexation ?? ""),
-                    label: "Индексация",
+                    label: "tenant_indexation".localized,
                     suffix: "%",
                     activeField: $activeEditingField,
                     onSave: { newValue in
@@ -268,7 +295,7 @@ struct TenantCardView: View {
                     deposit: $tenant.deposit,
                     depositType: $tenant.depositType,
                     income: tenant.income,
-                    label: "Депозит",
+                    label: "tenant_deposit".localized,
                     activeField: $activeEditingField,
                     onSave: { onSave?() }
                 )
@@ -279,6 +306,7 @@ struct TenantCardView: View {
         .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.03), radius: 4, y: 2)
+        .opacity(tenant.isArchived ? 0.6 : 1.0) // Бледный вид для архивных
     }
 }
 
@@ -341,10 +369,7 @@ struct TenantInlineEditableText: View {
                     activeField = fieldId
                 }) {
                     HStack(spacing: 4) {
-                        Image(systemName: "pencil.circle.fill")
-                            .font(.caption2)
-                            .foregroundColor(.blue.opacity(0.6))
-                        Text(text.isEmpty ? "—" : text)
+                        Text(text.isEmpty ? "empty".localized : text)
                             .font(.subheadline)
                             .foregroundColor(text.isEmpty ? .secondary : .primary)
                         Spacer()
@@ -373,7 +398,7 @@ struct TenantInlineEditableNumber: View {
     
     var displayValue: String {
         if value == 0 {
-            return "—"
+            return "empty".localized
         }
         if let formatter = formatter {
             return formatter(value)
@@ -434,9 +459,6 @@ struct TenantInlineEditableNumber: View {
                     activeField = fieldId
                 }) {
                     HStack(spacing: 4) {
-                        Image(systemName: "pencil.circle.fill")
-                            .font(.caption2)
-                            .foregroundColor(.blue.opacity(0.6))
                         Text(displayValue)
                             .font(.subheadline)
                             .foregroundColor(value == 0 ? .secondary : valueColor)
@@ -491,9 +513,6 @@ struct TenantInlineEditableDate: View {
                     activeField = fieldId
                 }) {
                     HStack(spacing: 4) {
-                        Image(systemName: "pencil.circle.fill")
-                            .font(.caption2)
-                            .foregroundColor(.blue.opacity(0.6))
                         Text(dateString.isEmpty ? "—" : dateString)
                             .font(.subheadline)
                             .foregroundColor(dateString.isEmpty ? .secondary : .primary)
@@ -518,35 +537,35 @@ struct HorizontalTenantsTable: View {
             VStack(spacing: 0) {
                 // Заголовок таблицы
                 HStack(spacing: 12) {
-                    Text("Компания")
+                    Text("tenant_company".localized)
                         .font(.caption)
                         .fontWeight(.semibold)
                         .frame(width: 150, alignment: .leading)
-                    Text("Доход")
+                    Text("tenant_income".localized)
                         .font(.caption)
                         .fontWeight(.semibold)
                         .frame(width: 100, alignment: .trailing)
-                    Text("Площадь")
+                    Text("tenant_area".localized)
                         .font(.caption)
                         .fontWeight(.semibold)
                         .frame(width: 90, alignment: .trailing)
-                    Text("Компания")
+                    Text("tenant_company".localized)
                         .font(.caption)
                         .fontWeight(.semibold)
                         .frame(width: 70, alignment: .trailing)
-                    Text("Депозит")
+                    Text("tenant_deposit".localized)
                         .font(.caption)
                         .fontWeight(.semibold)
                         .frame(width: 100, alignment: .trailing)
-                    Text("Начало")
+                    Text("tenant_start_date".localized)
                         .font(.caption)
                         .fontWeight(.semibold)
                         .frame(width: 100, alignment: .leading)
-                    Text("Конец")
+                    Text("tenant_end_date".localized)
                         .font(.caption)
                         .fontWeight(.semibold)
                         .frame(width: 100, alignment: .leading)
-                    Text("Индексация")
+                    Text("tenant_indexation".localized)
                         .font(.caption)
                         .fontWeight(.semibold)
                         .frame(width: 90, alignment: .trailing)
@@ -626,7 +645,7 @@ struct TenantInlineEditableCompanyType: View {
                                 tempSelection = option
                             }) {
                                 HStack(alignment: .center) {
-                                    Text(option.rawValue)
+                                    Text(option.localizedName)
                                         .font(.caption2)
                                         .fixedSize(horizontal: false, vertical: true)
                                         .lineLimit(nil)
@@ -680,10 +699,7 @@ struct TenantInlineEditableCompanyType: View {
                     activeField = fieldId
                 }) {
                     HStack(spacing: 4) {
-                        Image(systemName: "pencil.circle.fill")
-                            .font(.caption2)
-                            .foregroundColor(.blue.opacity(0.6))
-                        Text(selection.rawValue)
+                        Text(selection.localizedName)
                             .font(.subheadline)
                             .foregroundColor(.primary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -770,7 +786,7 @@ struct TenantInlineEditableDeposit: View {
                                 }
                             }) {
                                 HStack(alignment: .center) {
-                                    Text(option.rawValue)
+                                    Text(option.localizedName)
                                         .font(.caption2)
                                         .fixedSize(horizontal: false, vertical: true)
                                         .lineLimit(nil)
@@ -847,9 +863,6 @@ struct TenantInlineEditableDeposit: View {
                     activeField = fieldId
                 }) {
                     HStack(spacing: 4) {
-                        Image(systemName: "pencil.circle.fill")
-                            .font(.caption2)
-                            .foregroundColor(.blue.opacity(0.6))
                         Text(displayValue)
                             .font(.subheadline)
                             .foregroundColor(.primary)
@@ -876,8 +889,7 @@ struct TenantRowView: View {
             // Компания
             Text(tenant.name.isEmpty ? "—" : tenant.name)
                 .font(.subheadline)
-                .strikethrough(tenant.isArchived)
-                .opacity(tenant.isArchived ? 0.5 : 1.0)
+                .opacity(tenant.isArchived ? 0.3 : 1.0)
                 .frame(width: 150, alignment: .leading)
                 .onTapGesture {
                     onEdit()
@@ -886,29 +898,26 @@ struct TenantRowView: View {
             // Доход
             Text((tenant.income ?? 0).formatCurrency())
                 .font(.subheadline)
-                .foregroundColor(.green)
-                .strikethrough(tenant.isArchived)
-                .opacity(tenant.isArchived ? 0.5 : 1.0)
+                .foregroundColor(.black)
+                .opacity(tenant.isArchived ? 0.3 : 1.0)
                 .frame(width: 100, alignment: .trailing)
                 .onTapGesture {
                     onEdit()
                 }
             
             // Площадь
-            Text(tenant.area != nil ? String(format: "%.0f м²", tenant.area!) : "—")
+            Text(tenant.area != nil ? String(format: "%.0f %@", tenant.area!, "unit_square_meters".localized) : "—")
                 .font(.subheadline)
-                .strikethrough(tenant.isArchived)
-                .opacity(tenant.isArchived ? 0.5 : 1.0)
+                .opacity(tenant.isArchived ? 0.3 : 1.0)
                 .frame(width: 90, alignment: .trailing)
                 .onTapGesture {
                     onEdit()
                 }
             
             // Тип компании
-            Text(tenant.companyType?.rawValue ?? "—")
+            Text(tenant.companyType?.localizedName ?? "empty".localized)
                 .font(.subheadline)
-                .strikethrough(tenant.isArchived)
-                .opacity(tenant.isArchived ? 0.5 : 1.0)
+                .opacity(tenant.isArchived ? 0.3 : 1.0)
                 .frame(width: 70, alignment: .trailing)
                 .onTapGesture {
                     onEdit()
@@ -917,8 +926,7 @@ struct TenantRowView: View {
             // Депозит
             Text(tenant.deposit != nil ? tenant.deposit!.formatCurrency() : "—")
                 .font(.subheadline)
-                .strikethrough(tenant.isArchived)
-                .opacity(tenant.isArchived ? 0.5 : 1.0)
+                .opacity(tenant.isArchived ? 0.3 : 1.0)
                 .frame(width: 100, alignment: .trailing)
                 .onTapGesture {
                     onEdit()
@@ -927,8 +935,7 @@ struct TenantRowView: View {
             // Начало
             Text(tenant.startDate ?? "—")
                 .font(.subheadline)
-                .strikethrough(tenant.isArchived)
-                .opacity(tenant.isArchived ? 0.5 : 1.0)
+                .opacity(tenant.isArchived ? 0.3 : 1.0)
                 .frame(width: 100, alignment: .leading)
                 .onTapGesture {
                     onEdit()
@@ -937,8 +944,7 @@ struct TenantRowView: View {
             // Конец
             Text(tenant.endDate ?? "—")
                 .font(.subheadline)
-                .strikethrough(tenant.isArchived)
-                .opacity(tenant.isArchived ? 0.5 : 1.0)
+                .opacity(tenant.isArchived ? 0.3 : 1.0)
                 .frame(width: 100, alignment: .leading)
                 .onTapGesture {
                     onEdit()
@@ -947,8 +953,7 @@ struct TenantRowView: View {
             // Индексация
             Text(tenant.indexation ?? "—")
                 .font(.subheadline)
-                .strikethrough(tenant.isArchived)
-                .opacity(tenant.isArchived ? 0.5 : 1.0)
+                .opacity(tenant.isArchived ? 0.3 : 1.0)
                 .frame(width: 90, alignment: .trailing)
                 .onTapGesture {
                     onEdit()
@@ -966,7 +971,7 @@ struct TenantRowView: View {
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
         .background(Color(.systemBackground))
-        .opacity(tenant.isArchived ? 0.6 : 1.0)
+        .opacity(tenant.isArchived ? 0.3 : 1.0)
         .sheet(isPresented: $showDeleteConfirmation) {
             DeleteTenantSheetView(
                 tenantName: tenant.name.isEmpty ? "Без названия" : tenant.name,

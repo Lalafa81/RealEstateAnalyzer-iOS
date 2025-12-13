@@ -1,0 +1,40 @@
+{
+  "source": "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Views/PropertyDetail/PropertyGalleryView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Галерея"
+      },
+      {
+        "comment": "",
+        "key": "Выбрать из галереи"
+      },
+      {
+        "comment": "",
+        "key": "Сделать фото"
+      },
+      {
+        "comment": "",
+        "key": "Нет изображений"
+      },
+      {
+        "comment": "",
+        "key": "Нажмите + чтобы добавить"
+      },
+      {
+        "comment": "",
+        "key": "Удалить изображение?"
+      },
+      {
+        "comment": "",
+        "key": "Удалить"
+      },
+      {
+        "comment": "",
+        "key": "Отмена"
+      }
+    ]
+  },
+  "version": 1
+}

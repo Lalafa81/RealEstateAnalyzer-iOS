@@ -57,7 +57,7 @@ struct PropertyGalleryView: View {
                         sourceType = .photoLibrary
                         showingImagePicker = true
                     }) {
-                        Label("Выбрать из галереи", systemImage: "photo.on.rectangle")
+                        Label("gallery_add_from_library".localized, systemImage: "photo.on.rectangle")
                     }
                     
                     if UIImagePickerController.isSourceTypeAvailable(.camera) {
@@ -65,7 +65,7 @@ struct PropertyGalleryView: View {
                             sourceType = .camera
                             showingImagePicker = true
                         }) {
-                            Label("Сделать фото", systemImage: "camera")
+                            Label("gallery_take_photo".localized, systemImage: "camera")
                         }
                     }
                 } label: {
@@ -81,9 +81,9 @@ struct PropertyGalleryView: View {
                     Image(systemName: "photo.on.rectangle.angled")
                         .font(.system(size: 50))
                         .foregroundColor(.gray)
-                    Text("Нет изображений")
+                    Text("gallery_no_images".localized)
                         .foregroundColor(.secondary)
-                    Text("Нажмите + чтобы добавить")
+                    Text("gallery_click_to_add".localized)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -199,11 +199,11 @@ struct GalleryImageView: View {
         }
         .alert(isPresented: $showingDeleteAlert) {
             Alert(
-                title: Text("Удалить изображение?"),
-                primaryButton: .destructive(Text("Удалить")) {
+                title: Text("gallery_delete_image_title".localized),
+                primaryButton: .destructive(Text("delete".localized)) {
                     onDelete()
                 },
-                secondaryButton: .cancel(Text("Отмена"))
+                secondaryButton: .cancel(Text("cancel".localized))
             )
         }
     }

@@ -1,0 +1,48 @@
+{
+  "source": "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Views/PropertyDetail/MonthEditPopup.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Готово"
+      },
+      {
+        "comment": "",
+        "key": "Редактирование: %@"
+      },
+      {
+        "comment": "",
+        "key": "Базовый доход"
+      },
+      {
+        "comment": "",
+        "key": "0"
+      },
+      {
+        "comment": "",
+        "key": "Переменный доход"
+      },
+      {
+        "comment": "",
+        "key": "Итого доход"
+      },
+      {
+        "comment": "",
+        "key": "Административные"
+      },
+      {
+        "comment": "",
+        "key": "Эксплуатационные"
+      },
+      {
+        "comment": "",
+        "key": "Прочие"
+      },
+      {
+        "comment": "",
+        "key": "Итого расход"
+      }
+    ]
+  },
+  "version": 1
+}

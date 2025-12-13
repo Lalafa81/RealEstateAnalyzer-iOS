@@ -1,0 +1,40 @@
+{
+  "source": "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Views/Dashboard/DashboardView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Недвижимость"
+      },
+      {
+        "comment": "",
+        "key": "Общая статистика"
+      },
+      {
+        "comment": "",
+        "key": "Календарь"
+      },
+      {
+        "comment": "",
+        "key": "Объекты недвижимости"
+      },
+      {
+        "comment": "",
+        "key": "Календарь событий находится в разработке"
+      },
+      {
+        "comment": "",
+        "key": "%lld"
+      },
+      {
+        "comment": "",
+        "key": "Д: %@"
+      },
+      {
+        "comment": "",
+        "key": "ROI: %@%%"
+      }
+    ]
+  },
+  "version": 1
+}

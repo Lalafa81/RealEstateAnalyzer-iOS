@@ -285,8 +285,9 @@ class MetricsCalculator {
         let incomeExpenseRatio = annualExpense > 0 ? round((annualIncome / annualExpense) * 100) / 100 : 0
         let profitPerM2 = area > 0 ? round(((avgIncome - avgExpense) / area) * 100) / 100 : 0
         
-        // Концентрация арендаторов
-        let tenantsIncomes = property.tenants.map { $0.income ?? 0 }
+        // Концентрация арендаторов (только активные)
+        let activeTenants = property.tenants.filter { !$0.isArchived }
+        let tenantsIncomes = activeTenants.map { $0.income ?? 0 }
         let maxTenant = tenantsIncomes.max() ?? 0
         let sumTenants = tenantsIncomes.reduce(0, +)
         let tenantConcentration = sumTenants > 0 ? round((maxTenant / sumTenants * 100) * 10) / 10 : 0
@@ -325,7 +326,7 @@ class MetricsCalculator {
             efficiency: efficiencyCoefficient(income: avgIncome, area: area),
             efficiencyLevel: efficiencyRating(efficiencyCoefficient(income: avgIncome, area: area)),
             payback: price > 0 ? paybackPeriod(investment: price, annualCashFlow: netCashFlow) : nil,
-            tenantRisk: tenantRiskAssessment(property.tenants),
+            tenantRisk: tenantRiskAssessment(activeTenants),
             volatility: volatility,
             volatilityLevel: volatilityLevel,
             busyMonths: busyMonths,

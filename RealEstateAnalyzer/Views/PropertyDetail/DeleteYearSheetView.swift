@@ -26,14 +26,14 @@ struct DeleteYearSheetView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            Text("Удалить год \(String(year))?")
+            Text(String(format: "delete_year_title".localized, year))
                 .font(.title3)
                 .fontWeight(.bold)
                 .multilineTextAlignment(.center)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
             
-            Text("Все данные за этот год будут удалены.")
+            Text("delete_year_message".localized)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(nil)
@@ -41,7 +41,7 @@ struct DeleteYearSheetView: View {
             
             HStack(spacing: 12) {
                 if #available(iOS 15.0, *) {
-                    Button("Отмена") {
+                    Button("cancel".localized) {
                         isPresented = false
                     }
                     .frame(maxWidth: .infinity)
@@ -51,13 +51,13 @@ struct DeleteYearSheetView: View {
                     Button(role: .destructive) {
                         onDelete()
                     } label: {
-                        Text("Удалить")
+                        Text("delete".localized)
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
                 } else {
-                    Button("Отмена") {
+                    Button("cancel".localized) {
                         isPresented = false
                     }
                     .frame(maxWidth: .infinity)
@@ -68,7 +68,7 @@ struct DeleteYearSheetView: View {
                     Button(action: {
                         onDelete()
                     }) {
-                        Text("Удалить")
+                        Text("delete".localized)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()

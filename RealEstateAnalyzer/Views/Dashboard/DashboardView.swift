@@ -14,14 +14,14 @@ struct DashboardView: View {
     var body: some View {
         List {
             // Общая статистика
-            Section(header: Text("Общая статистика")) {
+            Section(header: Text("statistics_title".localized)) {
                 StatisticsView(properties: dataManager.properties)
             }
             
-            // Календарь (в разработке)
-            Section(header: Text("Календарь")) {
+            // Календарь на ближайшие дни
+            Section(header: Text("calendar_title".localized)) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Календарь событий находится в разработке")
+                    Text("calendar_development".localized)
                         .foregroundColor(.secondary)
                         .font(.subheadline)
                         .padding()
@@ -29,7 +29,7 @@ struct DashboardView: View {
             }
             
             // Список объектов
-            Section(header: Text("Объекты недвижимости")) {
+            Section(header: Text("properties_title".localized)) {
                 ForEach(Array(dataManager.properties.enumerated()), id: \.element.id) { index, property in
                     NavigationLink(destination: PropertyDetailView(property: property)) {
                         PropertyRowView(property: property, index: index + 1)
@@ -38,7 +38,7 @@ struct DashboardView: View {
                 }
             }
         }
-        .navigationTitle("Недвижимость")
+        .navigationTitle("real_estate_title".localized)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: { showingAddProperty = true }) {
@@ -135,20 +135,20 @@ struct StatisticsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Group {
-                StatRow(label: "Количество объектов", value: "\(totalObjects)")
-                StatRow(label: "Стоимость портфеля", value: totalPortfolioValue.formatCurrency())
-                StatRow(label: "Общая площадь", value: String(format: "%.0f м²", totalArea))
-                StatRow(label: "Суммарный доход", value: totalIncome.formatCurrency())
-                StatRow(label: "Общие расходы", value: totalExpenses.formatCurrency())
-                StatRow(label: "Чистая прибыль", value: totalProfit.formatCurrency())
-                StatRow(label: "Средний ROI", value: String(format: "%.2f%%", averageROI))
-                StatRow(label: "Средний Cap Rate", value: String(format: "%.2f%%", averageCapRate))
-                StatRow(label: "Средняя загруженность", value: String(format: "%.1f%%", averageOccupancy))
-                StatRow(label: "Средний срок владения", value: String(format: "%.1f лет", averageHoldingPeriod))
+                StatRow(label: "stat_properties_count".localized, value: "\(totalObjects)")
+                StatRow(label: "stat_portfolio_value".localized, value: totalPortfolioValue.formatCurrencyWithSymbol())
+                StatRow(label: "stat_total_area".localized, value: String(format: "%.0f %@", totalArea, "unit_square_meters".localized))
+                StatRow(label: "stat_total_income".localized, value: totalIncome.formatCurrencyWithSymbol())
+                StatRow(label: "stat_total_expenses".localized, value: totalExpenses.formatCurrencyWithSymbol())
+                StatRow(label: "stat_net_profit".localized, value: totalProfit.formatCurrencyWithSymbol())
+                StatRow(label: "stat_average_roi".localized, value: String(format: "%.2f%%", averageROI))
+                StatRow(label: "stat_average_cap_rate".localized, value: String(format: "%.2f%%", averageCapRate))
+                StatRow(label: "stat_average_occupancy".localized, value: String(format: "%.1f%%", averageOccupancy))
+                StatRow(label: "stat_average_holding_period".localized, value: String(format: "%.1f %@", averageHoldingPeriod, "unit_years".localized))
             }
             Group {
-                StatRow(label: "Стоимость выхода", value: totalExitValue > 0 ? totalExitValue.formatCurrency() : "—")
-                StatRow(label: "Средняя цена за м²", value: String(format: "%.0f", averagePricePerM2))
+                StatRow(label: "stat_exit_value".localized, value: totalExitValue > 0 ? totalExitValue.formatCurrencyWithSymbol() : "empty".localized)
+                StatRow(label: "stat_average_price_per_m2".localized, value: averagePricePerM2.formatCurrencyWithSymbol() + " / " + "unit_square_meters".localized)
             }
         }
         .padding(.vertical, 4)
@@ -184,12 +184,15 @@ struct PropertyRowView: View {
         VStack(spacing: 8) {
             // Название с иконкой по левому краю сверху
             HStack(spacing: 6) {
-                Image(systemName: property.type.iconName)
-                    .foregroundColor(.purple)
-                    .font(.subheadline)
-                    .frame(width: 16)
                 Text(property.name)
                     .font(.headline)
+                
+                // Значок листика, если есть заметки
+                if let notes = property.notes, !notes.isEmpty {
+                    Image(systemName: "note.text")
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.leading, 20)
@@ -210,12 +213,12 @@ struct PropertyRowView: View {
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(property.address)
-                        .font(.caption)
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                     
                     // Компактный pill-style статус
-                    Text(property.status.rawValue)
-                        .font(.system(size: 11, weight: .medium))
+                    Text(property.status.localizedName)
+                        .font(.system(size: 13, weight: .medium))
                         .foregroundColor(statusTextColor(for: property.status))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
@@ -230,9 +233,14 @@ struct PropertyRowView: View {
                     if let analytics = calculateQuickMetrics() {
                         // Доход: желтый если 0, иначе синий
                         let incomeColor: Color = analytics.monthlyIncome == 0 ? .yellow : .blue
-                        Text("Д: \(analytics.monthlyIncome.formatShortCurrency())")
-                            .font(.caption)
-                            .foregroundColor(incomeColor)
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.up.circle.fill")
+                                .font(.caption)
+                                .foregroundColor(incomeColor)
+                            Text(analytics.monthlyIncome.formatShortCurrencyLocalized())
+                                .font(.subheadline)
+                                .foregroundColor(incomeColor)
+                        }
                         
                         // ROI: красный если отрицательный, иначе зеленый
                         let roiColor: Color = analytics.roi < 0 ? .red : .green
@@ -247,14 +255,19 @@ struct PropertyRowView: View {
                             }
                         }()
                         Text("ROI: \(roiValue)%")
-                            .font(.caption)
+                            .font(.subheadline)
                             .foregroundColor(roiColor)
                     }
                     
                     // Площадь
-                    Text("П: \(String(format: "%.0f", property.area)) м²")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    HStack(spacing: 4) {
+                        Image(systemName: "square.grid.2x2.fill")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("\(String(format: "%.0f", property.area)) " + "unit_square_meters".localized)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
         }

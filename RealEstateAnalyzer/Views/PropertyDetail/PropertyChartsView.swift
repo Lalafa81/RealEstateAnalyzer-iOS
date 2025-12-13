@@ -17,7 +17,7 @@ struct ChartsView: View {
         VStack(alignment: .leading, spacing: 8) {
             // Заголовок с кнопкой развернуть
             HStack {
-                Text("Доходы и расходы за \(String(selectedYear))")
+                Text("charts_income_expenses_for".localized(selectedYear))
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 
@@ -27,7 +27,7 @@ struct ChartsView: View {
                     showFullChart = true
                 }) {
                     HStack(spacing: 4) {
-                        Text("Развернуть")
+                        Text("charts_expand".localized)
                             .font(.caption)
                         Image(systemName: "arrow.up.left.and.arrow.down.right")
                             .font(.caption)
@@ -55,12 +55,9 @@ struct MiniChartView: View {
     
     @State private var selectedMonth: Int? = nil
     
-    // Полные названия месяцев для строки информации
-    let fullMonthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
-    
     // Получаем данные по месяцам для выбранного года
     var monthlyData: [(month: String, monthIndex: Int, income: Double, expense: Double)] {
-        let monthNames = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]
+        let monthNames = DateFormatter.localizedShortMonthNames()
         let monthKeys = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
         
         guard let yearData = property.months[String(selectedYear)] else {
@@ -145,7 +142,7 @@ struct MiniChartView: View {
             if let selectedIndex = selectedMonth, selectedIndex < monthlyData.count {
                 let data = monthlyData[selectedIndex]
                 let netCashFlow = data.income - data.expense
-                Text("\(fullMonthNames[selectedIndex]) \(String(selectedYear)) — Доход: \(data.income.formatCurrency()) · Расходы: \(data.expense.formatCurrency()) · Чистый: \(netCashFlow.formatCurrency())")
+                Text("\(String(format: "cash_flow_income_label".localized)): \(data.income.formatCurrencyWithSymbol()) · \(String(format: "cash_flow_expenses_label".localized)): \(data.expense.formatCurrencyWithSymbol()) · \(String(format: "cash_flow_net_label".localized)): \(netCashFlow.formatCurrencyWithSymbol())")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.top, 2)
@@ -157,7 +154,7 @@ struct MiniChartView: View {
                     Rectangle()
                         .fill(Color.green)
                         .frame(width: 12, height: 12)
-                    Text("Доходы")
+                    Text("cash_flow_income_legend".localized)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -165,7 +162,7 @@ struct MiniChartView: View {
                     Rectangle()
                         .fill(Color.red)
                         .frame(width: 12, height: 12)
-                    Text("Расходы")
+                    Text("cash_flow_expenses_legend".localized)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }

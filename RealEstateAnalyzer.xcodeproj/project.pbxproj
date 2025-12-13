@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		50C833A82EED8C8D0030DE96 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 50C833AA2EED8C8D0030DE96 /* Localizable.strings */; };
 		AA0000010000000000000001 /* RealEstateAnalyzerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000020000000000000001 /* RealEstateAnalyzerApp.swift */; };
 		AA0000030000000000000001 /* Property.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000040000000000000001 /* Property.swift */; };
 		AA0000050000000000000001 /* Analytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000060000000000000001 /* Analytics.swift */; };
@@ -33,12 +34,16 @@
 		AA0000470000000000000001 /* YearSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000480000000000000001 /* YearSelectorView.swift */; };
 		AA0000490000000000000001 /* DeleteYearSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00004A0000000000000001 /* DeleteYearSheetView.swift */; };
 		AA00004B0000000000000001 /* DeletePropertySheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00004C0000000000000001 /* DeletePropertySheetView.swift */; };
-		AA00004F0000000000000001 /* DeleteTenantSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000500000000000000001 /* DeleteTenantSheetView.swift */; };
 		AA00004D0000000000000001 /* FullScreenChartPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00004E0000000000000001 /* FullScreenChartPlaceholder.swift */; };
+		AA00004F0000000000000001 /* DeleteTenantSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000500000000000000001 /* DeleteTenantSheetView.swift */; };
+		AA0000510000000000000001 /* CalendarTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000520000000000000001 /* CalendarTabView.swift */; };
+		AA0000530000000000000001 /* AnalyticsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000540000000000000001 /* AnalyticsTabView.swift */; };
+		AA0000550000000000000001 /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000560000000000000001 /* SettingsTabView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		AA0000110000000000000001 /* RealEstateAnalyzer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RealEstateAnalyzer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		50C833A92EED8C8D0030DE96 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
+		50C833AB2EED8C9A0030DE96 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		AA0000020000000000000001 /* RealEstateAnalyzerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealEstateAnalyzerApp.swift; sourceTree = "<group>"; };
 		AA0000040000000000000001 /* Property.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Property.swift; sourceTree = "<group>"; };
 		AA0000060000000000000001 /* Analytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analytics.swift; sourceTree = "<group>"; };
@@ -47,6 +52,7 @@
 		AA00000C0000000000000001 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		AA00000E0000000000000001 /* PropertyDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyDetailView.swift; sourceTree = "<group>"; };
 		AA0000100000000000000001 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		AA0000110000000000000001 /* RealEstateAnalyzer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RealEstateAnalyzer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000280000000000000001 /* PropertyHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyHeaderView.swift; sourceTree = "<group>"; };
 		AA00002A0000000000000001 /* PropertyAnalyticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyAnalyticsView.swift; sourceTree = "<group>"; };
 		AA00002C0000000000000001 /* PropertyChartsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyChartsView.swift; sourceTree = "<group>"; };
@@ -65,8 +71,11 @@
 		AA0000480000000000000001 /* YearSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YearSelectorView.swift; sourceTree = "<group>"; };
 		AA00004A0000000000000001 /* DeleteYearSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteYearSheetView.swift; sourceTree = "<group>"; };
 		AA00004C0000000000000001 /* DeletePropertySheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeletePropertySheetView.swift; sourceTree = "<group>"; };
-		AA0000500000000000000001 /* DeleteTenantSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteTenantSheetView.swift; sourceTree = "<group>"; };
 		AA00004E0000000000000001 /* FullScreenChartPlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullScreenChartPlaceholder.swift; sourceTree = "<group>"; };
+		AA0000500000000000000001 /* DeleteTenantSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteTenantSheetView.swift; sourceTree = "<group>"; };
+		AA0000520000000000000001 /* CalendarTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarTabView.swift; sourceTree = "<group>"; };
+		AA0000540000000000000001 /* AnalyticsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsTabView.swift; sourceTree = "<group>"; };
+		AA0000560000000000000001 /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,14 +97,6 @@
 			);
 			sourceTree = "<group>";
 		};
-		AA0000150000000000000001 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				AA0000110000000000000001 /* RealEstateAnalyzer.app */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		AA0000140000000000000001 /* RealEstateAnalyzer */ = {
 			isa = PBXGroup;
 			children = (
@@ -106,8 +107,17 @@
 				AA00001A0000000000000001 /* Utilities */,
 				AA0000340000000000000001 /* data.json */,
 				AA0000380000000000000001 /* images.json */,
+				50C833AA2EED8C8D0030DE96 /* Localizable.strings */,
 			);
 			path = RealEstateAnalyzer;
+			sourceTree = "<group>";
+		};
+		AA0000150000000000000001 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000110000000000000001 /* RealEstateAnalyzer.app */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		AA0000160000000000000001 /* App */ = {
@@ -145,12 +155,23 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		AA00001A0000000000000001 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000100000000000000001 /* Extensions.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
 		AA00001B0000000000000001 /* Dashboard */ = {
 			isa = PBXGroup;
 			children = (
 				AA00000C0000000000000001 /* DashboardView.swift */,
 				AA0000420000000000000001 /* NewPropertySheet.swift */,
 				AA0000440000000000000001 /* PropertyImagePlaceholder.swift */,
+				AA0000520000000000000001 /* CalendarTabView.swift */,
+				AA0000540000000000000001 /* AnalyticsTabView.swift */,
+				AA0000560000000000000001 /* SettingsTabView.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -177,14 +198,6 @@
 				AA00004E0000000000000001 /* FullScreenChartPlaceholder.swift */,
 			);
 			path = PropertyDetail;
-			sourceTree = "<group>";
-		};
-		AA00001A0000000000000001 /* Utilities */ = {
-			isa = PBXGroup;
-			children = (
-				AA0000100000000000000001 /* Extensions.swift */,
-			);
-			path = Utilities;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -247,6 +260,7 @@
 			files = (
 				AA0000330000000000000001 /* data.json in Resources */,
 				AA0000370000000000000001 /* images.json in Resources */,
+				50C833A82EED8C8D0030DE96 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -283,10 +297,25 @@
 				AA00004B0000000000000001 /* DeletePropertySheetView.swift in Sources */,
 				AA00004F0000000000000001 /* DeleteTenantSheetView.swift in Sources */,
 				AA00004D0000000000000001 /* FullScreenChartPlaceholder.swift in Sources */,
+				AA0000510000000000000001 /* CalendarTabView.swift in Sources */,
+				AA0000530000000000000001 /* AnalyticsTabView.swift in Sources */,
+				AA0000550000000000000001 /* SettingsTabView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		50C833AA2EED8C8D0030DE96 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				50C833A92EED8C8D0030DE96 /* ru */,
+				50C833AB2EED8C9A0030DE96 /* en */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		AA0000230000000000000001 /* Debug */ = {
@@ -491,4 +520,3 @@
 	};
 	rootObject = AA0000210000000000000001 /* Project object */;
 }
-

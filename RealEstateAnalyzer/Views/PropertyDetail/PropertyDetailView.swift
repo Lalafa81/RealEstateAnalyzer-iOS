@@ -67,7 +67,7 @@ struct PropertyDetailView: View {
                 
                 // Хедер объекта (сворачиваемая секция)
                 CollapsibleSection(
-                    title: "Объект",
+                    title: "property_title".localized,
                     icon: editableProperty.type.iconName,
                     isExpanded: $isHeaderExpanded,
                     collapsedContent: nil
@@ -91,7 +91,7 @@ struct PropertyDetailView: View {
                             Image(systemName: "person.2")
                                 .font(.title3)
                                 .foregroundColor(.purple)
-                            Text("Арендаторы")
+                            Text("tenants_section_title".localized)
                                 .font(.title3)
                                 .fontWeight(.bold)
                                 .foregroundColor(.black)
@@ -110,7 +110,7 @@ struct PropertyDetailView: View {
                         Image(systemName: "calendar")
                             .font(.title3)
                             .foregroundColor(.purple)
-                        Text("Выбор года")
+                        Text("year_selector_title".localized)
                             .font(.title3)
                             .fontWeight(.bold)
                             .foregroundColor(.black)
@@ -141,7 +141,7 @@ struct PropertyDetailView: View {
                             Image(systemName: "arrow.left.arrow.right")
                                 .font(.title3)
                                 .foregroundColor(.purple)
-                            Text("Движение денежных средств")
+                            Text("cash_flow_title".localized)
                                 .font(.title3)
                                 .fontWeight(.bold)
                                 .foregroundColor(.black)
@@ -165,7 +165,7 @@ struct PropertyDetailView: View {
                             Image(systemName: "chart.bar")
                                 .font(.title3)
                                 .foregroundColor(.purple)
-                            Text("Графики")
+                            Text("charts_title".localized)
                                 .font(.title3)
                                 .fontWeight(.bold)
                                 .foregroundColor(.black)
@@ -192,7 +192,7 @@ struct PropertyDetailView: View {
                             Image(systemName: "chart.pie")
                                 .font(.title3)
                                 .foregroundColor(.purple)
-                            Text("Аналитика")
+                            Text("analytics_title".localized)
                                 .font(.title3)
                                 .fontWeight(.bold)
                                 .foregroundColor(.black)
@@ -207,12 +207,12 @@ struct PropertyDetailView: View {
                 
                 // Галерея изображений (сворачиваемая секция)
                 CollapsibleSection(
-                    title: "Галерея",
+                    title: "gallery_title".localized,
                     icon: "photo.on.rectangle",
                     isExpanded: $isGalleryExpanded,
                     collapsedContent: {
                         AnyView(
-                            Text(propertyGallery.isEmpty ? "Нет изображений" : "\(propertyGallery.count) фото")
+                            Text(propertyGallery.isEmpty ? "gallery_no_images".localized : String(format: "gallery_photos_count".localized, propertyGallery.count))
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         )
@@ -243,7 +243,7 @@ struct PropertyDetailView: View {
                     Button(action: {
                         showDeletePropertyConfirmation = true
                     }) {
-                        Label("Удалить объект", systemImage: "trash")
+                        Label("delete_property_action".localized, systemImage: "trash")
                             .foregroundColor(.red)
                     }
                 } label: {

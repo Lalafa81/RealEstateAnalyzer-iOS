@@ -1,0 +1,16 @@
+{
+  "source": "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Views/PropertyDetail/PropertyCalendarView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Календарь событий"
+      },
+      {
+        "comment": "",
+        "key": "Календарь доходов/расходов находится в разработке"
+      }
+    ]
+  },
+  "version": 1
+}

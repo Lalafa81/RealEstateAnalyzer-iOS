@@ -25,7 +25,7 @@ struct AnalyticsView: View {
                 Spacer()
                 VStack(alignment: .trailing, spacing: 6) {
                     HStack(spacing: 6) {
-                        Text("Только выбранный год")
+                        Text("analytics_only_selected_year".localized)
                             .font(.caption2)
                             .foregroundColor(.secondary)
                         Toggle("", isOn: $onlySelectedYear)
@@ -34,7 +34,7 @@ struct AnalyticsView: View {
                             .frame(width: 30, height: 15)
                     }
                     HStack(spacing: 6) {
-                        Text("Включать административные")
+                        Text("analytics_include_maintenance".localized)
                             .font(.caption2)
                             .foregroundColor(.secondary)
                         Toggle("", isOn: $includeMaintenance)
@@ -43,7 +43,7 @@ struct AnalyticsView: View {
                             .frame(width: 30, height: 15)
                     }
                     HStack(spacing: 6) {
-                        Text("Включать эксплуатационные")
+                        Text("analytics_include_operating".localized)
                             .font(.caption2)
                             .foregroundColor(.secondary)
                         Toggle("", isOn: $includeOperating)

@@ -14,14 +14,14 @@ struct DeleteTenantSheetView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            Text("Удалить арендатора?")
+            Text("delete_tenant_title".localized)
                 .font(.title3)
                 .fontWeight(.bold)
                 .multilineTextAlignment(.center)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
             
-            Text("Вы уверены, что хотите удалить арендатора \"\(tenantName)\"? Это действие нельзя отменить.")
+            Text(String(format: "delete_tenant_message".localized, tenantName))
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(nil)
@@ -30,7 +30,7 @@ struct DeleteTenantSheetView: View {
             
             HStack(spacing: 12) {
                 if #available(iOS 15.0, *) {
-                    Button("Отмена") {
+                    Button("cancel".localized) {
                         isPresented = false
                     }
                     .frame(maxWidth: .infinity)
@@ -41,13 +41,13 @@ struct DeleteTenantSheetView: View {
                         onDelete()
                         isPresented = false
                     } label: {
-                        Text("Удалить")
+                        Text("delete".localized)
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
                 } else {
-                    Button("Отмена") {
+                    Button("cancel".localized) {
                         isPresented = false
                     }
                     .frame(maxWidth: .infinity)
@@ -59,7 +59,7 @@ struct DeleteTenantSheetView: View {
                         onDelete()
                         isPresented = false
                     }) {
-                        Text("Удалить")
+                        Text("delete".localized)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()

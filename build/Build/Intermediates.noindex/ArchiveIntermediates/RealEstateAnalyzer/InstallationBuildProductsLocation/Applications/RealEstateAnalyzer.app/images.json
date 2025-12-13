@@ -1,0 +1,16 @@
+{
+  "images": {
+    "002": {
+      "gallery": ["property_002_gallery_0.jpg"]
+    },
+    "003": {
+      "gallery": ["property_003_gallery_0.jpg"]
+    },
+    "004": {
+      "gallery": ["property_004_gallery_0.jpg"]
+    },
+    "006": {
+      "gallery": ["property_006_gallery_0.jpg"]
+    }
+  }
+}

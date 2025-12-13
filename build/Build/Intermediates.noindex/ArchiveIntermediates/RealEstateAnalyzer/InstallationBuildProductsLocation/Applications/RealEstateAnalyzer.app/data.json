@@ -1,0 +1,380 @@
+{
+  "objects": [
+    {
+      "id": "002",
+      "name": "Склад'Боровка'",
+      "type": "Складское",
+      "address": "Москва, Боровка 11",
+      "area": 1200,
+      "purchasePrice": 24000000,
+      "purchaseDate": "01.01.2022",
+      "status": "Сдано",
+      "source": "ИП",
+      "tenants": [
+        {
+          "name": "ООО 'Логистик'",
+          "income": 190000,
+          "startDate": "01.10.2023",
+          "endDate": "01.10.2026",
+          "area": 1050,
+          "indexation": "5%"
+        },
+        {
+          "name": "ИП Жопа",
+          "income": 25000,
+          "area": 150,
+          "startDate": "01.01.2025",
+          "endDate": "01.11.2025",
+          "indexation": "12%"
+        }
+      ],
+      "months": {
+        "2022": {},
+        "2023": {
+          "10": {
+            "income": 10000,
+            "income_variable": 10000,
+            "expenses_other": 100000
+          },
+          "11": {
+            "income": 150000,
+            "income_variable": 15000,
+            "expenses_other": 20000
+          },
+          "12": {
+            "income": 150000,
+            "income_variable": 15000,
+            "expenses_other": 30000
+          },
+          "01": {
+            "income": 0,
+            "income_variable": 0,
+            "expenses_other": 0
+          },
+          "09": {
+            "income": 10000,
+            "income_variable": 5000,
+            "expenses_other": 10000
+          },
+          "08": {
+            "income": 1000,
+            "income_variable": 0,
+            "expenses_other": 0
+          }
+        },
+        "2024": {
+          "10": {
+            "income": 300000,
+            "income_variable": 16000,
+            "expenses_other": 7000
+          },
+          "11": {
+            "income": 340000,
+            "income_variable": 18000,
+            "expenses_other": 12000
+          },
+          "12": {
+            "income": 370000,
+            "income_variable": 60000,
+            "expenses_other": 12000
+          },
+          "01": {
+            "income": 150000,
+            "income_variable": 0,
+            "expenses_other": 10000
+          },
+          "02": {
+            "income": 320000,
+            "income_variable": 15000,
+            "expenses_other": 50000
+          },
+          "03": {
+            "income": 325000,
+            "income_variable": 10000,
+            "expenses_other": 10000
+          },
+          "04": {
+            "income": 100000,
+            "income_variable": 50000,
+            "expenses_other": 1000
+          },
+          "05": {
+            "income": 350000,
+            "income_variable": 15000,
+            "expenses_other": 15000
+          },
+          "06": {
+            "income": 340000,
+            "income_variable": 10000,
+            "expenses_other": 15000
+          },
+          "07": {
+            "income": 380000,
+            "income_variable": 100000,
+            "expenses_other": 3000
+          },
+          "08": {
+            "income": 350000,
+            "income_variable": 15000,
+            "expenses_other": 12000
+          },
+          "09": {
+            "income": 370000,
+            "income_variable": 15000,
+            "expenses_other": 6000
+          }
+        },
+        "2025": {
+          "01": {
+            "income": 150000,
+            "income_variable": 25000,
+            "expenses_other": 10000
+          }
+        },
+        "2026": {}
+      },
+      "propertyTax": 150000,
+      "insuranceCost": 120000,
+      "exitPrice": 100500000,
+      "condition": "Отличное",
+      "currency": "RUB"
+    },
+    {
+      "id": "003",
+      "name": "Botanica",
+      "type": "Жилое",
+      "address": "Koh Kaew",
+      "area": 350,
+      "purchasePrice": 20500000,
+      "purchaseDate": "04.04.2023",
+      "status": "Свободно",
+      "source": "",
+      "tenants": [
+        {
+          "name": "mr Ben",
+          "income": 250000,
+          "area": 350,
+          "startDate": "",
+          "endDate": "11.08.2025",
+          "indexation": "5%"
+        }
+      ],
+      "months": {
+        "2023": {},
+        "2024": {
+          "10": {
+            "income": 0,
+            "income_variable": 0,
+            "expenses_other": 0
+          },
+          "11": {
+            "income": 400000,
+            "income_variable": 0,
+            "expenses_other": 5500
+          },
+          "08": {
+            "income": 250000,
+            "income_variable": 13751,
+            "expenses_other": 0
+          },
+          "07": {
+            "income": 250000,
+            "income_variable": 9826,
+            "expenses_other": 0
+          },
+          "09": {
+            "income": 100000,
+            "income_variable": 13000,
+            "expenses_other": 0
+          }
+        },
+        "2025": {
+          "11": {
+            "income": 400000,
+            "income_variable": 0,
+            "expenses_other": 5500
+          }
+        },
+        "2026": {}
+      },
+      "propertyTax": 90000,
+      "insuranceCost": 120000,
+      "exitPrice": 35000000,
+      "currency": "RUB"
+    },
+    {
+      "id": "004",
+      "name": "8pool",
+      "address": "Witchit",
+      "purchasePrice": 6000000,
+      "purchaseDate": "01.12.2022",
+      "area": 120,
+      "tenants": [
+        {
+          "name": "Canadian",
+          "income": 40000,
+          "area": 120,
+          "startDate": "",
+          "endDate": "",
+          "indexation": ""
+        }
+      ],
+      "months": {
+        "2023": {
+          "10": {
+            "income": 60000,
+            "income_variable": 4500,
+            "expenses_other": 2000
+          },
+          "11": {
+            "income": 60000,
+            "income_variable": 6000,
+            "expenses_other": 3000
+          },
+          "12": {
+            "income": 60000,
+            "income_variable": 6500,
+            "expenses_other": 3000
+          },
+          "01": {
+            "income": 0,
+            "income_variable": 0,
+            "expenses_other": 0
+          },
+          "02": {
+            "income": 60000,
+            "income_variable": 3000,
+            "expenses_other": 0
+          },
+          "03": {
+            "income": 60000,
+            "income_variable": 3500,
+            "expenses_other": 0
+          },
+          "04": {
+            "income": 60000,
+            "income_variable": 3500,
+            "expenses_other": 0
+          },
+          "05": {
+            "income": 60000,
+            "income_variable": 2500,
+            "expenses_other": 0
+          },
+          "06": {
+            "income": 60000,
+            "income_variable": 4500,
+            "expenses_other": 0
+          },
+          "07": {
+            "income": 60000,
+            "income_variable": 3500,
+            "expenses_other": 500
+          },
+          "08": {
+            "income": 60000,
+            "income_variable": 3500,
+            "expenses_other": 400
+          },
+          "09": {
+            "income": 60000,
+            "income_variable": 5500,
+            "expenses_other": 400
+          }
+        },
+        "2024": {
+          "10": {
+            "income": 40000,
+            "income_variable": 2000,
+            "expenses_other": 0
+          },
+          "11": {
+            "income": 40000,
+            "income_variable": 3000,
+            "expenses_other": 0
+          },
+          "12": {
+            "income": 40000,
+            "income_variable": 2500,
+            "expenses_other": 0
+          },
+          "09": {
+            "income": 40000,
+            "income_variable": 2000,
+            "expenses_other": 0
+          },
+          "08": {
+            "income": 40000,
+            "income_variable": 3500,
+            "expenses_other": 2500
+          },
+          "07": {
+            "income": 40000,
+            "income_variable": 3700,
+            "expenses_other": 0
+          },
+          "06": {
+            "income": 40000,
+            "income_variable": 3500,
+            "expenses_other": 0
+          },
+          "05": {
+            "income": 0,
+            "income_variable": 0,
+            "expenses_other": 500
+          },
+          "04": {
+            "income": 0,
+            "income_variable": 0,
+            "expenses_other": 2500
+          },
+          "01": {
+            "income": 60000,
+            "income_variable": 7000,
+            "expenses_other": 450
+          },
+          "02": {
+            "income": 60000,
+            "income_variable": 4500,
+            "expenses_other": 450
+          },
+          "03": {
+            "income": 0,
+            "income_variable": 4550,
+            "expenses_other": 20000
+          }
+        },
+        "2025": {}
+      },
+      "type": "Жилое",
+      "status": "Сдано",
+      "condition": "Хорошее",
+      "propertyTax": 40000,
+      "insuranceCost": 80000,
+      "exitPrice": 7500000,
+      "currency": "RUB"
+    },
+    {
+      "id": "006",
+      "name": "Boat house",
+      "address": "",
+      "purchasePrice": 3000000,
+      "purchaseDate": "11.10.2023",
+      "area": 48,
+      "tenants": [],
+      "months": {},
+      "type": "Производство",
+      "status": "Свободно",
+      "condition": "Хорошее",
+      "propertyTax": 15000,
+      "insuranceCost": 0,
+      "exitPrice": 3500000,
+      "currency": "RUB"
+    }
+  ],
+  "settings": {
+    "locale": "ru",
+    "currency": "RUB",
+    "summaryCurrency": "RUB"
+  }
+}

@@ -39,12 +39,12 @@ struct NewPropertySheet: View {
                             .padding(.top, 8)
                         
                         // Заголовок
-                        Text("Новый объект")
+                        Text("new_property_title".localized)
                             .font(.title3)
                             .fontWeight(.bold)
                         
                         // Подзаголовок
-                        Text("Заполните основные данные. Остальное можно настроить позже.")
+                        Text("new_property_subtitle".localized)
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -65,13 +65,13 @@ struct NewPropertySheet: View {
                             
                             VStack(spacing: 0) {
                                 // Название
-                                sheetField("Название", text: $name, placeholder: "Введите название")
+                                sheetField("field_name".localized, text: $name, placeholder: "")
                                 
                                 Divider()
                                     .padding(.leading, 20)
                                 
                                 // Адрес
-                                sheetField("Адрес", text: $address, placeholder: "Введите адрес")
+                                sheetField("field_address".localized, text: $address, placeholder: "")
                             }
                             .background(Color(.systemBackground))
                             .cornerRadius(10)
@@ -92,13 +92,13 @@ struct NewPropertySheet: View {
                             
                             VStack(spacing: 0) {
                                 // Площадь
-                                sheetField("Площадь (м²)", text: $area, placeholder: "0", keyboardType: .decimalPad)
+                                sheetField("new_property_area_placeholder".localized, text: $area, placeholder: "0", keyboardType: .decimalPad)
                                 
                                 Divider()
                                     .padding(.leading, 20)
                                 
                                 // Дата покупки
-                                sheetDateField("Дата покупки", date: $purchaseDate)
+                                sheetDateField("field_purchase_date".localized, date: $purchaseDate)
                             }
                             .background(Color(.systemBackground))
                             .cornerRadius(10)
@@ -111,7 +111,7 @@ struct NewPropertySheet: View {
                     Button(action: {
                         createProperty()
                     }) {
-                        Text("Создать объект")
+                        Text("new_property_create".localized)
                             .font(.body)
                             .fontWeight(.semibold)
                             .foregroundColor(.white)
@@ -128,7 +128,7 @@ struct NewPropertySheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Отмена") {
+                    Button("cancel".localized) {
                         isPresented = false
                     }
                 }

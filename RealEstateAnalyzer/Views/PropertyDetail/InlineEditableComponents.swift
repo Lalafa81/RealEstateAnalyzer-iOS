@@ -66,10 +66,7 @@ struct InlineEditableText: View {
                     activeField = fieldId
                 }) {
                     HStack(spacing: 4) {
-                        Image(systemName: "pencil.circle.fill")
-                            .font(.caption2)
-                            .foregroundColor(.blue.opacity(0.6))
-                        Text(text.isEmpty ? "Не указано" : text)
+                        Text(text.isEmpty ? "not_specified".localized : text)
                             .font(.subheadline)
                             .foregroundColor(text.isEmpty ? .secondary : .primary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -157,9 +154,6 @@ struct InlineEditableNumber: View {
                     activeField = fieldId
                 }) {
                     HStack(spacing: 4) {
-                        Image(systemName: "pencil.circle.fill")
-                            .font(.caption2)
-                            .foregroundColor(.blue.opacity(0.6))
                         Text(displayValue)
                             .font(.subheadline)
                             .foregroundColor(.primary)
@@ -233,10 +227,7 @@ struct InlineEditableNumberOptional: View {
                     activeField = fieldId
                 }) {
                     HStack(spacing: 4) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.caption2)
-                            .foregroundColor(.blue)
-                        Text("Не указано")
+                        Text("not_specified".localized)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         Spacer()
@@ -286,10 +277,7 @@ struct InlineEditableDate: View {
                     activeField = fieldId
                 }) {
                     HStack(spacing: 4) {
-                        Image(systemName: "pencil.circle.fill")
-                            .font(.caption2)
-                            .foregroundColor(.blue.opacity(0.6))
-                        Text(dateString.isEmpty ? "Не указано" : dateString)
+                        Text(dateString.isEmpty ? "not_specified".localized : dateString)
                             .font(.subheadline)
                             .foregroundColor(dateString.isEmpty ? .secondary : .primary)
                         Spacer()
@@ -394,9 +382,6 @@ struct InlineEditablePicker<T: Hashable & Identifiable>: View {
                     activeField = fieldId
                 }) {
                     HStack(spacing: 4) {
-                        Image(systemName: "pencil.circle.fill")
-                            .font(.caption2)
-                            .foregroundColor(.blue.opacity(0.6))
                         Text(displayValue(selection))
                             .font(.subheadline)
                             .foregroundColor(.primary)
@@ -464,7 +449,7 @@ struct InlineEditablePropertyType: View {
                                 }
                             }) {
                                 HStack(alignment: .center) {
-                                    Text(option.rawValue)
+                                    Text(option.localizedName)
                                         .font(.caption2)
                                         .fixedSize(horizontal: false, vertical: true)
                                         .lineLimit(nil)
@@ -492,7 +477,14 @@ struct InlineEditablePropertyType: View {
                     
                     // Поле для ввода вручную, если выбрано "Другое"
                     if tempType == .other {
-                        TextField("Введите назначение", text: $tempCustomType)
+                        VStack(alignment: .leading, spacing: 4) {
+                            TextField("Введите назначение", text: Binding(
+                                get: { tempCustomType },
+                                set: { 
+                                    // Ограничиваем до 30 символов для кастомного типа
+                                    tempCustomType = String($0.prefix(30))
+                                }
+                            ))
                             .font(.caption2)
                             .textFieldStyle(PlainTextFieldStyle())
                             .padding(.horizontal, 8)
@@ -503,6 +495,11 @@ struct InlineEditablePropertyType: View {
                                 RoundedRectangle(cornerRadius: 6)
                                     .stroke(Color.blue.opacity(0.3), lineWidth: 1)
                             )
+                            
+                            Text("\(tempCustomType.count)/30")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
                     }
                     
                     HStack {
@@ -536,9 +533,6 @@ struct InlineEditablePropertyType: View {
                     activeField = fieldId
                 }) {
                     HStack(spacing: 4) {
-                        Image(systemName: "pencil.circle.fill")
-                            .font(.caption2)
-                            .foregroundColor(.blue.opacity(0.6))
                         Text(displayValue)
                             .font(.subheadline)
                             .foregroundColor(.primary)

@@ -14,14 +14,14 @@ struct DeletePropertySheetView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            Text("Удалить объект?")
+            Text("delete_property_title".localized)
                 .font(.title3)
                 .fontWeight(.bold)
                 .multilineTextAlignment(.center)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
             
-            Text("Объект \"\(propertyName)\" и все связанные данные будут удалены без возможности восстановления.")
+            Text(String(format: "delete_property_message".localized, propertyName))
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(nil)
@@ -30,7 +30,7 @@ struct DeletePropertySheetView: View {
             
             HStack(spacing: 12) {
                 if #available(iOS 15.0, *) {
-                    Button("Отмена") {
+                    Button("cancel".localized) {
                         isPresented = false
                     }
                     .frame(maxWidth: .infinity)
@@ -41,13 +41,13 @@ struct DeletePropertySheetView: View {
                         onDelete()
                         isPresented = false
                     } label: {
-                        Text("Удалить объект")
+                        Text("delete_property_action".localized)
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
                 } else {
-                    Button("Отмена") {
+                    Button("cancel".localized) {
                         isPresented = false
                     }
                     .frame(maxWidth: .infinity)
@@ -59,7 +59,7 @@ struct DeletePropertySheetView: View {
                         onDelete()
                         isPresented = false
                     }) {
-                        Text("Удалить")
+                        Text("delete".localized)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()

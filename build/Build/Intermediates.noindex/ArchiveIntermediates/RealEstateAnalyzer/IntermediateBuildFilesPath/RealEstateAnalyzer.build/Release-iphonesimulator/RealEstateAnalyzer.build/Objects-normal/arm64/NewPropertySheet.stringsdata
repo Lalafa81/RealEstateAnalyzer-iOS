@@ -1,0 +1,36 @@
+{
+  "source": "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Views/Dashboard/NewPropertySheet.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Новый объект"
+      },
+      {
+        "comment": "",
+        "key": "Заполните основные данные. Остальное можно настроить позже."
+      },
+      {
+        "comment": "",
+        "key": "Основное"
+      },
+      {
+        "comment": "",
+        "key": "Параметры"
+      },
+      {
+        "comment": "",
+        "key": "Создать объект"
+      },
+      {
+        "comment": "",
+        "key": "Отмена"
+      },
+      {
+        "comment": "",
+        "key": ""
+      }
+    ]
+  },
+  "version": 1
+}

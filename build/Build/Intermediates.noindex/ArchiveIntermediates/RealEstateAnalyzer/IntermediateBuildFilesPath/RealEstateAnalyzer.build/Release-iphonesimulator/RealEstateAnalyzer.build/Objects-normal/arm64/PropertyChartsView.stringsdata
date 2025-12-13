@@ -1,0 +1,24 @@
+{
+  "source": "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Views/PropertyDetail/PropertyChartsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Графики"
+      },
+      {
+        "comment": "",
+        "key": "Доходы и расходы за %@"
+      },
+      {
+        "comment": "",
+        "key": "Доходы"
+      },
+      {
+        "comment": "",
+        "key": "Расходы"
+      }
+    ]
+  },
+  "version": 1
+}

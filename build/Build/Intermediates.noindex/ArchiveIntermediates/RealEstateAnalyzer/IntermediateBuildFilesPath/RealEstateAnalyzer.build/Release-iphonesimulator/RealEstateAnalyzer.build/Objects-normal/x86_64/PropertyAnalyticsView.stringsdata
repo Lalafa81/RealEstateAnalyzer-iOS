@@ -1,0 +1,28 @@
+{
+  "source": "/Users/ss/Desktop/Git/RealEstateAnalyzer-iOS/RealEstateAnalyzer/Views/PropertyDetail/PropertyAnalyticsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Аналитика"
+      },
+      {
+        "comment": "",
+        "key": "Только выбранный год"
+      },
+      {
+        "comment": "",
+        "key": ""
+      },
+      {
+        "comment": "",
+        "key": "Включать техобслуживание"
+      },
+      {
+        "comment": "",
+        "key": "Включать эксплуатационные"
+      }
+    ]
+  },
+  "version": 1
+}

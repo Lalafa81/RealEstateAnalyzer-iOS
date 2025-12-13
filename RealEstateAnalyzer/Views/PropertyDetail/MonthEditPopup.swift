@@ -92,7 +92,7 @@ struct MonthEditPopup: View {
                             .foregroundColor(.blue)
                         
                         // Заголовок
-                        Text("Редактирование: \(monthTitle)")
+                        Text(String(format: "month_edit_title".localized, monthTitle))
                             .font(.subheadline) // РАЗМЕР: шрифт заголовка
                             .fontWeight(.semibold)
                             .lineLimit(1) // РАЗМЕР: одна строка
@@ -106,7 +106,7 @@ struct MonthEditPopup: View {
                     // Поля доходов
                     Group {
                         VStack(alignment: .leading, spacing: 1) { // РАЗМЕР: spacing между лейблом и полем
-                            Text("Базовый доход")
+                            Text("month_edit_base_income".localized)
                                 .font(.caption2) // РАЗМЕР: шрифт лейбла
                                 .foregroundColor(.secondary)
                             TextField("0", text: $incomeBaseText)
@@ -120,7 +120,7 @@ struct MonthEditPopup: View {
                         .padding(.horizontal, 16) // РАЗМЕР: горизонтальный отступ
                         
                         VStack(alignment: .leading, spacing: 1) {
-                            Text("Переменный доход")
+                            Text("month_edit_variable_income".localized)
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
                             TextField("0", text: $incomeVariableText)
@@ -135,7 +135,7 @@ struct MonthEditPopup: View {
                         
                         // Итого доход
                         HStack {
-                            Text("Итого доход")
+                            Text("month_edit_total_income".localized)
                                 .font(.footnote) // РАЗМЕР: шрифт итого
                                 .fontWeight(.semibold)
                             Spacer()
@@ -152,7 +152,7 @@ struct MonthEditPopup: View {
                         
                         // Поля расходов
                         VStack(alignment: .leading, spacing: 1) {
-                            Text("Административные")
+                            Text("month_edit_admin_expenses".localized)
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
                             TextField("0", text: $adminText)
@@ -166,7 +166,7 @@ struct MonthEditPopup: View {
                         .padding(.horizontal, 16)
                         
                         VStack(alignment: .leading, spacing: 1) {
-                            Text("Эксплуатационные")
+                            Text("month_edit_operating_expenses".localized)
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
                             TextField("0", text: $operatingText)
@@ -180,7 +180,7 @@ struct MonthEditPopup: View {
                         .padding(.horizontal, 16)
                         
                         VStack(alignment: .leading, spacing: 1) {
-                            Text("Прочие")
+                            Text("month_edit_other_expenses".localized)
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
                             TextField("0", text: $otherText)
@@ -195,7 +195,7 @@ struct MonthEditPopup: View {
                         
                         // Итого расход
                         HStack {
-                            Text("Итого расход")
+                            Text("month_edit_total_expense".localized)
                                 .font(.footnote)
                                 .fontWeight(.semibold)
                             Spacer()
@@ -209,7 +209,7 @@ struct MonthEditPopup: View {
                     }
                     
                     // Кнопка закрытия
-                    Text("Готово")
+                    Text("month_edit_done".localized)
                         .font(.caption2) // РАЗМЕР: шрифт кнопки
                         .fontWeight(.semibold)
                         .frame(height: 26) // РАЗМЕР: фиксированная высота кнопки (финальное уменьшение)

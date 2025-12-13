@@ -1,0 +1,182 @@
+/* 
+  Localizable.strings (English)
+  RealEstateAnalyzer
+*/
+
+// MARK: - Main Navigation
+"real_estate_title" = "Real Estate";
+"new_property" = "New Property";
+"cancel" = "Cancel";
+"add" = "Add";
+"save" = "Save";
+"delete" = "Delete";
+"edit" = "Edit";
+
+// MARK: - Tab Bar
+"tab_dashboard" = "Real Estate";
+"tab_calendar" = "Calendar";
+"tab_analytics" = "Analytics";
+"tab_settings" = "Settings";
+"settings_title" = "Settings";
+"settings_coming_soon" = "Coming Soon";
+
+// MARK: - Statistics
+"statistics_title" = "Statistics";
+"properties_title" = "Properties";
+"calendar_title" = "Calendar";
+"calendar_development" = "Calendar events are under development";
+
+// MARK: - Property Status
+"status_rented" = "Rented";
+"status_vacant" = "Vacant";
+"status_under_repair" = "Under Repair";
+"status_sold" = "Sold";
+
+// MARK: - Property Type
+"type_residential" = "Residential";
+"type_office" = "Office";
+"type_warehouse" = "Warehouse";
+"type_industrial" = "Industrial";
+"type_other" = "Other";
+
+// MARK: - Property Condition
+"condition_excellent" = "Excellent";
+"condition_good" = "Good";
+"condition_satisfactory" = "Satisfactory";
+"condition_needs_repair" = "Needs Repair";
+
+// MARK: - Property Fields
+"field_name" = "Name";
+"field_address" = "Address";
+"field_type" = "Type";
+"field_status" = "Status";
+"field_area" = "Area";
+"field_purchase_price" = "Purchase Price";
+"field_purchase_date" = "Purchase Date";
+"field_condition" = "Condition";
+"field_property_tax" = "Property Tax (per year)";
+"field_insurance" = "Insurance (per year)";
+"field_exit_price" = "Expected Sale Price";
+"field_floors" = "Floors";
+"field_notes" = "Notes";
+"field_add_notes" = "Add Notes";
+
+// MARK: - Tenants
+"tenants_title" = "Tenants";
+"tenant_add" = "Add";
+"tenant_no_tenants" = "No Tenants";
+"tenant_name" = "No Name";
+"tenant_income" = "Income";
+"tenant_area" = "Area";
+"tenant_start_date" = "Start";
+"tenant_end_date" = "End";
+"tenant_company" = "Company";
+"tenant_indexation" = "Indexation";
+"tenant_deposit" = "Deposit";
+"tenant_status" = "Status";
+"tenant_active" = "Active";
+"tenant_archive" = "Archive";
+"tenant_archive_action" = "Archive";
+"tenant_unarchive_action" = "Unarchive";
+
+// MARK: - Company Types
+"company_ip" = "Sole Proprietorship";
+"company_ooo" = "LLC";
+"company_individual" = "Individual";
+
+// MARK: - Deposit Types
+"deposit_one_month" = "1 month";
+"deposit_two_months" = "2 months";
+"deposit_custom" = "Custom";
+
+// MARK: - New Property Sheet
+"new_property_title" = "New Property";
+"new_property_subtitle" = "Fill in the basic information. The rest can be configured later.";
+"new_property_section_main" = "Main";
+"new_property_section_additional" = "Additional";
+"new_property_create" = "Create Property";
+"new_property_area_placeholder" = "Area (m²)";
+"new_property_price_placeholder" = "Purchase Price";
+"new_property_date_placeholder" = "Purchase Date (dd.mm.yyyy)";
+
+// MARK: - Delete Sheets
+"delete_tenant_title" = "Delete Tenant?";
+"delete_tenant_message" = "Are you sure you want to delete tenant \"%@\"? This action cannot be undone.";
+"delete_property_title" = "Delete Property?";
+"delete_property_message" = "Property \"%@\" and all related data will be deleted permanently.";
+"delete_property_action" = "Delete Property";
+"delete_year_title" = "Delete Year %d?";
+"delete_year_message" = "All data for this year will be deleted.";
+
+// MARK: - Property Detail Sections
+"property_title" = "Property";
+"tenants_section_title" = "Tenants";
+"year_selector_title" = "Year Selection";
+"cash_flow_title" = "Cash Flow";
+"charts_title" = "Charts";
+"analytics_title" = "Analytics";
+"gallery_title" = "Gallery";
+"gallery_no_images" = "No Images";
+"gallery_photos_count" = "%d photos";
+
+// MARK: - Statistics
+"stat_properties_count" = "Properties Count";
+"stat_portfolio_value" = "Portfolio Value";
+"stat_total_area" = "Total Area";
+"stat_total_income" = "Total Income";
+"stat_total_expenses" = "Total Expenses";
+"stat_net_profit" = "Net Profit";
+"stat_average_roi" = "Average ROI";
+"stat_average_cap_rate" = "Average Cap Rate";
+"stat_average_occupancy" = "Average Occupancy";
+"stat_average_holding_period" = "Average Holding Period";
+"stat_exit_value" = "Exit Value";
+"stat_average_price_per_m2" = "Average Price per m²";
+"unit_square_meters" = "m²";
+"unit_years" = "years";
+
+// MARK: - Cash Flow
+"cash_flow_month" = "Month";
+"cash_flow_income" = "Income";
+"cash_flow_expense" = "Expense";
+"cash_flow_net_cashflow" = "Net cashflow for %d";
+"cash_flow_all_periods" = "All Periods";
+"cash_flow_income_label" = "Income";
+"cash_flow_expenses_label" = "Expenses";
+"cash_flow_net_label" = "Net";
+"cash_flow_income_legend" = "Income";
+"cash_flow_expenses_legend" = "Expenses";
+"month_edit_title" = "Edit: %@";
+"month_edit_base_income" = "Base Income";
+"month_edit_variable_income" = "Variable Income";
+"month_edit_total_income" = "Total Income";
+"month_edit_admin_expenses" = "Administrative";
+"month_edit_operating_expenses" = "Operating";
+"month_edit_other_expenses" = "Other";
+"month_edit_total_expense" = "Total Expense";
+"month_edit_done" = "Done";
+
+// MARK: - Floors
+"floors_basement" = "Basement";
+"floors_one" = "1 floor";
+"floors_two" = "Two-story";
+"floors_many" = "%d floors";
+
+// MARK: - Gallery
+"gallery_add_from_library" = "Choose from Library";
+"gallery_take_photo" = "Take Photo";
+"gallery_click_to_add" = "Tap + to add";
+"gallery_delete_image_title" = "Delete Image?";
+
+// MARK: - Charts
+"charts_income_expenses_for" = "Income and Expenses for %d";
+"charts_expand" = "Expand";
+
+// MARK: - Analytics Settings
+"analytics_only_selected_year" = "Only Selected Year";
+"analytics_include_maintenance" = "Include Administrative";
+"analytics_include_operating" = "Include Operating";
+
+// MARK: - Common
+"not_specified" = "Not Specified";
+"empty" = "—";

@@ -24,10 +24,54 @@ struct RealEstateAnalyzerApp: App {
 
 struct ContentView: View {
     @EnvironmentObject var dataManager: DataManager
+    @State private var selectedTab = 0
     
     var body: some View {
-        NavigationView {
-            DashboardView()
+        TabView(selection: $selectedTab) {
+            // Вкладка: Дашборд недвижимости
+            NavigationView {
+                DashboardView()
+            }
+            .tabItem {
+                Image(systemName: "house.fill")
+                Text("tab_dashboard".localized)
+            }
+            .tag(0)
+            
+            // Вкладка: Календарь
+            NavigationView {
+                CalendarTabView()
+            }
+            .tabItem {
+                Image(systemName: "calendar")
+                Text("tab_calendar".localized)
+            }
+            .tag(1)
+            
+            // Вкладка: Аналитика
+            NavigationView {
+                AnalyticsTabView()
+            }
+            .tabItem {
+                Image(systemName: "chart.bar.fill")
+                Text("tab_analytics".localized)
+            }
+            .tag(2)
+            
+            // Вкладка: Настройки
+            NavigationView {
+                SettingsTabView()
+            }
+            .tabItem {
+                Image(systemName: "gearshape.fill")
+                Text("tab_settings".localized)
+            }
+            .tag(3)
+        }
+        .onAppear {
+            // Настройка цвета вкладок на серый
+            UITabBar.appearance().unselectedItemTintColor = .gray
+            UITabBar.appearance().backgroundColor = .white
         }
     }
 }

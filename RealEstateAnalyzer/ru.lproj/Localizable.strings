@@ -1,0 +1,182 @@
+/* 
+  Localizable.strings
+  RealEstateAnalyzer
+*/
+
+// MARK: - Main Navigation
+"real_estate_title" = "Недвижимость";
+"new_property" = "Новый объект";
+"cancel" = "Отмена";
+"add" = "Добавить";
+"save" = "Сохранить";
+"delete" = "Удалить";
+"edit" = "Редактировать";
+
+// MARK: - Tab Bar
+"tab_dashboard" = "Недвижимость";
+"tab_calendar" = "Календарь";
+"tab_analytics" = "Аналитика";
+"tab_settings" = "Настройки";
+"settings_title" = "Настройки";
+"settings_coming_soon" = "Раздел в разработке";
+
+// MARK: - Statistics
+"statistics_title" = "Общая статистика";
+"properties_title" = "Объекты недвижимости";
+"calendar_title" = "Календарь";
+"calendar_development" = "Календарь событий находится в разработке";
+
+// MARK: - Property Status
+"status_rented" = "Сдано";
+"status_vacant" = "Свободно";
+"status_under_repair" = "На ремонте";
+"status_sold" = "Продано";
+
+// MARK: - Property Type
+"type_residential" = "Жилое";
+"type_office" = "Офисное";
+"type_warehouse" = "Складское";
+"type_industrial" = "Производство";
+"type_other" = "Другое";
+
+// MARK: - Property Condition
+"condition_excellent" = "Отличное";
+"condition_good" = "Хорошее";
+"condition_satisfactory" = "Среднее";
+"condition_needs_repair" = "Требует ремонта";
+
+// MARK: - Property Fields
+"field_name" = "Название";
+"field_address" = "Адрес";
+"field_type" = "Назначение";
+"field_status" = "Статус";
+"field_area" = "Площадь";
+"field_purchase_price" = "Цена покупки";
+"field_purchase_date" = "Дата покупки";
+"field_condition" = "Состояние";
+"field_property_tax" = "Налоги (в год)";
+"field_insurance" = "Страхование (в год)";
+"field_exit_price" = "Ожидаемая цена продажи";
+"field_floors" = "Этажность";
+"field_notes" = "Заметки";
+"field_add_notes" = "Добавить заметки";
+
+// MARK: - Tenants
+"tenants_title" = "Арендаторы";
+"tenant_add" = "Добавить";
+"tenant_no_tenants" = "Нет арендаторов";
+"tenant_name" = "Без названия";
+"tenant_income" = "Доход";
+"tenant_area" = "Площадь";
+"tenant_start_date" = "Начало";
+"tenant_end_date" = "Конец";
+"tenant_company" = "Компания";
+"tenant_indexation" = "Индексация";
+"tenant_deposit" = "Депозит";
+"tenant_status" = "Статус";
+"tenant_active" = "Активен";
+"tenant_archive" = "Архив";
+"tenant_archive_action" = "Архивировать";
+"tenant_unarchive_action" = "Разархивировать";
+
+// MARK: - Company Types
+"company_ip" = "ИП";
+"company_ooo" = "ООО";
+"company_individual" = "Физ. лицо";
+
+// MARK: - Deposit Types
+"deposit_one_month" = "1 месяц";
+"deposit_two_months" = "2 месяца";
+"deposit_custom" = "Вручную";
+
+// MARK: - New Property Sheet
+"new_property_title" = "Новый объект";
+"new_property_subtitle" = "Заполните основные данные. Остальное можно настроить позже.";
+"new_property_section_main" = "Основное";
+"new_property_section_additional" = "Дополнительно";
+"new_property_create" = "Создать объект";
+"new_property_area_placeholder" = "Площадь (м²)";
+"new_property_price_placeholder" = "Цена покупки";
+"new_property_date_placeholder" = "Дата покупки (дд.мм.гггг)";
+
+// MARK: - Delete Sheets
+"delete_tenant_title" = "Удалить арендатора?";
+"delete_tenant_message" = "Вы уверены, что хотите удалить арендатора \"%@\"? Это действие нельзя отменить.";
+"delete_property_title" = "Удалить объект?";
+"delete_property_message" = "Объект \"%@\" и все связанные данные будут удалены без возможности восстановления.";
+"delete_property_action" = "Удалить объект";
+"delete_year_title" = "Удалить год %d?";
+"delete_year_message" = "Все данные за этот год будут удалены.";
+
+// MARK: - Property Detail Sections
+"property_title" = "Объект";
+"tenants_section_title" = "Арендаторы";
+"year_selector_title" = "Выбор года";
+"cash_flow_title" = "Движение денежных средств";
+"charts_title" = "Графики";
+"analytics_title" = "Аналитика";
+"gallery_title" = "Галерея";
+"gallery_no_images" = "Нет изображений";
+"gallery_photos_count" = "%d фото";
+
+// MARK: - Statistics
+"stat_properties_count" = "Количество объектов";
+"stat_portfolio_value" = "Стоимость портфеля";
+"stat_total_area" = "Общая площадь";
+"stat_total_income" = "Суммарный доход";
+"stat_total_expenses" = "Общие расходы";
+"stat_net_profit" = "Чистая прибыль";
+"stat_average_roi" = "Средний ROI";
+"stat_average_cap_rate" = "Средний Cap Rate";
+"stat_average_occupancy" = "Средняя загруженность";
+"stat_average_holding_period" = "Средний срок владения";
+"stat_exit_value" = "Стоимость выхода";
+"stat_average_price_per_m2" = "Средняя цена за м²";
+"unit_square_meters" = "м²";
+"unit_years" = "лет";
+
+// MARK: - Cash Flow
+"cash_flow_month" = "Месяц";
+"cash_flow_income" = "Доход";
+"cash_flow_expense" = "Расход";
+"cash_flow_net_cashflow" = "Чистый cashflow за %d год";
+"cash_flow_all_periods" = "За весь период";
+"cash_flow_income_label" = "Доход";
+"cash_flow_expenses_label" = "Расходы";
+"cash_flow_net_label" = "Чистый";
+"cash_flow_income_legend" = "Доходы";
+"cash_flow_expenses_legend" = "Расходы";
+"month_edit_title" = "Редактирование: %@";
+"month_edit_base_income" = "Базовый доход";
+"month_edit_variable_income" = "Переменный доход";
+"month_edit_total_income" = "Итого доход";
+"month_edit_admin_expenses" = "Административные";
+"month_edit_operating_expenses" = "Эксплуатационные";
+"month_edit_other_expenses" = "Прочие";
+"month_edit_total_expense" = "Итого расход";
+"month_edit_done" = "Готово";
+
+// MARK: - Floors
+"floors_basement" = "Подвал";
+"floors_one" = "1 этаж";
+"floors_two" = "Двухэтажное";
+"floors_many" = "%d этажей";
+
+// MARK: - Gallery
+"gallery_add_from_library" = "Выбрать из галереи";
+"gallery_take_photo" = "Сделать фото";
+"gallery_click_to_add" = "Нажмите + чтобы добавить";
+"gallery_delete_image_title" = "Удалить изображение?";
+
+// MARK: - Charts
+"charts_income_expenses_for" = "Доходы и расходы за %d";
+"charts_expand" = "Развернуть";
+
+// MARK: - Analytics Settings
+"analytics_only_selected_year" = "Только выбранный год";
+"analytics_include_maintenance" = "Включать административные";
+"analytics_include_operating" = "Включать эксплуатационные";
+
+// MARK: - Common
+"not_specified" = "Не указано";
+"empty" = "—";

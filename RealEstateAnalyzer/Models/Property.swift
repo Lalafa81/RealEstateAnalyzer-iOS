@@ -25,11 +25,11 @@ struct PropertyImages: Codable {
 // MARK: - Enums для типов, статусов и состояний
 
 enum PropertyType: String, CaseIterable, Identifiable, Codable {
-    case residential = "Жилое"
-    case office = "Офисное"
-    case warehouse = "Складское"
-    case industrial = "Производство"
-    case other = "Другое"
+    case residential = "residential"
+    case office = "office"
+    case warehouse = "warehouse"
+    case industrial = "industrial"
+    case other = "other"
     
     var id: String { rawValue }
     
@@ -49,31 +49,155 @@ enum PropertyType: String, CaseIterable, Identifiable, Codable {
         }
     }
     
+    /// Локализованное отображаемое значение
+    var localizedName: String {
+        switch self {
+        case .residential:
+            return "type_residential".localized
+        case .office:
+            return "type_office".localized
+        case .warehouse:
+            return "type_warehouse".localized
+        case .industrial:
+            return "type_industrial".localized
+        case .other:
+            return "type_other".localized
+        }
+    }
+    
     /// Возвращает отображаемое значение типа с учетом кастомного значения
     func displayValue(customType: String?) -> String {
         if self == .other, let custom = customType, !custom.isEmpty {
             return custom
         }
-        return self.rawValue
+        return self.localizedName
+    }
+    
+    /// Инициализатор с поддержкой старых значений (русские)
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        
+        // Поддержка старых значений на русском
+        switch rawValue {
+        case "Жилое", "residential":
+            self = .residential
+        case "Офисное", "office":
+            self = .office
+        case "Складское", "warehouse":
+            self = .warehouse
+        case "Производство", "industrial":
+            self = .industrial
+        case "Другое", "other":
+            self = .other
+        default:
+            // Пытаемся найти по новому значению
+            if let value = PropertyType(rawValue: rawValue) {
+                self = value
+            } else {
+                // Fallback на other
+                self = .other
+            }
+        }
     }
 }
 
 enum PropertyStatus: String, CaseIterable, Identifiable, Codable {
-    case rented = "Сдано"
-    case vacant = "Свободно"
-    case underRepair = "На ремонте"
-    case sold = "Продано"
+    case rented = "rented"
+    case vacant = "vacant"
+    case underRepair = "under_repair"
+    case sold = "sold"
     
     var id: String { rawValue }
+    
+    /// Локализованное отображаемое значение
+    var localizedName: String {
+        switch self {
+        case .rented:
+            return "status_rented".localized
+        case .vacant:
+            return "status_vacant".localized
+        case .underRepair:
+            return "status_under_repair".localized
+        case .sold:
+            return "status_sold".localized
+        }
+    }
+    
+    /// Инициализатор с поддержкой старых значений (русские)
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        
+        // Поддержка старых значений на русском
+        switch rawValue {
+        case "Сдано", "rented":
+            self = .rented
+        case "Свободно", "vacant":
+            self = .vacant
+        case "На ремонте", "under_repair":
+            self = .underRepair
+        case "Продано", "sold":
+            self = .sold
+        default:
+            // Пытаемся найти по новому значению
+            if let value = PropertyStatus(rawValue: rawValue) {
+                self = value
+            } else {
+                // Fallback на vacant
+                self = .vacant
+            }
+        }
+    }
 }
 
 enum PropertyCondition: String, CaseIterable, Identifiable, Codable {
-    case excellent = "Отличное"
-    case good = "Хорошее"
-    case satisfactory = "Среднее"
-    case needsRepair = "Требует ремонта"
+    case excellent = "excellent"
+    case good = "good"
+    case satisfactory = "satisfactory"
+    case needsRepair = "needs_repair"
     
     var id: String { rawValue }
+    
+    /// Локализованное отображаемое значение
+    var localizedName: String {
+        switch self {
+        case .excellent:
+            return "condition_excellent".localized
+        case .good:
+            return "condition_good".localized
+        case .satisfactory:
+            return "condition_satisfactory".localized
+        case .needsRepair:
+            return "condition_needs_repair".localized
+        }
+    }
+    
+    /// Инициализатор с поддержкой старых значений (русские)
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        
+        // Поддержка старых значений на русском
+        switch rawValue {
+        case "Отличное", "excellent":
+            self = .excellent
+        case "Хорошее", "good":
+            self = .good
+        case "Среднее", "satisfactory":
+            self = .satisfactory
+        case "Требует ремонта", "needs_repair":
+            self = .needsRepair
+        default:
+            // Пытаемся найти по новому значению
+            if let value = PropertyCondition(rawValue: rawValue) {
+                self = value
+            } else {
+                // Fallback на excellent
+                self = .excellent
+            }
+        }
+    }
 }
 
 struct Property: Identifiable, Codable {
@@ -96,6 +220,8 @@ struct Property: Identifiable, Codable {
     var icon: String? // Иконка объекта (warehouse, house и т.д.)
     var image: String? // Base64-кодированное изображение объекта (data:image/jpeg;base64,...)
     var gallery: [String]? // Массив base64-кодированных изображений для галереи
+    var notes: String? // Заметки об объекте (максимум 200 символов)
+    var floors: Int? // Этажность: от 1 до 1 = "1 этаж", от 1 до 2 = "двухэтажное", -1 = "подвал"
     
     struct MonthData: Codable {
         // Доходы
@@ -119,20 +245,44 @@ struct Property: Identifiable, Codable {
 
 // Тип компании арендатора
 enum CompanyType: String, Codable, CaseIterable, Identifiable {
-    case ip = "ИП"
-    case ooo = "ООО"
-    case other = "Физ. лицо"
+    case ip = "ip"
+    case ooo = "ooo"
+    case other = "individual"
     
     var id: String { rawValue }
+    
+    /// Локализованное отображаемое значение
+    var localizedName: String {
+        switch self {
+        case .ip:
+            return "company_ip".localized
+        case .ooo:
+            return "company_ooo".localized
+        case .other:
+            return "company_individual".localized
+        }
+    }
 }
 
 // Тип депозита
 enum DepositType: String, Codable, Identifiable {
-    case oneMonth = "1 месяц"
-    case twoMonths = "2 месяца"
-    case custom = "Вручную"
+    case oneMonth = "one_month"
+    case twoMonths = "two_months"
+    case custom = "custom"
     
     var id: String { rawValue }
+    
+    /// Локализованное отображаемое значение
+    var localizedName: String {
+        switch self {
+        case .oneMonth:
+            return "deposit_one_month".localized
+        case .twoMonths:
+            return "deposit_two_months".localized
+        case .custom:
+            return "deposit_custom".localized
+        }
+    }
 }
 
 struct Tenant: Identifiable, Codable {
@@ -147,13 +297,14 @@ struct Tenant: Identifiable, Codable {
     var deposit: Double?
     var depositType: DepositType?
     var isArchived: Bool = false
+    var moveToArchiveDate: String? // Дата перемещения в архив (опционально)
     
     enum CodingKeys: String, CodingKey {
-        case name, income, startDate, endDate, area, indexation, companyType, deposit, depositType, isArchived
+        case name, income, startDate, endDate, area, indexation, companyType, deposit, depositType, isArchived, moveToArchiveDate
     }
     
     // Обычный инициализатор для создания Tenant вручную
-    init(id: UUID = UUID(), name: String, income: Double? = nil, startDate: String? = nil, endDate: String? = nil, area: Double? = nil, indexation: String? = nil, companyType: CompanyType? = nil, deposit: Double? = nil, depositType: DepositType? = nil, isArchived: Bool = false) {
+    init(id: UUID = UUID(), name: String, income: Double? = nil, startDate: String? = nil, endDate: String? = nil, area: Double? = nil, indexation: String? = nil, companyType: CompanyType? = nil, deposit: Double? = nil, depositType: DepositType? = nil, isArchived: Bool = false, moveToArchiveDate: String? = nil) {
         self.id = id
         self.name = name
         self.income = income
@@ -165,6 +316,7 @@ struct Tenant: Identifiable, Codable {
         self.deposit = deposit
         self.depositType = depositType
         self.isArchived = isArchived
+        self.moveToArchiveDate = moveToArchiveDate
     }
     
     // Кастомный декодер для обработки пустых строк как nil
@@ -219,12 +371,20 @@ struct Tenant: Identifiable, Codable {
             indexation = nil
         }
         
-        // Обрабатываем companyType
-        if let companyTypeValue = try? container.decode(CompanyType.self, forKey: .companyType) {
-            companyType = companyTypeValue
-        } else if let companyTypeString = try? container.decode(String.self, forKey: .companyType),
+        // Обрабатываем companyType с поддержкой старых значений
+        if let companyTypeString = try? container.decode(String.self, forKey: .companyType),
                   !companyTypeString.isEmpty {
+            // Поддержка старых значений на русском
+            switch companyTypeString {
+            case "ИП", "ip":
+                companyType = .ip
+            case "ООО", "ooo":
+                companyType = .ooo
+            case "Физ. лицо", "individual":
+                companyType = .other
+            default:
             companyType = CompanyType(rawValue: companyTypeString)
+            }
         } else {
             companyType = nil
         }
@@ -240,18 +400,34 @@ struct Tenant: Identifiable, Codable {
             deposit = nil
         }
         
-        // Обрабатываем depositType
-        if let depositTypeValue = try? container.decode(DepositType.self, forKey: .depositType) {
-            depositType = depositTypeValue
-        } else if let depositTypeString = try? container.decode(String.self, forKey: .depositType),
+        // Обрабатываем depositType с поддержкой старых значений
+        if let depositTypeString = try? container.decode(String.self, forKey: .depositType),
                   !depositTypeString.isEmpty {
+            // Поддержка старых значений на русском
+            switch depositTypeString {
+            case "1 месяц", "one_month":
+                depositType = .oneMonth
+            case "2 месяца", "two_months":
+                depositType = .twoMonths
+            case "Вручную", "custom":
+                depositType = .custom
+            default:
             depositType = DepositType(rawValue: depositTypeString)
+            }
         } else {
             depositType = nil
         }
         
         // Обрабатываем isArchived: может отсутствовать в старых данных
         isArchived = (try? container.decode(Bool.self, forKey: .isArchived)) ?? false
+        
+        // Обрабатываем moveToArchiveDate: может быть строкой или пустой строкой
+        if let archiveDateValue = try? container.decode(String.self, forKey: .moveToArchiveDate),
+           !archiveDateValue.isEmpty {
+            moveToArchiveDate = archiveDateValue
+        } else {
+            moveToArchiveDate = nil
+        }
     }
 }
 

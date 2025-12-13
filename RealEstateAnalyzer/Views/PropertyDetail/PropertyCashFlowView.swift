@@ -10,7 +10,11 @@ import SwiftUI
 // MARK: - Константы
 
 private let monthNumbers = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-private let monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
+
+// Локализованные названия месяцев
+private var monthNames: [String] {
+    return DateFormatter.localizedMonthNames()
+}
 
 // MARK: - Helper функции для расчетов
 
@@ -82,48 +86,38 @@ struct CashFlowView: View {
             HStack(spacing: 6) {
                 // Cashflow за выбранный год
                 VStack(spacing: 2) {
-                    Text("Чистый cashflow за \(String(selectedYear)) год")
-                        .font(.system(size: 8))
-                        .foregroundColor(.secondary)
+                    Text(String(format: "cash_flow_net_cashflow".localized, selectedYear))
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(.primary)
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
                     
-                    HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        Text(totalCashFlow.formatCurrency())
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(totalCashFlow >= 0 ? .green : .red)
-                        Text("₽")
-                            .font(.system(size: 9))
-                            .foregroundColor(.secondary)
-                    }
+                    Text(totalCashFlow.formatCurrencyWithSymbol())
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(totalCashFlow >= 0 ? .green : .red)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 6)
-                .background(Color.blue.opacity(0.1))
+                .background(Color.blue.opacity(0.15))
                 .cornerRadius(6)
                 
                 // Cashflow за весь период
                 VStack(spacing: 2) {
-                    Text("Чистый cashflow за весь период")
-                        .font(.system(size: 8))
-                        .foregroundColor(.secondary)
+                    Text("cash_flow_all_periods".localized)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(.primary)
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
                     
-                    HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        Text(totalCashFlowAllPeriods.formatCurrency())
-                            .font(.system(size: 14, weight: .bold)) //шрифт зеленого блока
-                            .foregroundColor(totalCashFlowAllPeriods >= 0 ? .green : .red) //цвет зеленого большого текста
-                        Text("₽")
-                            .font(.system(size: 12))    //шрифт маленького текста
-                            .foregroundColor(.secondary) //цвет маленького текста
-                    }
+                    Text(totalCashFlowAllPeriods.formatCurrencyWithSymbol())
+                        .font(.system(size: 14, weight: .bold)) //шрифт зеленого блока
+                        .foregroundColor(totalCashFlowAllPeriods >= 0 ? .green : .red) //цвет зеленого большого текста
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 6)
-                .background(Color.green.opacity(0.1))
+                .background(Color.green.opacity(0.15))
                 .cornerRadius(6)
             }
             
@@ -157,15 +151,16 @@ struct CashFlowTableView: View {
     
     var monthlyData: [(month: String, monthNum: String, income: Double, expense: Double, monthData: Property.MonthData?)] {
         let yearData = property.months[String(selectedYear)] ?? [:]
+        let localizedMonths = DateFormatter.localizedMonthNames()
         
         return monthNumbers.enumerated().map { index, monthNum in
             if let monthData = yearData[monthNum] {
-                return (month: monthNames[index], monthNum: monthNum, 
+                return (month: localizedMonths[index], monthNum: monthNum, 
                        income: calculateIncome(from: monthData),
                        expense: calculateExpense(from: monthData),
                        monthData: monthData)
             } else {
-                return (month: monthNames[index], monthNum: monthNum, income: 0, expense: 0, monthData: nil)
+                return (month: localizedMonths[index], monthNum: monthNum, income: 0, expense: 0, monthData: nil)
             }
         }
     }
@@ -218,20 +213,20 @@ struct CashFlowTableView: View {
         VStack(spacing: 0) {
             // Заголовок таблицы
             HStack(spacing: 0) {
-                Text("Месяц")
+                Text("cash_flow_month".localized)
                     .font(.subheadline) // РАЗМЕР ШРИФТА заголовка
                     .fontWeight(.semibold)
-                    .frame(width: 70, alignment: .leading) // ШИРИНА колонки "Месяц"
+                    .frame(width: 100, alignment: .leading) // ШИРИНА колонки "Месяц"
                     .padding(.leading, 8) // ОТСТУП слева
                 
                 Spacer()
                 
-                Text("Доход")
+                Text("cash_flow_income".localized)
                     .font(.subheadline) // РАЗМЕР ШРИФТА заголовка
                     .fontWeight(.semibold)
                     .frame(width: 90, alignment: .trailing) // ШИРИНА колонки "Доход"
                 
-                Text("Расход")
+                Text("cash_flow_expense".localized)
                     .font(.subheadline) // РАЗМЕР ШРИФТА заголовка
                     .fontWeight(.semibold)
                     .frame(width: 90, alignment: .trailing) // ШИРИНА колонки "Расход"
@@ -254,7 +249,7 @@ struct CashFlowTableView: View {
                 HStack(spacing: 0) {
                     Text(data.month)
                         .font(.subheadline) // РАЗМЕР ШРИФТА месяца
-                        .frame(width: 70, alignment: .leading) // ШИРИНА колонки "Месяц"
+                        .frame(width: 100, alignment: .leading) // ШИРИНА колонки "Месяц"
                         .padding(.leading, 8) // ОТСТУП слева
                     
                     Spacer()
@@ -262,14 +257,14 @@ struct CashFlowTableView: View {
                     if editingMonth == data.monthNum {
                         // Режим редактирования - упрощенный (прямое редактирование)
                         // Доход → базовый доход (income)
-                        TextField("Доход", text: $editingIncome)
+                        TextField("cash_flow_income".localized, text: $editingIncome)
                             .keyboardType(.decimalPad)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .frame(width: 90) // ШИРИНА поля "Доход"
                             .font(.subheadline) // РАЗМЕР ШРИФТА в поле редактирования
                         
                         // Расход → эксплуатационные расходы (expensesOperational) - можно редактировать напрямую
-                        TextField("Расход", text: $editingExpenseOperational)
+                        TextField("cash_flow_expense".localized, text: $editingExpenseOperational)
                             .keyboardType(.decimalPad)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .multilineTextAlignment(.trailing)
